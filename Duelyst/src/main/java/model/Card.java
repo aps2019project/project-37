@@ -3,19 +3,23 @@ package model;
 abstract public class Card {
     private long id;
     private String inGameID;
+    private String name;
     private long price;
-    Card(long id, String inGameID, long price){
+    Card(long id, String name, long price){
         setId(id);
-        setInGameID(inGameID);
+        setName(name);
         setPrice(price);
     }
-    private void setId(long id){
+    public void setId(long id){
         this.id = id;
     }
-    private void setInGameID(String inGameID){
+    public void setInGameID(String inGameID){
         this.inGameID = inGameID;
     }
-    private void setPrice(long price){
+    public void setName(String name){
+        this.name = name;
+    }
+    public void setPrice(long price){
         this.price = price;
     }
     public long getId(){
@@ -23,6 +27,9 @@ abstract public class Card {
     }
     public String getInGameID() {
         return inGameID;
+    }
+    public String getName() {
+        return name;
     }
     public long getPrice(){
         return price;
