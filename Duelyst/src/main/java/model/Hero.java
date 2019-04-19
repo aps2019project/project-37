@@ -1,5 +1,7 @@
 package model;
 
+import java.util.ArrayList;
+
 public class Hero extends Card {
     private int healthPoint;
     private int attackPower;
@@ -7,6 +9,10 @@ public class Hero extends Card {
     private Type attackType;
     private int range;
     private String info;
+    private boolean movable;
+    private boolean armed;
+    private ArrayList<Buff> buffs;
+
     Hero(long id, String name, long price, int healthPoint,
          int attackPower, Spell specialPower, Type attackType, int range){
         super(id, name, price);
@@ -15,6 +21,9 @@ public class Hero extends Card {
         setSpecialPower(specialPower);
         setAttackType(attackType);
         setRange(range);
+        setMovable(true);
+        setArmed(true);
+        setBuffs(new ArrayList<>());
     }
 
     {
@@ -42,6 +51,18 @@ public class Hero extends Card {
         return range;
     }
 
+    public boolean isArmed() {
+        return armed;
+    }
+
+    public boolean isMovable() {
+        return movable;
+    }
+
+    public ArrayList<Buff> getBuffs(){
+        return buffs;
+    }
+
     public void setHealthPoint(int healthPoint) {
         this.healthPoint = healthPoint;
     }
@@ -60,6 +81,18 @@ public class Hero extends Card {
 
     public void setRange(int range) {
         this.range = range;
+    }
+
+    public void setArmed(boolean armed) {
+        this.armed = armed;
+    }
+
+    public void setMovable(boolean movable) {
+        this.movable = movable;
+    }
+
+    public void setBuffs(ArrayList<Buff> buffs) {
+        this.buffs = buffs;
     }
 
     @Override
