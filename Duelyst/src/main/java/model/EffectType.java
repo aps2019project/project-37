@@ -1,6 +1,6 @@
 package model;
 
-public enum DamageType {
+public enum EffectType {
     HEALTH,
     POWER
 }
