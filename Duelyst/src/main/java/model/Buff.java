@@ -26,6 +26,6 @@ public abstract class Buff{
     public void setRemainingTime(int remainingTime) {
         this.remainingTime = remainingTime;
     }
-    abstract void applyBuff();
+    abstract void applyBuff(Hero hero);
 }
 
