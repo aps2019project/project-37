@@ -107,6 +107,22 @@ public class Hero extends Card {
     public void addHolyNumber(int add){
         setHolyNumber(getHolyNumber() + add);
     }
+
+    public void addAttackPower(int add){
+        setAttackPower(getAttackPower() + add);
+    }
+
+    public void decreaseAttackPower(int decrease){
+        setAttackPower(getAttackPower() - decrease);
+    }
+
+    public void addHealthPoint(int add){
+        setHealthPoint(getHealthPoint() + add);
+    }
+
+    public void decreaseHealthPoint(int decrease){
+        setHealthPoint(getHealthPoint() - decrease);
+    }
     @Override
     void showWithoutPrice() {
         System.out.println(info);
