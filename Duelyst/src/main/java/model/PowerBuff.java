@@ -3,8 +3,8 @@ package model;
 public class PowerBuff extends Buff {
     private int powerIncrease;
 
-    PowerBuff(int duration ,int powerIncrease){
-        super(duration);
+    PowerBuff(int duration , boolean continuous, int powerIncrease){
+        super(duration, continuous);
         setPowerIncrease(powerIncrease);
     }
 

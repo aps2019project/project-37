@@ -4,8 +4,8 @@ public class WeaknessBuff extends Buff {
     private DamageType damageType;
     private int damage;
 
-    WeaknessBuff(int duration ,DamageType damageType, int damage){
-        super(duration);
+    WeaknessBuff(int duration , boolean continuous, DamageType damageType, int damage){
+        super(duration, continuous);
         setDamageType(damageType);
         setDamage(damage);
     }

@@ -2,8 +2,8 @@ package model;
 
 public class HolyBuff extends Buff {
     private int holyNumber;
-    HolyBuff(int duration ,int holyNumber){
-        super(duration);
+    HolyBuff(int duration ,boolean continuous,int holyNumber){
+        super(duration, continuous);
         setHolyNumber(holyNumber);
     }
     @Override
