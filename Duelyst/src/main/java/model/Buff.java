@@ -4,6 +4,10 @@ public abstract class Buff{
     private int duration;
     private int remainingTime;
 
+    Buff(int duration){
+        setDuration(duration);
+        initRemainingTime();
+    }
     public void initRemainingTime(){
         setRemainingTime(duration);
     }
