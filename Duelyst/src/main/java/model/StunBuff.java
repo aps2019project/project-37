@@ -5,7 +5,7 @@ public class StunBuff extends Buff {
         super(duration);
     }
     @Override
-    public void applyBuff() {
-
+    public void applyBuff(Hero hero) {
+        hero.setMovable(false);
     }
 }
