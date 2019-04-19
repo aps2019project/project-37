@@ -12,6 +12,7 @@ public class Hero extends Card {
     private boolean movable;
     private boolean armed;
     private ArrayList<Buff> buffs;
+    private int holyNumber;
 
     Hero(long id, String name, long price, int healthPoint,
          int attackPower, Spell specialPower, Type attackType, int range){
@@ -63,6 +64,10 @@ public class Hero extends Card {
         return buffs;
     }
 
+    public int getHolyNumber(){
+        return holyNumber;
+    }
+
     public void setHealthPoint(int healthPoint) {
         this.healthPoint = healthPoint;
     }
@@ -95,6 +100,13 @@ public class Hero extends Card {
         this.buffs = buffs;
     }
 
+    public void setHolyNumber(int holyNumber){
+        this.holyNumber = holyNumber;
+    }
+
+    public void addHolyNumber(int add){
+        setHolyNumber(getHolyNumber() + add);
+    }
     @Override
     void showWithoutPrice() {
         System.out.println(info);
