@@ -1,23 +1,33 @@
 package model;
 
+import java.util.ArrayList;
+
 public class Spell extends Card{
     private Target target;
-    private Buff effect;
+    private ArrayList<Buff> effects = new ArrayList<>();
     private int mana;
     private String desc;
-    Spell(long id, long price, String name, Target target, Buff effect, int mana){
+    private String info;
+
+    Spell(long id, long price, String name, Target target,
+          ArrayList<Buff> effects, int mana){
         super(id, name, price);
         setTarget(target);
-        setEffect(effect);
+        setEffects(effects);
         setMana(mana);
+    }
+
+    {
+        info = "Type : Spell - Name : " + getName();
+        info += " - MP : " + getMana() + " Description : " + getDesc();
     }
 
     public void setTarget(Target target) {
         this.target = target;
     }
 
-    public void setEffect(Buff effect) {
-        this.effect = effect;
+    public void setEffects(ArrayList<Buff> effects) {
+        this.effects = effects;
     }
 
     public void setMana(int mana) {
@@ -31,8 +41,8 @@ public class Spell extends Card{
         return target;
     }
 
-    public Buff getEffect() {
-        return effect;
+    public ArrayList<Buff> getEffect() {
+        return effects;
     }
 
     public int getMana() {
@@ -44,18 +54,11 @@ public class Spell extends Card{
     }
     @Override
     void showWithPrice() {
-        String show;
-        show = "Type : Spell - Name : " + getName();
-        show = show + " - MP : " + getMana() + " Description : " + getDesc();
-        System.out.println(show);
+        System.out.println(info);
     }
 
     @Override
     void showWithoutPrice() {
-        String show ;
-        show = "Type : Spell - Name : " + getName();
-        show = show + " - MP : " + getMana() + " Description : " + getDesc();
-        show = show + " - Sell Cost : " + getPrice();
-        System.out.println(show);
+        System.out.println(info + " - Sell Cost : " + getPrice());
     }
 }
