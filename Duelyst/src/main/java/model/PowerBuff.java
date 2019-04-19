@@ -1,23 +1,38 @@
 package model;
 
 public class PowerBuff extends Buff {
-    private int powerIncrease;
+    private EffectType type;
+    private int improve;
 
-    PowerBuff(int duration , boolean continuous, int powerIncrease){
+    PowerBuff(int duration , boolean continuous, EffectType type, int improve){
         super(duration, continuous);
-        setPowerIncrease(powerIncrease);
+        setImprove(improve);
+        setType(type);
     }
 
     @Override
     public void applyBuff(Hero hero) {
-        hero.addAttackPower(getPowerIncrease());
+        if(getType().equals(EffectType.HEALTH)){
+            hero.addHealthPoint(improve);
+        }
+        else if(getType().equals(EffectType.POWER)){
+            hero.addAttackPower(improve);
+        }
     }
 
-    public int getPowerIncrease() {
-        return powerIncrease;
+    public int getImprove() {
+        return improve;
     }
 
-    public void setPowerIncrease(int powerIncrease) {
-        this.powerIncrease = powerIncrease;
+    public EffectType getType(){
+        return type;
+    }
+
+    public void setImprove(int improve) {
+        this.improve = improve;
+    }
+
+    public void setType(EffectType type) {
+        this.type = type;
     }
 }
