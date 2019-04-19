@@ -1,10 +1,27 @@
 package model;
 
-public enum Buff {
-    HOLY_BUFF,
-    POWER_BUFF,
-    POISON_BUFF,
-    WEAKNESS_BUFF,
-    STUN_BUFF,
-    DISARM_BUFF
+public abstract class Buff{
+    private int duration;
+    private int remainingTime;
+
+    public void initRemainingTime(){
+        setRemainingTime(duration);
+    }
+    public int getDuration() {
+        return duration;
+    }
+
+    public void setDuration(int duration) {
+        this.duration = duration;
+    }
+
+    public int getRemainingTime() {
+        return remainingTime;
+    }
+
+    public void setRemainingTime(int remainingTime) {
+        this.remainingTime = remainingTime;
+    }
+    abstract void applyBuff();
 }
+
