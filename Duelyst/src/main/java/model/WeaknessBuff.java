@@ -13,10 +13,10 @@ public class WeaknessBuff extends Buff {
     @Override
     public void applyBuff(Hero hero) {
         if(getDamageType().equals(EffectType.HEALTH)){
-            hero.decreaseHealthPoint(damage);
+            hero.decreaseHealthPointInGame(damage);
         }
         else if(getDamageType().equals(EffectType.POWER)){
-            hero.decreaseAttackPower(damage);
+            hero.decreaseAttackPowerInGame(damage);
         }
     }
 

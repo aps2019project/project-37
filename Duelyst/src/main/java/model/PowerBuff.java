@@ -13,10 +13,10 @@ public class PowerBuff extends Buff {
     @Override
     public void applyBuff(Hero hero) {
         if(getType().equals(EffectType.HEALTH)){
-            hero.addHealthPoint(improve);
+            hero.addHealthPointInGame(improve);
         }
         else if(getType().equals(EffectType.POWER)){
-            hero.addAttackPower(improve);
+            hero.addAttackPowerInGame(improve);
         }
     }
 

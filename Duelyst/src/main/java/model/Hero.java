@@ -9,10 +9,7 @@ public class Hero extends Card {
     private Type attackType;
     private int range;
     private String info;
-    private boolean movable;
-    private boolean armed;
-    private ArrayList<Buff> buffs;
-    private int holyNumber;
+    private InGame inGame;
 
     Hero(long id, String name, long price, int healthPoint,
          int attackPower, Spell specialPower, Type attackType, int range){
@@ -22,9 +19,7 @@ public class Hero extends Card {
         setSpecialPower(specialPower);
         setAttackType(attackType);
         setRange(range);
-        setMovable(true);
-        setArmed(true);
-        setBuffs(new ArrayList<>());
+        inGame = new InGame(healthPoint, attackPower);
     }
 
     {
@@ -32,12 +27,21 @@ public class Hero extends Card {
         info += " HP : " + getHealthPoint() + " Class : " + getAttackType().toString();
         info += " Special Power : "+ getSpecialPower().getDesc();
     }
+
     public int getHealthPoint() {
         return healthPoint;
     }
 
     public int getAttackPower() {
         return attackPower;
+    }
+
+    public int getHealthPointInGame() {
+        return inGame.getHealthPoint();
+    }
+
+    public int getAttackPowerInGame() {
+        return inGame.getAttackPower();
     }
 
     public Spell getSpecialPower() {
@@ -52,28 +56,20 @@ public class Hero extends Card {
         return range;
     }
 
-    public boolean isArmed() {
-        return armed;
-    }
-
-    public boolean isMovable() {
-        return movable;
-    }
-
-    public ArrayList<Buff> getBuffs(){
-        return buffs;
-    }
-
-    public int getHolyNumber(){
-        return holyNumber;
-    }
-
     public void setHealthPoint(int healthPoint) {
         this.healthPoint = healthPoint;
     }
 
     public void setAttackPower(int attackPower) {
         this.attackPower = attackPower;
+    }
+
+    public void setHealthPointInGame(int healthPoint) {
+        inGame.setHealthPoint(healthPoint);
+    }
+
+    public void setAttackPowerInGame(int attackPower) {
+        inGame.setAttackPower(attackPower);
     }
 
     public void setSpecialPower(Spell specialPower) {
@@ -89,39 +85,48 @@ public class Hero extends Card {
     }
 
     public void setArmed(boolean armed) {
-        this.armed = armed;
+        inGame.setArmed(armed);
     }
 
     public void setMovable(boolean movable) {
-        this.movable = movable;
+        inGame.setMovable(movable);
     }
 
     public void setBuffs(ArrayList<Buff> buffs) {
-        this.buffs = buffs;
+        inGame.setBuffs(buffs);
     }
 
     public void setHolyNumber(int holyNumber){
-        this.holyNumber = holyNumber;
+        inGame.setHolyNumber(holyNumber);
     }
 
     public void addHolyNumber(int add){
-        setHolyNumber(getHolyNumber() + add);
+        inGame.addHolyNumber(add);
     }
 
-    public void addAttackPower(int add){
-        setAttackPower(getAttackPower() + add);
+    public void addAttackPowerInGame(int add){
+        inGame.addAttackPower(add);
     }
 
-    public void decreaseAttackPower(int decrease){
-        setAttackPower(getAttackPower() - decrease);
+    public void decreaseAttackPowerInGame(int decrease){
+        inGame.decreaseAttackPower(decrease);
     }
 
-    public void addHealthPoint(int add){
-        setHealthPoint(getHealthPoint() + add);
+    public void addHealthPointInGame(int add){
+        inGame.addHealthPoint(add);
     }
 
-    public void decreaseHealthPoint(int decrease){
-        setHealthPoint(getHealthPoint() - decrease);
+    public void decreaseHealthPointInGame(int decrease){
+        inGame.decreaseHealthPoint(decrease);
+    }
+
+    public void initInGame(){
+        inGame.setAttackPower(attackPower);
+        inGame.setHealthPoint(healthPoint);
+        inGame.setMovable(true);
+        inGame.setArmed(true);
+        inGame.setBuffs(new ArrayList<>());
+        inGame.setHolyNumber(0);
     }
     @Override
     void showWithoutPrice() {
