@@ -34,7 +34,7 @@ abstract public class Card {
     public long getPrice(){
         return price;
     }
-    abstract void showWithPrice();
-    abstract void showWithoutPrice();
+    abstract String getInfoWithPrice();
+    abstract String getInfoWithoutPrice();
 }
 

@@ -35,7 +35,7 @@ public class Item {
         this.desc = desc;
     }
 
-    public void show(){
-        System.out.println(("Name : " + getName() + " Desc : " + getDesc()));
+    public String getInfo(){
+        return "Name : " + getName() + " Desc : " + getDesc();
     }
 }

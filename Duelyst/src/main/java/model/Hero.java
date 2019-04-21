@@ -129,12 +129,12 @@ public class Hero extends Card {
         inGame.setHolyNumber(0);
     }
     @Override
-    void showWithoutPrice() {
-        System.out.println(info);
+    public String getInfoWithoutPrice() {
+        return info;
     }
 
     @Override
-    void showWithPrice() {
-        System.out.println(info + " Sell Cost : " + getPrice());
+    public String getInfoWithPrice() {
+        return   info + " Sell Cost : " + getPrice();
     }
 }

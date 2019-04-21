@@ -16,7 +16,7 @@ public class Usable extends Item {
     }
 
     @Override
-    public void show() {
-        System.out.println(("Name : " + getName() + " Desc : " + getDesc()) + " Sell Price : "+getPrice());
+    public String getInfo() {
+        return "Name : " + getName() + " Desc : " + getDesc() + " Sell Price : "+getPrice();
     }
 }

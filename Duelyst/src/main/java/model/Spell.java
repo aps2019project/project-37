@@ -53,12 +53,13 @@ public class Spell extends Card{
         return desc;
     }
     @Override
-    void showWithPrice() {
-        System.out.println(info);
+    public String getInfoWithPrice() {
+        return info;
     }
 
     @Override
-    void showWithoutPrice() {
-        System.out.println(info + " - Sell Cost : " + getPrice());
+    public String getInfoWithoutPrice() {
+
+        return info + " - Sell Cost : " + getPrice();
     }
 }
