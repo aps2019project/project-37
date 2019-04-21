@@ -20,13 +20,12 @@ public class Hero extends Card {
         setAttackType(attackType);
         setRange(range);
         inGame = new InGame(healthPoint, attackPower);
-    }
 
-    {
         info  = "Name : " + getName() + " AP : " + getAttackPower();
         info += " HP : " + getHealthPoint() + " Class : " + getAttackType().toString();
         info += " Special Power : "+ getSpecialPower().getDesc();
     }
+
 
     public int getHealthPoint() {
         return healthPoint;

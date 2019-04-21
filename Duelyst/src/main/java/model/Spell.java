@@ -10,14 +10,13 @@ public class Spell extends Card{
     private String info;
 
     Spell(long id, long price, String name, Target target,
-          ArrayList<Buff> effects, int mana){
+          ArrayList<Buff> effects, int mana, String desc){
         super(id, name, price);
         setTarget(target);
         setEffects(effects);
         setMana(mana);
-    }
+        setDesc(desc);
 
-    {
         info = "Type : Spell - Name : " + getName();
         info += " - MP : " + getMana() + " Description : " + getDesc();
     }
