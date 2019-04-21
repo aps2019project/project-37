@@ -15,8 +15,8 @@ public class Usable extends Item {
         this.price = price;
     }
 
-    @Override
-    public String getInfo() {
-        return "Name : " + getName() + " Desc : " + getDesc() + " Sell Price : "+getPrice();
+
+    public String getInfoWithPrice() {
+        return getInfo() + " Sell Price : "+getPrice();
     }
 }
