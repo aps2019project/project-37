@@ -4,6 +4,7 @@ public class Usable extends Item {
     private long price;
     Usable(long id, String name, String desc, long price){
         super(id, name, desc);
+        setPrice(price);
     }
 
     public long getPrice() {
