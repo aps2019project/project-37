@@ -1,42 +1,54 @@
 package model;
 
-public class Item {
-    private long id;
+public class Item implements GameObject{
+    private String id;
     private String name;
     private String desc;
 
-    Item(long id, String name, String desc){
+    Item(String name, String desc){
         setName(name);
-        setId(id);
         setDesc(desc);
     }
-
+    Item(String id, String name, String desc){
+        setId(id);
+        setName(name);
+        setDesc(desc);
+    }
     public String getName() {
         return name;
     }
-
-    public long getId() {
+    public String getId() {
         return id;
     }
-
     public String getDesc() {
         return desc;
     }
-
     public void setName(String name) {
         this.name = name;
     }
-
-    public void setId(long id) {
+    public void setId(String id) {
         this.id = id;
     }
-
     public void setDesc(String desc) {
         this.desc = desc;
     }
-
+    public boolean idEquals(String id){
+        if(getId().equals(id)){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+    public boolean nameEquals(String name){
+        if(getName().equals(name)){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
     public String getInfo(){
         return "Name : " + getName() + " Desc : " + getDesc();
     }
-
 }

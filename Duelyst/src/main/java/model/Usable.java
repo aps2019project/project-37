@@ -2,9 +2,14 @@ package model;
 
 public class Usable extends Item {
     private long price;
-    Usable(long id, String name, String desc, long price){
-        super(id, name, desc);
+
+    Usable(String name, String desc, long price){
+        super(name, desc);
         setPrice(price);
+    }
+    Usable(String id, Usable usable){
+        super(id, usable.getName(), usable.getDesc());
+        setPrice(usable.getPrice());
     }
 
     public long getPrice() {
