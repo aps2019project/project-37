@@ -1,20 +1,20 @@
 package model;
 
-abstract public class Card {
-    private long id;
-    private String inGameID;
+abstract public class Card implements GameObject{
+    private String id;
     private String name;
     private long price;
-    Card(long id, String name, long price){
+    Card(String name, long price){
+        setName(name);
+        setPrice(price);
+    }
+    Card(String id, String name, long price){
         setId(id);
         setName(name);
         setPrice(price);
     }
-    public void setId(long id){
+    public void setId(String id){
         this.id = id;
-    }
-    public void setInGameID(String inGameID){
-        this.inGameID = inGameID;
     }
     public void setName(String name){
         this.name = name;
@@ -22,17 +22,30 @@ abstract public class Card {
     public void setPrice(long price){
         this.price = price;
     }
-    public long getId(){
+    public String getId(){
         return id;
-    }
-    public String getInGameID() {
-        return inGameID;
     }
     public String getName() {
         return name;
     }
     public long getPrice(){
         return price;
+    }
+    public boolean idEquals(String id){
+        if(getId().equals(id)){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+    public boolean nameEquals(String name){
+        if(getName().equals(name)){
+            return true;
+        }
+        else{
+            return false;
+        }
     }
     abstract String getInfoWithPrice();
     abstract String getInfoWithoutPrice();
