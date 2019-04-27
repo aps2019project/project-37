@@ -1,6 +1,6 @@
 package model;
 
-public class Item implements GameObject{
+public class Item{
     private String id;
     private String name;
     private String desc;
