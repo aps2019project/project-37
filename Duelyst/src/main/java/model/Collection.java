@@ -3,35 +3,30 @@ package model;
 import java.util.ArrayList;
 
 public class Collection {
-    private ArrayList<Hero> heroes = new ArrayList<>();
     private ArrayList<Card> cards = new ArrayList<>();
     private ArrayList<Item> items = new ArrayList<>();
-
 
     public ArrayList<Card> getCards() {
         return cards;
     }
-
     public ArrayList<Item> getItems() {
         return items;
     }
-
     public ArrayList<Hero> getHeroes() {
+        ArrayList<Hero> heroes = new ArrayList<>();
+        for(Card card:cards){
+            if(card instanceof Hero){
+                heroes.add((Hero)card);
+            }
+        }
         return heroes;
     }
-
     public void setCards(ArrayList<Card> cards) {
         this.cards = cards;
     }
-
     public void setItems(ArrayList<Item> items) {
         this.items = items;
     }
-
-    public void setHeroes(ArrayList<Hero> heroes) {
-        this.heroes = heroes;
-    }
-
     public String getInfo(){
         StringBuilder info = new StringBuilder();
 
@@ -51,7 +46,6 @@ public class Collection {
         }
         return info.toString();
     }
-
     public String getInfoOfHeroes(){
         StringBuilder info = new StringBuilder();
         if(!getHeroes().isEmpty()){
@@ -67,8 +61,8 @@ public class Collection {
         if(!getItems().isEmpty()){
             for(int i = 0; i < getItems().size(); i++){
                 Item item = getItems().get(i);
-                if(item instanceof Usable){
-                    Usable usableItem = (Usable) item;
+                if(item instanceof UsableItem){
+                    UsableItem usableItem = (UsableItem) item;
                     info.append("\t" + (i+1) + " : " + usableItem.getInfoWithPrice() + "\n");
                 }
                 else
@@ -89,83 +83,103 @@ public class Collection {
         }
         return info.toString();
     }
-    public boolean has(String name){
-        if(hasHero(name)|hasItem(name)|hasCard(name)) {
-            return true;
-        }
-        else{
-            return false;
-        }
-    }
-    public boolean hasHero(String name){
-        if(getHero(name) != null){
-            return true;
-        }
-        return false;
-    }
-    public boolean hasItem(String name){
-        if(getItem(name) != null){
-            return true;
-        }
-        return false;
-    }
-    public boolean hasCard(String name){
-        if(getCard(name) != null){
-            return true;
-        }
-        return false;
-    }
-    public long getId(String name){
-        if(hasHero(name)){
-            return getHero(name).getId();
-        } else if(hasItem(name)) {
-            return getItem(name).getId();
-        } else if(hasCard(name)) {
-            return getCard(name).getId();
-        } else{
-            return -1;
-        }
-    }
-    public Hero getHero(String name){
-        for(Hero hero:getHeroes()){
-            if(hero.getName().equals(name)){
-                return hero;
+    public ArrayList<String> getIdsByName(String name){
+        ArrayList<String> ids = new ArrayList<>();
+        if(hasCardName(name)){
+            for(Card card:getCards()){
+                if(card.nameEquals(name)){
+                    ids.add(card.getId());
+                }
             }
         }
-        return null;
-    }
-    public Item getItem(String name){
-        for(Item item:getItems()){
-            if(item.getName().equals(name)){
-                return item;
+        if(hasItemName(name)){
+            for(Item item:getItems()){
+                if(item.nameEquals(name)){
+                    ids.add(item.getName());
+                }
             }
         }
-        return null;
+        return ids;
     }
-    public Card getCard(String name){
+    public void remove(String id){
+        if(hasCardId(id)){
+            remove(getCard(id));
+        }else if(hasItemId(id)){
+            remove(getItem(id));
+        }
+    }
+    public Card getCard(String id){
         for(Card card:getCards()){
-            if(card.getName().equals(name)){
+            if(card.idEquals(id)){
                 return card;
             }
         }
         return null;
     }
-    public void addToCollection(Card card){
+    public Item getItem(String id){
+        for(Item item:getItems()){
+            if(item.idEquals(id)){
+                return item;
+            }
+        }
+        return null;
+    }
+    public boolean hasId(String id){
+        if(hasCardId(id) | hasItemId(id)){
+            return true;
+        }else {
+            return false;
+        }
+    }
+    public boolean hasCardId(String id){
+        for(Card card:getCards()){
+            if(card.idEquals(id)){
+                return true;
+            }
+        }
+        return false;
+    }
+    public boolean hasItemId(String id){
+        for(Item item:getItems()){
+            if(item.idEquals(id)){
+                return true;
+            }
+        }
+        return false;
+    }
+    public boolean hasName(String name){
+        if(hasCardName(name) | hasItemName(name)){
+            return true;
+        }else {
+            return false;
+        }
+    }
+    public boolean hasCardName(String name){
+        for(Card card:getCards()){
+            if(card.nameEquals(name)){
+                return true;
+            }
+        }
+        return false;
+    }
+    public boolean hasItemName(String name){
+        for(Item item:getItems()){
+            if(item.nameEquals(name)){
+                return true;
+            }
+        }
+        return false;
+    }
+    public void add(Card card){
         cards.add(card);
     }
-    public void addToCollection(Hero hero){
-        heroes.add(hero);
-    }
-    public void addToCollection(Item item){
+    public void add(Item item){
         items.add(item);
     }
-    public void removeFromCollection(Card card){
+    public void remove(Card card){
         cards.remove(card);
     }
-    public void removeFromCollection(Hero hero){
-        heroes.remove(hero);
-    }
-    public void removeFromCollection(Item item){
+    public void remove(Item item){
         items.remove(item);
     }
 }
