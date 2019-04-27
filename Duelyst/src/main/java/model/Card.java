@@ -1,6 +1,6 @@
 package model;
 
-abstract public class Card implements GameObject{
+abstract public class Card {
     private String id;
     private String name;
     private long price;
