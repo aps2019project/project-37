@@ -3,31 +3,33 @@ package model;
 public class Minion extends Hero{
     private int mana;
     private String info;
-    Minion(long id, String name, long price, int healthPoint,
-           int attackPower, Spell specialPower, Type attackType,
-           int range, int mana){
-
-        super(id, name, price, healthPoint, attackPower, specialPower, attackType, range);
-        setMana(mana);
-
-        info  = "Type : Minion" + " - Name : " + getName() ;
-        info += " - Class : " + getAttackType().toString() + " - AP : " + getAttackPower();
-        info += " - HP : " + getHealthPoint() + " - MP : " + getMana();
-        info += " - Special Power : "+ getSpecialPower().getDesc();
-
+    Minion(String id, Minion minion){
+        this(minion.getName(),minion.getPrice(),minion.getHealthPoint(),minion.getAttackPower(),
+            minion.getSpecialPower(), minion.getAttackType(), minion.getRange(),minion.getMana());
+        setId(id);
     }
-
+    Minion(String name, long price, int healthPoint, int attackPower,
+           Spell specialPower, AttackType attackType, int range, int mana){
+        super(name, price, healthPoint, attackPower, specialPower, attackType, range);
+        setMana(mana);
+        makeInfo();
+    }
     public int getMana(){
         return mana;
     }
     public void setMana(int mana) {
         this.mana = mana;
     }
+    public void makeInfo(){
+        info  = "Type : Minion" + " - Name : " + getName() ;
+        info += " - Class : " + getAttackType().toString() + " - AP : " + getAttackPower();
+        info += " - HP : " + getHealthPoint() + " - MP : " + getMana();
+        info += " - Special Power : "+ getSpecialPower().getDesc();
+    }
     @Override
     public String getInfoWithoutPrice() {
          return info;
     }
-
     @Override
     public String getInfoWithPrice() {
         return info + " Sell Cost : " + getPrice();
