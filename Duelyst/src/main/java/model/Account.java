@@ -2,9 +2,10 @@ package model;
 
 import java.util.ArrayList;
 
-public class Account {
+public class Account implements Comparable{
     private String userName;
     private String password;
+    private int wins;
     private Collection collection;
     private ArrayList<Deck> decks;
     private Deck mainDeck;
@@ -24,6 +25,9 @@ public class Account {
     public void setMainDeck(Deck mainDeck) {
         this.mainDeck = mainDeck;
     }
+    public void setWins(int wins) {
+        this.wins = wins;
+    }
     public String getUserName() {
         return userName;
     }
@@ -38,6 +42,9 @@ public class Account {
     }
     public Deck getMainDeck() {
         return mainDeck;
+    }
+    public int getWins() {
+        return wins;
     }
     public void createDeck(String name){
         Deck deck = new Deck(name);
@@ -65,4 +72,22 @@ public class Account {
         Deck deck = getDeck(name);
         setMainDeck(deck);
     }
+    public String getInfo(){
+        return "UserName : " + userName + " - Wins : " + wins;
+    }
+    public boolean userNameEquals(String Name){
+        if(this.userName.equals(Name)){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+    @Override
+    public int compareTo(Object object) {
+        Account account = (Account) object;
+        return account.wins - this.wins;
+    }
+
 }
