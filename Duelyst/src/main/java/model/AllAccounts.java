@@ -5,7 +5,11 @@ import java.util.TreeSet;
 
 public class AllAccounts {
     TreeSet<Account> accounts = new TreeSet<>();
+    Shop shop = new Shop();
 
+    public Shop getShop() {
+        return shop;
+    }
     public TreeSet<Account> getAccounts(){
         return accounts;
     }
@@ -26,7 +30,6 @@ public class AllAccounts {
                 return account;
             }
         }
-        new GameException("No Account with this user name!");
-        return null;
+        throw new GameException("No Account with this user name!");
     }
 }
