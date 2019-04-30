@@ -9,6 +9,7 @@ public class Account implements Comparable{
     private Collection collection;
     private ArrayList<Deck> decks;
     private Deck mainDeck;
+    private long budget;
 
     public void setUserName(String userName) {
         this.userName = userName;
@@ -28,6 +29,9 @@ public class Account implements Comparable{
     public void setWins(int wins) {
         this.wins = wins;
     }
+    public void setBudget(long budget) {
+        this.budget = budget;
+    }
     public String getUserName() {
         return userName;
     }
@@ -46,12 +50,21 @@ public class Account implements Comparable{
     public int getWins() {
         return wins;
     }
+    public long getBudget() {
+        return budget;
+    }
+    public void decreaseBudget(long money){
+        budget -= money;
+    }
+    public void increaseBudget(long money){
+        budget += money;
+    }
     public void createDeck(String name){
         Deck deck = new Deck(name);
         decks.add(deck);
     }
     public boolean hasDeck(String name){
-        if(getDeck(name).equals(null)){
+        if(getDeck(name)== null){
             return false;
         }else{
             return true;
