@@ -12,6 +12,15 @@ public class Shop {
     public ArrayList<Item> getItems() {
         return items;
     }
+    public ArrayList<UsableItem> getUsableItems() {
+        ArrayList<UsableItem> usableItems = new ArrayList<>();
+        for(Item item:getItems()){
+            if(item instanceof UsableItem){
+                usableItems.add((UsableItem) item);
+            }
+        }
+        return usableItems;
+    }
     public ArrayList<Hero> getHeroes() {
         ArrayList<Hero> heroes = new ArrayList<>();
         for(Card card:getCards()){
@@ -28,20 +37,20 @@ public class Shop {
         this.items = items;
     }
     public boolean hasByName(String name){
-        if(hasCardByName(name) | hasItemByName(name)){
+        if(hasCardByName(name) | hasUsableItemByName(name)){
             return true;
         }else {
             return false;
         }
     }
     public boolean hasCardByName(String name){
-        if(getCardByName(name).equals(null)){
+        if(getCardByName(name)== null){
             return false;
         }
         return true;
     }
-    public boolean hasItemByName(String name){
-        if(getItemByName(name).equals(null)){
+    public boolean hasUsableItemByName(String name){
+        if(getUsableItemByName(name)== null){
             return false;
         }
         return true;
@@ -54,10 +63,10 @@ public class Shop {
         }
         return null;
     }
-    public Item getItemByName(String name){
+    public UsableItem getUsableItemByName(String name){
         for(Item item:getItems()){
-            if(item.nameEquals(name)){
-                return item;
+            if(item.nameEquals(name) & item instanceof UsableItem){
+                return (UsableItem) item;
             }
         }
         return null;
@@ -83,8 +92,8 @@ public class Shop {
         }
 
         info.append("Items :\n");
-        if(!getItems().isEmpty()){
-            info.append(getInfoOfItems());
+        if(!getUsableItems().isEmpty()){
+            info.append(getInfoOfUsableItems());
         }
 
         info.append("Cards:\n");
@@ -102,20 +111,14 @@ public class Shop {
         }
         return info.toString();
     }
-    public String getInfoOfItems(){
+    public String getInfoOfUsableItems(){
         StringBuilder info = new StringBuilder();
+        ArrayList<UsableItem> usableItems = getUsableItems();
 
-        if(!getItems().isEmpty()){
-            for(int i = 0; i < getItems().size(); i++){
-                Item item = getItems().get(i);
-                if(item instanceof UsableItem){
-                    UsableItem usableItem = (UsableItem) item;
-                    info.append("\t" + (i+1) + " : " + usableItem.getInfoWithPrice() + "\n");
-                }
-                else
-                {
-                    info.append("\t" + (i+1) + " : " + item.getInfo() + "\n");
-                }
+        if(!usableItems.isEmpty()){
+            for(int i = 0; i < usableItems.size(); i++){
+                UsableItem usableItem = usableItems.get(i);
+                info.append("\t" + (i+1) + " : " + usableItem.getInfoWithPrice() + "\n");
             }
         }
 
