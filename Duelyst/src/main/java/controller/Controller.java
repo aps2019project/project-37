@@ -121,8 +121,11 @@ public class Controller {
                 sell(collection.getUsableItemById(id));
             }
         }else {
-            throw new GameException("You don't have this id!");
+            throw new GameException("You don't have any card or item this id!");
         }
+    }
+    public void showShop(){
+        showMessage(allAccounts.getShop().getInfo());
     }
     public String generateNewId(Card newCard){
         int count = 1;

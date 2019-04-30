@@ -70,6 +70,10 @@ public class ShopMenu extends Menu {
         }else if(commandType.equals(CommandTypeShopMenu.SELL)) {
             String name = extractName(command);
             callSellFromController(name);
+        }else if(commandType.equals(CommandTypeShopMenu.SHOW)){
+            callShowShopFromController();
+        }else if(commandType.equals(CommandTypeShopMenu.HELP)){
+            printListOfCommands();
         }
         return this;
     }
@@ -102,10 +106,31 @@ public class ShopMenu extends Menu {
     private void callSellFromController(String id){
         getController().sell(id);
     }
+    private void callShowShopFromController(){
+        getController().showShop();
+    }
     private String extractName(String command){
         Pattern pattern = Pattern.compile("\\w+(?=\\s*)$");
         Matcher matcher = pattern.matcher(command);
         matcher.find();
         return matcher.group(0);
+    }
+    private void printListOfCommands(){
+        getController().showMessage(getListOfCommands());
+    }
+    private String getListOfCommands(){
+        StringBuilder commands = new StringBuilder();
+        commands.append("Shop Menu\n");
+        commands.append("-----------\n");
+        commands.append("Commands:\n");
+        commands.append("1- exit\n");
+        commands.append("2- show collection\n");
+        commands.append("3- search [item name | card name]\n");
+        commands.append("4- search collection [item name | card name]\n");
+        commands.append("5- buy [item name | card name] \n");
+        commands.append("5- sell [item id | card id] \n");
+        commands.append("6- show \n");
+        commands.append("7- help \n");
+        return commands.toString();
     }
 }
