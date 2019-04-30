@@ -38,7 +38,7 @@ public class ShopMenu extends Menu {
         super(controller);
     }
     private void initCommandPatterns(){
-        String commandRegexes[] = new String[6];
+        String commandRegexes[] = new String[NUMBER_OF_COMMANDS];
         commandRegexes[0] = "^exit\\s*$";
         commandRegexes[1] = "^show collection\\w+\\s*$";
         commandRegexes[2] = "^search \\w+\\s*$";
@@ -59,17 +59,17 @@ public class ShopMenu extends Menu {
         }else if(commandType.equals(CommandTypeShopMenu.SHOW_COLLECTION)) {
             callShowCollectionFromController();
         }else if(commandType.equals(CommandTypeShopMenu.SEARCH)) {
-            String name = extractName(command);
+            String name = extractLastWord(command);
             callSearchInShopFromController(name);
         }else if(commandType.equals(CommandTypeShopMenu.SEARCH_COLLECTION)) {
-            String name = extractName(command);
+            String name = extractLastWord(command);
             callSearchInCollectionFromController(name);
         }else if(commandType.equals(CommandTypeShopMenu.BUY)) {
-            String name = extractName(command);
-            callBuyFromController(name);
+            String id = extractLastWord(command);
+            callBuyFromController(id);
         }else if(commandType.equals(CommandTypeShopMenu.SELL)) {
-            String name = extractName(command);
-            callSellFromController(name);
+            String id = extractLastWord(command);
+            callSellFromController(id);
         }else if(commandType.equals(CommandTypeShopMenu.SHOW)){
             callShowShopFromController();
         }else if(commandType.equals(CommandTypeShopMenu.HELP)){
@@ -109,7 +109,7 @@ public class ShopMenu extends Menu {
     private void callShowShopFromController(){
         getController().showShop();
     }
-    private String extractName(String command){
+    private String extractLastWord(String command){
         Pattern pattern = Pattern.compile("\\w+(?=\\s*)$");
         Matcher matcher = pattern.matcher(command);
         matcher.find();

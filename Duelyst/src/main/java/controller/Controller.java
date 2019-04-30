@@ -127,7 +127,21 @@ public class Controller {
     public void showShop(){
         showMessage(allAccounts.getShop().getInfo());
     }
-    public String generateNewId(Card newCard){
+    public void createDeck(String name){
+        if(currentAccount.hasDeck(name)){
+            throw new GameException("You has a deck with this name!");
+        }else{
+            currentAccount.createDeck(name);
+        }
+    }
+    public void deleteDeck(String name){
+        if(currentAccount.hasDeck(name)){
+            currentAccount.removeDeck(name);
+        }else{
+            throw new GameException("You don't have a deck with this name!");
+        }
+    }
+    private String generateNewId(Card newCard){
         int count = 1;
         for(Card card:currentAccount.getCollection().getCards()){
             if(card.nameEquals(newCard.getName())){
@@ -136,7 +150,7 @@ public class Controller {
         }
         return currentAccount.getUserName() + "_" + newCard.getName() +"_" + count;
     }
-    public String generateNewId(Item newItem){
+    private String generateNewId(Item newItem){
         int count = 1;
         for(Item item:currentAccount.getCollection().getItems()){
             if(item.nameEquals(newItem.getName())){
@@ -145,7 +159,7 @@ public class Controller {
         }
         return currentAccount.getUserName() + "_" + newItem.getName() +"_" + count;
     }
-    public Card copyWithNewId(Card card){
+    private Card copyWithNewId(Card card){
         String id= generateNewId(card);
         if(card instanceof Spell){
             Spell spell = (Spell) card;
@@ -161,7 +175,7 @@ public class Controller {
         }
         return null;
     }
-    public Item copyWithNewId(UsableItem usableItem){
+    private Item copyWithNewId(UsableItem usableItem){
         String id = generateNewId(usableItem);
         return new UsableItem(id,usableItem);
     }

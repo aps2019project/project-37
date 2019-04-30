@@ -43,7 +43,7 @@ public class MainMenu extends Menu {
         initCommandPatterns();
     }
     private void initCommandPatterns(){
-        String commandRegexes[] = new String[6];
+        String commandRegexes[] = new String[NUMBER_OF_COMMANDS];
         commandRegexes[0] = "^enter collection\\s*$";
         commandRegexes[1] = "^enter  shop\\w+\\s*$";
         commandRegexes[2] = "^enter battle\\s*$";

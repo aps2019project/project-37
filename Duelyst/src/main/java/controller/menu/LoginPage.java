@@ -40,7 +40,7 @@ public class LoginPage extends Menu {
         initCommandPatterns();
     }
     private void initCommandPatterns(){
-        String commandRegexes[] = new String[6];
+        String commandRegexes[] = new String[NUMBER_OF_COMMANDS];
         commandRegexes[0] = "^create account \\w+\\s*$";
         commandRegexes[1] = "^login \\w+\\s*$";
         commandRegexes[2] = "^show leaderboard\\s*$";
