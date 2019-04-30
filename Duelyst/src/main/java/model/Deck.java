@@ -1,5 +1,8 @@
 package model;
 
+import controller.Constants;
+import controller.GameException;
+
 import java.awt.*;
 import java.util.ArrayList;
 
@@ -75,6 +78,28 @@ public class Deck extends Collection{
             return true;
         }else{
             return false;
+        }
+    }
+    public void add(Card card){
+        if(!hasCardById(card.getId())){
+            if(getCards().size() < Constants.MAXIMUM_NUMBER_OF_CARDS_IN_DECK){
+                if(card instanceof Hero && !(card instanceof Minion) && hasOneHero()){
+                    super.add(card);
+                }else {
+                    throw new GameException("Deck has one Hero!");
+                }
+            }else{
+                throw new GameException("Deck has 20 cards!");
+            }
+        }else {
+            throw new GameException("Deck has a card with this id!");
+        }
+    }
+    public void add(UsableItem usableItem){
+        if(!hasUsableItemById(usableItem.getId())){
+            super.add(usableItem);
+        }else {
+            throw new GameException("Deck has an item with this id!");
         }
     }
 }
