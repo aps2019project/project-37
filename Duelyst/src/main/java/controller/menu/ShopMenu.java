@@ -1,6 +1,11 @@
 package controller.menu;
 
 import controller.Controller;
+import controller.GameException;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 enum CommandTypeShopMenu{
     EXIT(0),
     SHOW_COLLECTION(1),
@@ -26,11 +31,81 @@ enum CommandTypeShopMenu{
     }
 }
 public class ShopMenu extends Menu {
+    private static final int NUMBER_OF_COMMANDS = 8;
+    private Pattern commandPatterns[] = new Pattern[NUMBER_OF_COMMANDS];
+
     ShopMenu(Controller controller){
         super(controller);
     }
+    private void initCommandPatterns(){
+        String commandRegexes[] = new String[6];
+        commandRegexes[0] = "^exit\\s*$";
+        commandRegexes[1] = "^show collection\\w+\\s*$";
+        commandRegexes[2] = "^search \\w+\\s*$";
+        commandRegexes[3] = "^search collection \\w+\\s*$";
+        commandRegexes[4] = "^buy \\w+\\s*$";
+        commandRegexes[5] = "^sell \\w+\\s*$";
+        commandRegexes[6] = "^show\\s*$";
+        commandRegexes[7] = "^help\\s*$";
+        for(int i=0; i < NUMBER_OF_COMMANDS; i++){
+            this.commandPatterns[i] = Pattern.compile(commandRegexes[i]);
+        }
+    }
     @Override
     public Menu runCommandAndGetNextMenu(String command) {
+        CommandTypeShopMenu commandType = getCommandType(command);
+        if(commandType.equals(CommandTypeShopMenu.EXIT)) {
+            return getParentMenu();
+        }else if(commandType.equals(CommandTypeShopMenu.SHOW_COLLECTION)) {
+            callShowCollectionFromController();
+        }else if(commandType.equals(CommandTypeShopMenu.SEARCH)) {
+            String name = extractName(command);
+            callSearchInShopFromController(name);
+        }else if(commandType.equals(CommandTypeShopMenu.SEARCH_COLLECTION)) {
+            String name = extractName(command);
+            callSearchInCollectionFromController(name);
+        }else if(commandType.equals(CommandTypeShopMenu.BUY)) {
+            String name = extractName(command);
+            callBuyFromController(name);
+        }else if(commandType.equals(CommandTypeShopMenu.SELL)) {
+            String name = extractName(command);
+            callSellFromController(name);
+        }
         return this;
+    }
+    private CommandTypeShopMenu getCommandType(String command) {
+        int commandIndex = -1;
+        for(int i=0; i < NUMBER_OF_COMMANDS; i++) {
+            Matcher matcher = commandPatterns[i].matcher(command);
+            if(matcher.find()){
+                commandIndex = i;
+                return CommandTypeShopMenu.getCommandType(commandIndex);
+            }
+        }
+        if(commandIndex == -1){
+            throw new GameException("Invalid command!");
+        }
+        return null;
+    }
+    private void callShowCollectionFromController(){
+        getController().showCollection();
+    }
+    private void callSearchInShopFromController(String name){
+        getController().searchInShop(name);
+    }
+    private void callSearchInCollectionFromController(String name){
+        getController().searchInCollection(name);
+    }
+    private void callBuyFromController(String name){
+        getController().buy(name);
+    }
+    private void callSellFromController(String id){
+        getController().sell(id);
+    }
+    private String extractName(String command){
+        Pattern pattern = Pattern.compile("\\w+(?=\\s*)$");
+        Matcher matcher = pattern.matcher(command);
+        matcher.find();
+        return matcher.group(0);
     }
 }

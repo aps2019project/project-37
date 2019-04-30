@@ -37,6 +37,9 @@ public class MainMenu extends Menu {
         collectionMenu = new CollectionMenu(controller);
         battleMenu = new BattleMenu(controller);
         shopMenu = new ShopMenu(controller);
+        collectionMenu.setParentMenu(this);
+        battleMenu.setParentMenu(this);
+        shopMenu.setParentMenu(this);
         initCommandPatterns();
     }
     private void initCommandPatterns(){
@@ -61,7 +64,7 @@ public class MainMenu extends Menu {
             return battleMenu;
         }else if(commandType.equals(CommandTypeMainMenu.EXIT)) {
             return getParentMenu();
-        }else if(commandType.equals(CommandTypeLoginPage.HELP)) {
+        }else if(commandType.equals(CommandTypeMainMenu.HELP)) {
             printListOfCommands();
         }
         return this;
@@ -76,7 +79,7 @@ public class MainMenu extends Menu {
             }
         }
         if(commandIndex == -1){
-            new GameException("Invalid command!");
+            throw new GameException("Invalid command!");
         }
         return null;
     }

@@ -35,7 +35,7 @@ public class LoginPage extends Menu {
     public LoginPage(Controller controller){
         super(controller);
         setParentMenu(null);
-        mainMenu = new MainMenu(getController());
+        mainMenu = new MainMenu(controller);
         mainMenu.setParentMenu(this);
         initCommandPatterns();
     }
@@ -80,7 +80,7 @@ public class LoginPage extends Menu {
             }
         }
         if(commandIndex == -1){
-            new GameException("Invalid command!");
+            throw new GameException("Invalid command!");
         }
         return null;
     }
