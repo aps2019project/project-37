@@ -79,6 +79,10 @@ public class CollectionMenu extends Menu {
         }else if(commandType.equals(CommandTypeCollectionMenu.DELETE_DECK)){
             String name = extractLastWord(command);
             callDeleteDeckFromController(name);
+        }else if(commandType.equals(CommandTypeCollectionMenu.ADD)){
+            String name = extractLastWord(command);
+            String id = extractIdForAddOrRemove(command);
+            callAddToDeckFromController(id,name);
         }
         return this;
     }
@@ -96,6 +100,9 @@ public class CollectionMenu extends Menu {
     }
     private void callDeleteDeckFromController(String name){
         getController().deleteDeck(name);
+    }
+    private void callAddToDeckFromController(String id, String name){
+        getController().addToDeck(id, name);
     }
     private CommandTypeCollectionMenu getCommandType(String command) {
         int commandIndex = -1;

@@ -5,6 +5,8 @@ import controller.menu.Menu;
 import model.*;
 import view.View;
 
+import java.util.Optional;
+
 public class Controller {
     private View view;
     private Account currentAccount;
@@ -139,6 +141,25 @@ public class Controller {
             currentAccount.removeDeck(name);
         }else{
             throw new GameException("You don't have a deck with this name!");
+        }
+    }
+    public void addToDeck(String id,String name){
+        Collection collection = currentAccount.getCollection();
+        if(collection.hasById(id)){
+            if(currentAccount.hasDeck(name)){
+                Optional.ofNullable(collection.getCardById(id))
+                        .ifPresent(card -> {
+                            currentAccount.getDeck(name).add(card);
+                        });
+                Optional.ofNullable(collection.getUsableItemById(id))
+                        .ifPresent(usableItem -> {
+                            currentAccount.getDeck(name).add(usableItem);
+                        });
+            }else{
+                throw new GameException("No deck with this name!");
+            }
+        }else{
+            throw new GameException("No card or item with this Id!");
         }
     }
     private String generateNewId(Card newCard){
