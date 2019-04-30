@@ -5,11 +5,11 @@ public class Item{
     private String name;
     private String desc;
 
-    Item(String name, String desc){
+    public Item(String name, String desc){
         setName(name);
         setDesc(desc);
     }
-    Item(String id, String name, String desc){
+    public Item(String id, String name, String desc){
         setId(id);
         setName(name);
         setDesc(desc);

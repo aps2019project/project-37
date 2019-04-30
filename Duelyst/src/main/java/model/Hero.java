@@ -11,12 +11,12 @@ public class Hero extends Card {
     private String info;
     private InGame inGame;
 
-    Hero(String id, Hero hero){
+    public Hero(String id, Hero hero){
         this(hero.getName(),hero.getPrice(),hero.getHealthPoint(), hero.getAttackPower(),
                 hero.getSpecialPower(),hero.getAttackType(),hero.getRange());
         setId(id);
     }
-    Hero(String name, long price, int healthPoint,
+    public Hero(String name, long price, int healthPoint,
          int attackPower, Spell specialPower, AttackType attackType, int range){
         super(name, price);
         setHealthPoint(healthPoint);
