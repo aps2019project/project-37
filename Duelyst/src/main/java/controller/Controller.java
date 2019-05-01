@@ -75,55 +75,30 @@ public class Controller {
         showMessage(currentAccount.getCollection().getInfo());
     }
     public void searchInShop(String name){
-        Shop shop = allAccounts.getShop();
-        if(shop.hasByName(name)){
-            if(shop.hasCardByName(name)){
-                Card card = shop.getCardByName(name);
-                String id = generateNewId(card);
-                showMessage(id);
-            }
-            if(shop.hasUsableItemByName(name)){
-                Item item = shop.getUsableItemByName(name);
-                String id = generateNewId(item);
-                showMessage(id);
-            }
-        }else {
-            throw new GameException("No card or item with this name!");
+        Object object = allAccounts.getShop().getObjectByName(name);
+        if(object instanceof Card){
+            showMessage(generateNewId((Card) object));
+        }else if(object instanceof  UsableItem){
+            showMessage(generateNewId((UsableItem) object));
         }
     }
-    public void searchInCollection(String name){
-        Collection collection = currentAccount.getCollection();
-        if(collection.hasByName(name)){
-            showMessage(collection.getIdsByName(name));
-        }
-        else{
-            throw new GameException("No item or card with this name!");
-        }
+    public void searchInCollection(String name) throws GameException {
+        showMessage(currentAccount.getCollection().getIdsByName(name));
     }
     public void buy(String name){
-        Shop shop = allAccounts.getShop();
-        if(shop.hasByName(name)) {
-            if (shop.hasCardByName(name)) {
-                buyCard(shop.getCardByName(name));
-            }
-            if (shop.hasUsableItemByName(name)) {
-                buyUsableItem(shop.getUsableItemByName(name));
-            }
-        }else {
-            throw new GameException("No card or item with this name");
+        Object GameObject = allAccounts.getShop().getObjectByName(name);
+        if(GameObject instanceof Card){
+            buyCard((Card) GameObject);
+        }else if(GameObject instanceof UsableItem){
+            buyUsableItem((UsableItem) GameObject);
         }
     }
     public void sell(String id){
-        Collection collection = currentAccount.getCollection();
-        if(collection.hasById(id)){
-            if (collection.hasCardById(id)) {
-                sell(collection.getCardById(id));
-            }
-            if (collection.hasUsableItemById(id)) {
-                sell(collection.getUsableItemById(id));
-            }
-        }else {
-            throw new GameException("You don't have any card or item this id!");
+        Object object = currentAccount.getCollection().getObjectById(id);
+        if(object instanceof Card){
+            sell((Card) object);
+        }else if(object instanceof UsableItem){
+            sell((UsableItem) object);
         }
     }
     public void showShop(){
@@ -144,41 +119,27 @@ public class Controller {
         }
     }
     public void addToDeck(String id,String name){
-        Collection collection = currentAccount.getCollection();
-        if(collection.hasById(id)){
-            if(currentAccount.hasDeck(name)){
-                Optional.ofNullable(collection.getCardById(id))
-                        .ifPresent(card -> {
-                            currentAccount.getDeck(name).add(card);
-                        });
-                Optional.ofNullable(collection.getUsableItemById(id))
-                        .ifPresent(usableItem -> {
-                            currentAccount.getDeck(name).add(usableItem);
-                        });
-            }else{
-                throw new GameException("No deck with this name!");
-            }
-        }else{
-            throw new GameException("No card or item with this Id!");
+        Object object = currentAccount.getCollection().getObjectById(id);
+        Deck deck = currentAccount.getDeck(name);
+        if(object instanceof Card){
+            deck.add((Card) object);
+        }else if(object instanceof UsableItem){
+            deck.add((UsableItem) object);
         }
     }
     private String generateNewId(Card newCard){
-        int count = 1;
-        for(Card card:currentAccount.getCollection().getCards()){
-            if(card.nameEquals(newCard.getName())){
-                count ++;
-            }
-        }
-        return currentAccount.getUserName() + "_" + newCard.getName() +"_" + count;
+        int index = 1;
+        index += currentAccount.getCollection().getCards().stream()
+                .filter(card -> card.nameEquals(newCard.getName()))
+                .count();
+        return currentAccount.getUserName() + "_" + newCard.getName() +"_" + index;
     }
     private String generateNewId(Item newItem){
-        int count = 1;
-        for(Item item:currentAccount.getCollection().getItems()){
-            if(item.nameEquals(newItem.getName())){
-                count ++;
-            }
-        }
-        return currentAccount.getUserName() + "_" + newItem.getName() +"_" + count;
+        int index = 1;
+        index += currentAccount.getCollection().getUsableItems().stream()
+                .filter(card -> card.nameEquals(newItem.getName()))
+                .count();
+        return currentAccount.getUserName() + "_" + newItem.getName() +"_" + index;
     }
     private Card copyWithNewId(Card card){
         String id= generateNewId(card);
@@ -201,27 +162,14 @@ public class Controller {
         return new UsableItem(id,usableItem);
     }
     private void buyCard(Card card){
-        if (card.getPrice() <= currentAccount.getBudget()) {
-            currentAccount.decreaseBudget(card.getPrice());
-            currentAccount.getCollection().add(copyWithNewId(card));
-            showMessage("You have bought the card successfully!");
-        }else {
-            throw new GameException("Budget is not enough!");
-        }
+        currentAccount.decreaseBudget(card.getPrice());
+        currentAccount.getCollection().add(copyWithNewId(card));
+        showMessage("You have bought the card successfully!");
     }
     private void buyUsableItem(UsableItem usableItem){
-        if(currentAccount.getCollection().getUsableItems().size() < 3) {
-            if (usableItem.getPrice() <= currentAccount.getBudget()) {
-                currentAccount.decreaseBudget(usableItem.getPrice());
-                currentAccount.getCollection().add(copyWithNewId(usableItem));
-                showMessage("You have bought the item successfully!");
-            }
-            else {
-                throw new GameException("Budget is not enough!");
-            }
-        }else {
-            throw new GameException("You cannot have anymore items!");
-        }
+        currentAccount.decreaseBudget(usableItem.getPrice());
+        currentAccount.getCollection().add(copyWithNewId(usableItem));
+        showMessage("You have bought the item successfully!");
     }
     private void sell(Card card){
         currentAccount.getCollection().remove(card);
