@@ -1,5 +1,7 @@
 package model;
 
+import controller.GameException;
+
 import java.util.ArrayList;
 
 public class Account implements Comparable{
@@ -54,32 +56,39 @@ public class Account implements Comparable{
         return budget;
     }
     public void decreaseBudget(long money){
-        budget -= money;
+        if(budget >= money)
+            budget -= money;
+        else
+            throw new GameException("Not enough money!");
     }
     public void increaseBudget(long money){
         budget += money;
     }
     public void createDeck(String name){
-        Deck deck = new Deck(name);
-        decks.add(deck);
+        if(!hasDeck(name)){
+            decks.add(new Deck(name));
+        }else {
+            throw new GameException("There is a deck with this name");
+        }
     }
     public boolean hasDeck(String name){
-        if(getDeck(name)== null){
-            return false;
-        }else{
-            return true;
-        }
+        return getDecks()
+                .stream()
+                .anyMatch(deck -> deck.nameEquals(name));
     }
     public Deck getDeck(String name){
-        for(Deck deck:getDecks()){
-            if(deck.nameEquals(name)){
-                return deck;
-            }
-        }
-        return null;
+        return getDecks()
+                .stream()
+                .filter(deck -> deck.nameEquals(name))
+                .findFirst()
+                .orElseThrow(() -> new GameException("No deck with this name!"));
     }
     public void removeDeck(String name){
-        decks.remove(getDeck(name));
+        if(hasDeck(name)) {
+            decks.remove(getDeck(name));
+        }else {
+            throw new GameException("No deck with this name!");
+        }
     }
     public void selectAsMainDeck(String name){
         Deck deck = getDeck(name);
@@ -89,12 +98,10 @@ public class Account implements Comparable{
         return "UserName : " + userName + " - Wins : " + wins;
     }
     public boolean userNameEquals(String Name){
-        if(this.userName.equals(Name)){
+        if(this.userName.equals(Name))
             return true;
-        }
-        else{
+        else
             return false;
-        }
     }
 
     @Override
