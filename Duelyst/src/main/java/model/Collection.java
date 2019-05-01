@@ -1,29 +1,32 @@
 package model;
 
+import controller.GameException;
+
+import java.util.Optional;
+
 public class Collection extends Shop{
     public String getIdsByName(String name){
         StringBuilder ids = new StringBuilder();
-        if(hasCardByName(name)){
-            for(Card card:getCards()){
-                if(card.nameEquals(name)){
-                    ids.append(card.getId()+"\n");
-                }
-            }
+        getCards()
+                .stream()
+                .filter(card -> card.nameEquals(name))
+                .forEach(card -> ids.append(card.getId()+"\n"));
+        getUsableItems()
+                .stream()
+                .filter(usableItem -> usableItem.nameEquals(name))
+                .forEach(usableItem -> ids.append(usableItem.getId()+"\n"));
+        if(!ids.toString().isEmpty()){
+            return ids.toString();
+        }else{
+            throw new GameException("No Card or item with this name");
         }
-        if(hasUsableItemByName(name)){
-            for(UsableItem usableItem:getUsableItems()){
-                if(usableItem.nameEquals(name)){
-                    ids.append(usableItem.getName()+"\n");
-                }
-            }
-        }
-        return ids.toString();
     }
     public void removeById(String id){
-        if(hasCardById(id)){
-            remove(getCardById(id));
-        }else if(hasUsableItemById(id)){
-            remove(getUsableItemById(id));
+        Object object = getObjectById(id);
+        if(object instanceof  Card){
+            remove((Card) object);
+        }else if(object instanceof UsableItem){
+            remove((UsableItem) object);
         }
     }
     public boolean hasById(String id){
@@ -45,20 +48,22 @@ public class Collection extends Shop{
         }
         return true;
     }
-    public Card getCardById(String id){
-        for(Card card:getCards()){
-            if(card.idEquals(id)){
-                return card;
-            }
-        }
-        return null;
+    public Object getObjectById(String id){
+        return getCardById(id)
+                .map(Object.class::cast)
+                .or(() -> getUsableItemById(id))
+                .orElseThrow(() -> new GameException("No Card or item with this id!"));
     }
-    public UsableItem getUsableItemById(String id){
-        for(UsableItem usableItem:getUsableItems()){
-            if(usableItem.idEquals(id)){
-                return usableItem;
-            }
-        }
-        return null;
+    private Optional<Card> getCardById(String id){
+        return getCards()
+                .stream()
+                .filter(card -> card.idEquals(id))
+                .findFirst();
+    }
+    private Optional<UsableItem> getUsableItemById(String id){
+        return getUsableItems()
+                .stream()
+                .filter(usableItem -> usableItem.idEquals(id))
+                .findFirst();
     }
 }
