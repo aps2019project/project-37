@@ -1,6 +1,9 @@
 package model;
 
+import controller.GameException;
+
 import java.util.ArrayList;
+import java.util.Optional;
 
 public class Shop {
     private ArrayList<Card> cards = new ArrayList<>();
@@ -36,40 +39,21 @@ public class Shop {
     public void setItems(ArrayList<Item> items) {
         this.items = items;
     }
-    public boolean hasByName(String name){
-        if(hasCardByName(name) | hasUsableItemByName(name)){
-            return true;
-        }else {
-            return false;
-        }
+    public Object getObjectByName(String name){
+        return getCardByName(name)
+                .map(Object.class::cast)
+                .or(() -> getUsableItemByName(name))
+                .orElseThrow(() -> new GameException("No card or item with this name"));
     }
-    public boolean hasCardByName(String name){
-        if(getCardByName(name)== null){
-            return false;
-        }
-        return true;
+    private Optional<Card> getCardByName(String name){
+        return getCards().stream()
+                .filter(card -> card.nameEquals(name))
+                .findFirst();
     }
-    public boolean hasUsableItemByName(String name){
-        if(getUsableItemByName(name)== null){
-            return false;
-        }
-        return true;
-    }
-    public Card getCardByName(String name){
-        for(Card card:getCards()){
-            if(card.nameEquals(name)){
-                return card;
-            }
-        }
-        return null;
-    }
-    public UsableItem getUsableItemByName(String name){
-        for(Item item:getItems()){
-            if(item.nameEquals(name) & item instanceof UsableItem){
-                return (UsableItem) item;
-            }
-        }
-        return null;
+    private Optional<UsableItem> getUsableItemByName(String name){
+        return getUsableItems().stream()
+                .filter(usableItem -> usableItem.nameEquals(name))
+                .findFirst();
     }
     public void add(Card card){
         cards.add(card);
