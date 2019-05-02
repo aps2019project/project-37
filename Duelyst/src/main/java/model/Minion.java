@@ -3,11 +3,7 @@ package model;
 public class Minion extends Hero{
     private int mana;
     private String info;
-    public Minion(String id, Minion minion){
-        this(minion.getName(),minion.getPrice(),minion.getHealthPoint(),minion.getAttackPower(),
-            minion.getSpecialPower(), minion.getAttackType(), minion.getRange(),minion.getMana());
-        setId(id);
-    }
+
     public Minion(String name, long price, int healthPoint, int attackPower,
            Spell specialPower, AttackType attackType, int range, int mana){
         super(name, price, healthPoint, attackPower, specialPower, attackType, range);

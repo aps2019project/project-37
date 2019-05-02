@@ -50,7 +50,7 @@ abstract public class Card implements Cloneable{
             return false;
         }
     }
-    abstract String getInfoWithPrice();
-    abstract String getInfoWithoutPrice();
+    public abstract String getInfoWithPrice();
+    public abstract String getInfoWithoutPrice();
 }
 

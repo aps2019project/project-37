@@ -6,10 +6,6 @@ public class UsableItem extends Item {
         super(name, desc);
         setPrice(price);
     }
-    public UsableItem(String id, UsableItem usable){
-        super(id, usable.getName(), usable.getDesc());
-        setPrice(usable.getPrice());
-    }
 
     @Override
     public UsableItem clone() throws CloneNotSupportedException {

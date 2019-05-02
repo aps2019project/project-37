@@ -9,11 +9,6 @@ public class Spell extends Card{
     private String desc;
     private String info;
 
-    public Spell(String id, Spell spell){
-        this(spell.getName(), spell.getPrice(),spell.getTarget(),
-                spell.getEffects(),spell.getMana(),spell.getDesc());
-        setId(id);
-    }
     public Spell(String name, long price, Target target,
           ArrayList<Buff> effects, int mana, String desc){
         super(name, price);

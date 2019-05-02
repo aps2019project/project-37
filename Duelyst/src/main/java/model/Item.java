@@ -9,11 +9,6 @@ public class Item implements Cloneable{
         setName(name);
         setDesc(desc);
     }
-    public Item(String id, String name, String desc){
-        setId(id);
-        setName(name);
-        setDesc(desc);
-    }
     @Override
     public Item clone() throws CloneNotSupportedException {
         return (Item) super.clone();
