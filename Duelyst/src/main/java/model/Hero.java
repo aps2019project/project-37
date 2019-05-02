@@ -49,6 +49,9 @@ public class Hero extends Card {
     public int getRange() {
         return range;
     }
+    public InGame getInGame() {
+        return inGame;
+    }
     public void setHealthPoint(int healthPoint) {
         this.healthPoint = healthPoint;
     }
@@ -114,7 +117,6 @@ public class Hero extends Card {
     public String getInfoWithoutPrice() {
         return info;
     }
-
     @Override
     public String getInfoWithPrice() {
         return   info + " Sell Cost : " + getPrice();

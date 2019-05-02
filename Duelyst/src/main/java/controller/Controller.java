@@ -3,15 +3,15 @@ package controller;
 import controller.menu.MenuManager;
 import controller.menu.Menu;
 import model.*;
+import model.game.Game;
 import view.View;
-
-import java.util.Optional;
 
 public class Controller {
     private View view;
     private Account currentAccount;
     private AllAccounts allAccounts;
     private MenuManager menuManager;
+    private Game game;
 
     public Controller(){
         view = new View();
@@ -156,6 +156,7 @@ public class Controller {
     public void showDeckInfo(String name){
         showMessage(currentAccount.getDeck(name).getInfo());
     }
+
     private String generateNewId(Card newCard){
         int index = 1;
         index += currentAccount.getCollection().getCards().stream()

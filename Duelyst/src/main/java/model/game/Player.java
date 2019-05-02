@@ -16,11 +16,13 @@ public class Player {
     private int mana;
     private GraveYard graveYard = new GraveYard();
     private int indexOfNextCard;
+    private boolean AI;
 
-    Player(Account account, Deck deck){
+    Player(Account account, Deck deck, boolean AI){
         this.account = account;
         deck.remove(deck.getHero());
         this.deck = deck;
+        this.AI = AI;
         initHand();
     }
 
@@ -38,6 +40,9 @@ public class Player {
     }
     public void setMana(int mana) {
         this.mana = mana;
+    }
+    public boolean isAI(){
+        return AI;
     }
     public void decreaseMana(int mana){
         if(this.mana >= mana){
