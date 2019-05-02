@@ -24,6 +24,9 @@ public class Deck extends Collection{
             return false;
         }
     }
+    public Hero getHero(){
+        return getHeroes().stream().findFirst().orElse(null);
+    }
     public String getInfo(){
         StringBuilder info = new StringBuilder();
 
