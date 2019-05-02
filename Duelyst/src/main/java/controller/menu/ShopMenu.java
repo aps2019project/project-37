@@ -36,6 +36,7 @@ public class ShopMenu extends Menu {
 
     ShopMenu(Controller controller){
         super(controller);
+        initCommandPatterns();
     }
     private void initCommandPatterns(){
         String commandRegexes[] = new String[NUMBER_OF_COMMANDS];
