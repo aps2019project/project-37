@@ -11,6 +11,11 @@ public class WeaknessBuff extends Buff {
     }
 
     @Override
+    public WeaknessBuff clone() throws CloneNotSupportedException {
+        return (WeaknessBuff) super.clone();
+    }
+
+    @Override
     public void applyBuff(Hero hero) {
         if(getDamageType().equals(EffectType.HEALTH)){
             hero.decreaseHealthPointInGame(damage);

@@ -2,7 +2,7 @@ package model;
 
 import java.util.ArrayList;
 
-public class InGame {
+public class InGame implements Cloneable {
     private int healthPoint;
     private int attackPower;
     private boolean movable;
@@ -18,6 +18,13 @@ public class InGame {
         setBuffs(new ArrayList<>());
         setHolyNumber(0);
     }
+
+    public InGame clone() throws CloneNotSupportedException {
+        InGame inGame = (InGame)super.clone();
+        inGame.buffs = new ArrayList<>(this.buffs);
+        return inGame;
+    }
+
     public int getHealthPoint() {
         return healthPoint;
     }

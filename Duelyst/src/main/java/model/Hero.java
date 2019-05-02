@@ -27,7 +27,12 @@ public class Hero extends Card {
         inGame = new InGame(healthPoint, attackPower);
         makeInfo();
     }
-
+    public Hero clone()throws CloneNotSupportedException{
+        Hero hero = (Hero) super.clone();
+        hero.specialPower = specialPower.clone();
+        hero.inGame = inGame.clone();
+        return hero;
+    }
     public int getHealthPoint() {
         return healthPoint;
     }

@@ -1,6 +1,6 @@
 package model;
 
-abstract public class Card {
+abstract public class Card implements Cloneable{
     private String id;
     private String name;
     private long price;
@@ -12,6 +12,9 @@ abstract public class Card {
         setId(id);
         setName(name);
         setPrice(price);
+    }
+    public Card clone()throws CloneNotSupportedException{
+        return (Card) super.clone();
     }
     public void setId(String id){
         this.id = id;

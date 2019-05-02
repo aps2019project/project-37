@@ -143,23 +143,23 @@ public class Controller {
     }
     private Card copyWithNewId(Card card){
         String id= generateNewId(card);
-        if(card instanceof Spell){
-            Spell spell = (Spell) card;
-            return new Spell(id,spell);
-        }
-        if(card instanceof Minion){
-            Minion minion = (Minion) card;
-            return new Minion(id,minion);
-        }
-        if(card instanceof Hero){
-            Hero hero = (Hero) card;
-            return new Hero(id,hero);
+        try {
+            Card copiedCard = card.clone();
+            copiedCard.setId(id);
+            return copiedCard;
+        }catch (CloneNotSupportedException c){
         }
         return null;
     }
     private Item copyWithNewId(UsableItem usableItem){
-        String id = generateNewId(usableItem);
-        return new UsableItem(id,usableItem);
+        String id= generateNewId(usableItem);
+        try {
+            UsableItem copiedItem = usableItem.clone();
+            copiedItem.setId(id);
+            return copiedItem;
+        }catch (CloneNotSupportedException c){
+        }
+        return null;
     }
     private void buyCard(Card card){
         currentAccount.decreaseBudget(card.getPrice());

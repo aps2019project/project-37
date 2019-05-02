@@ -1,6 +1,6 @@
 package model;
 
-public abstract class Buff{
+public abstract class Buff implements Cloneable{
     private int duration;
     private boolean continuous;
     private int remainingTime;
@@ -10,6 +10,12 @@ public abstract class Buff{
         initRemainingTime();
         setContinuous(continuous);
     }
+
+    @Override
+    protected Buff clone() throws CloneNotSupportedException {
+        return (Buff) super.clone();
+    }
+
     public void initRemainingTime(){
         setRemainingTime(duration);
     }

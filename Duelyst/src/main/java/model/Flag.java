@@ -7,4 +7,9 @@ public class Flag extends Item {
     Flag(String id, Flag flag){
         super(id, flag.getName(), flag.getDesc());
     }
+
+    @Override
+    public Flag clone() throws CloneNotSupportedException {
+        return (Flag) super.clone();
+    }
 }

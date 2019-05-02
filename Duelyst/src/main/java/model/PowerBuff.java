@@ -11,6 +11,11 @@ public class PowerBuff extends Buff {
     }
 
     @Override
+    public PowerBuff clone() throws CloneNotSupportedException {
+        return (PowerBuff) super.clone();
+    }
+
+    @Override
     public void applyBuff(Hero hero) {
         if(getType().equals(EffectType.HEALTH)){
             hero.addHealthPointInGame(improve);

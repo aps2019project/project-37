@@ -6,6 +6,12 @@ public class HolyBuff extends Buff {
         super(duration, continuous);
         setHolyNumber(holyNumber);
     }
+
+    @Override
+    public HolyBuff clone() throws CloneNotSupportedException {
+        return (HolyBuff) super.clone();
+    }
+
     @Override
     public void applyBuff(Hero hero) {
         hero.addHolyNumber(getHolyNumber());

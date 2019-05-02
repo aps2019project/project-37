@@ -1,6 +1,6 @@
 package model;
 
-public class Item{
+public class Item implements Cloneable{
     private String id;
     private String name;
     private String desc;
@@ -13,6 +13,10 @@ public class Item{
         setId(id);
         setName(name);
         setDesc(desc);
+    }
+    @Override
+    public Item clone() throws CloneNotSupportedException {
+        return (Item) super.clone();
     }
     public String getName() {
         return name;

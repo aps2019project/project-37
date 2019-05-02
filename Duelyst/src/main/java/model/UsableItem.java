@@ -10,6 +10,11 @@ public class UsableItem extends Item {
         super(id, usable.getName(), usable.getDesc());
         setPrice(usable.getPrice());
     }
+
+    @Override
+    public UsableItem clone() throws CloneNotSupportedException {
+        return (UsableItem) super.clone();
+    }
     public long getPrice() {
         return price;
     }

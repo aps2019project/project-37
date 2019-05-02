@@ -23,6 +23,16 @@ public class Spell extends Card{
         setDesc(desc);
         makeInfo();
     }
+
+    @Override
+    public Spell clone() throws CloneNotSupportedException {
+        Spell spell = (Spell) super.clone();
+        spell.setEffects(new ArrayList<>());
+        for(Buff effect : effects) {
+            spell.addBuff(effect.clone());
+        }
+        return spell;
+    }
     public void setTarget(Target target) {
         this.target = target;
     }
@@ -46,6 +56,9 @@ public class Spell extends Card{
     }
     public String getDesc(){
         return desc;
+    }
+    private void addBuff(Buff effect){
+        effects.add(effect);
     }
     public void makeInfo(){
         info = "Type : Spell - Name : " + getName();

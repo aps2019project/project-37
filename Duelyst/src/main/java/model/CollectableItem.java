@@ -7,4 +7,9 @@ public class CollectableItem extends Item{
     CollectableItem(String id, CollectableItem collectable){
         super(id, collectable.getName(), collectable.getDesc());
     }
+
+    @Override
+    public CollectableItem clone() throws CloneNotSupportedException {
+        return (CollectableItem) super.clone();
+    }
 }

@@ -14,6 +14,12 @@ public class Minion extends Hero{
         setMana(mana);
         makeInfo();
     }
+
+    @Override
+    public Minion clone() throws CloneNotSupportedException {
+        return (Minion) super.clone();
+    }
+
     public int getMana(){
         return mana;
     }
