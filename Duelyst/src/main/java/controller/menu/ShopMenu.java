@@ -120,18 +120,17 @@ public class ShopMenu extends Menu {
         getController().showMessage(getListOfCommands());
     }
     private String getListOfCommands(){
-        StringBuilder commands = new StringBuilder();
-        commands.append("Shop Menu\n");
-        commands.append("-----------\n");
-        commands.append("Commands:\n");
-        commands.append("1- exit\n");
-        commands.append("2- show collection\n");
-        commands.append("3- search [item name | card name]\n");
-        commands.append("4- search collection [item name | card name]\n");
-        commands.append("5- buy [item name | card name] \n");
-        commands.append("5- sell [item id | card id] \n");
-        commands.append("6- show \n");
-        commands.append("7- help \n");
-        return commands.toString();
+        String commands = "Shop Menu\n" +
+                "-----------\n" +
+                "Commands:\n" +
+                "1- exit\n" +
+                "2- show collection\n" +
+                "3- search [item name | card name]\n" +
+                "4- search collection [item name | card name]\n" +
+                "5- buy [item name | card name] \n" +
+                "6- sell [item id | card id] \n" +
+                "7- show \n" +
+                "8- help \n";
+        return commands;
     }
 }

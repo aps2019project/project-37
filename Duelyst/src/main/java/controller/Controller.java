@@ -127,6 +127,35 @@ public class Controller {
             deck.add((UsableItem) object);
         }
     }
+    public void removeFromDeck(String id, String name){
+        Deck deck = currentAccount.getDeck(name);
+        Object object = deck.getObjectById(id);
+        if(object instanceof Card){
+            deck.remove((Card) object);
+        }else if(object instanceof UsableItem){
+            deck.remove((UsableItem) object);
+        }
+    }
+    public void validateDeck(String name){
+        Deck deck = currentAccount.getDeck(name);
+        if(deck.isValidated()){
+            showMessage("Deck is validated");
+        }else {
+            showMessage("Deck is NOT validated");
+        }
+    }
+    public void setMainDeck(String name){
+        currentAccount.setMainDeck(currentAccount.getDeck(name));
+    }
+    public void showAllDecksInfo(){
+        showMessage(currentAccount.getMainDeck().getInfo());
+        currentAccount.getDecks().stream()
+                .filter(deck -> !deck.equals(currentAccount.getMainDeck()))
+                .forEach(deck -> showMessage(deck.getInfo()));
+    }
+    public void showDeckInfo(String name){
+        showMessage(currentAccount.getDeck(name).getInfo());
+    }
     private String generateNewId(Card newCard){
         int index = 1;
         index += currentAccount.getCollection().getCards().stream()

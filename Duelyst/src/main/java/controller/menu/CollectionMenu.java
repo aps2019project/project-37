@@ -83,6 +83,23 @@ public class CollectionMenu extends Menu {
             String name = extractLastWord(command);
             String id = extractIdForAddOrRemove(command);
             callAddToDeckFromController(id,name);
+        }else if(commandType.equals(CommandTypeCollectionMenu.REMOVE)){
+            String name = extractLastWord(command);
+            String id = extractIdForAddOrRemove(command);
+            getController().removeFromDeck(id, name);
+        }else if(commandType.equals(CommandTypeCollectionMenu.VALIDATE_DECK)){
+            String name = extractLastWord(command);
+            getController().validateDeck(name);
+        }else if(commandType.equals(CommandTypeCollectionMenu.SELECT_DECK)){
+            String name = extractLastWord(command);
+            getController().setMainDeck(name);
+        }else if(commandType.equals(CommandTypeCollectionMenu.SHOW_ALL_DECK)){
+            getController().showAllDecksInfo();
+        }else if(commandType.equals(CommandTypeCollectionMenu.SHOW_DECK)){
+            String name = extractLastWord(command);
+            getController().showDeckInfo(name);
+        }else if(commandType.equals(CommandTypeCollectionMenu.HELP)){
+            printListOfCommands();
         }
         return this;
     }
@@ -130,5 +147,26 @@ public class CollectionMenu extends Menu {
         matcher.find();
         return matcher.group(0);
     }
-
+    private void printListOfCommands(){
+        getController().showMessage(getListOfCommands());
+    }
+    private String getListOfCommands(){
+        String commands = "Collection Menu\n" +
+                "-----------\n" +
+                "Commands:\n" +
+                "1- exit\n" +
+                "2- show \n" +
+                "3- search [item name | card name]\n" +
+                "4- save\n" +
+                "5- create deck [deck name] \n" +
+                "6- delete deck [deck name]\n" +
+                "7- add [card id | item id | hero id] to deck [deck name] \n" +
+                "8- remove [card id | card id | hero id] from deck [deck name]\n" +
+                "9- validate deck [deck name]\n" +
+                "10- select deck [deck name]\n" +
+                "11- show all decks\n" +
+                "12- show deck [deck name]\n" +
+                "13- help\n";
+        return commands;
+    }
 }

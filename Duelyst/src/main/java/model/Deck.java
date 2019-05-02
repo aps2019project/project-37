@@ -73,6 +73,12 @@ public class Deck extends Collection{
         }
         return info.toString();
     }
+    public boolean isValidated(){
+        if(getHeroes().size() == 1 && getCards().size() ==20){
+            return true;
+        }
+        return false;
+    }
     public boolean nameEquals(String name){
         if(getName().equals(name)){
             return true;
@@ -83,10 +89,10 @@ public class Deck extends Collection{
     public void add(Card card){
         if(!hasCardById(card.getId())){
             if(getCards().size() < Constants.MAXIMUM_NUMBER_OF_CARDS_IN_DECK){
-                if(card instanceof Hero && !(card instanceof Minion) && hasOneHero()){
-                    super.add(card);
-                }else {
+                if(card.getClass().equals(Hero.class) && hasOneHero()){
                     throw new GameException("Deck has one Hero!");
+                }else {
+                    super.add(card);
                 }
             }else{
                 throw new GameException("Deck has 20 cards!");

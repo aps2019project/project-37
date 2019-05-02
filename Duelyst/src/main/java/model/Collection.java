@@ -66,4 +66,11 @@ public class Collection extends Shop{
                 .filter(usableItem -> usableItem.idEquals(id))
                 .findFirst();
     }
+    public void add(UsableItem usableItem){
+        if(getItems().size()<3){
+            super.add(usableItem);
+        }else {
+            throw new GameException("You have 3 Items in your Collection!");
+        }
+    }
 }

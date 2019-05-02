@@ -105,18 +105,17 @@ public class LoginPage extends Menu {
         getController().logOut();
     }
     private String getListOfCommands(){
-        StringBuilder commands = new StringBuilder();
-        commands.append("Account\n");
-        commands.append("-----------\n");
-        commands.append("Commands:\n");
-        commands.append("1- create account [user name]\n");
-        commands.append("2- login [user name]\n");
-        commands.append("3- show leaderboard\n");
-        commands.append("4- save\n");
-        commands.append("5- log out\n");
-        commands.append("6- save\n");
-        commands.append("7- help\n");
-        return commands.toString();
+        String commands = "Account\n" +
+                "-----------\n" +
+                "Commands:\n" +
+                "1- create account [user name]\n" +
+                "2- login [user name]\n" +
+                "3- show leaderboard\n" +
+                "4- save\n" +
+                "5- log out\n" +
+                "6- save\n" +
+                "7- help\n";
+        return commands;
     }
     private String extractUserName(String command){
         Pattern pattern = Pattern.compile("\\w+(?=\\s*)$");

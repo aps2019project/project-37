@@ -87,15 +87,14 @@ public class MainMenu extends Menu {
         getController().showMessage(getListOfCommands());
     }
     private String getListOfCommands(){
-        StringBuilder commands = new StringBuilder();
-        commands.append("Main Menu\n");
-        commands.append("-----------\n");
-        commands.append("Commands:\n");
-        commands.append("1- Enter collection\n");
-        commands.append("2- Enter shop\n");
-        commands.append("3- Enter battle\n");
-        commands.append("4- exit\n");
-        commands.append("5- help\n");
-        return commands.toString();
+        String commands = "Main Menu\n" +
+                "-----------\n" +
+                "Commands:\n" +
+                "1- Enter collection\n" +
+                "2- Enter shop\n" +
+                "3- Enter battle\n" +
+                "4- exit\n" +
+                "5- help\n";
+        return commands;
     }
 }
