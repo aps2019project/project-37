@@ -3,7 +3,7 @@ package view;
 import java.util.Scanner;
 
 public class View {
-    Scanner scanner = new Scanner(System.in);
+    private Scanner scanner = new Scanner(System.in);
     public String getInputAsString(){
         return scanner.nextLine();
     }

@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 enum CommandTypeLoginPage {
     CREATE_ACCOUNT(0),
     LOGIN(1),
-    SHOW_LEADERBOARD(2),
+    SHOW_LEAD_BOARD(2),
     SAVE(3),
     LOGOUT(4),
     HELP(5);
@@ -59,7 +59,7 @@ public class LoginPage extends Menu {
         }else if(commandType.equals(CommandTypeLoginPage.LOGIN)) {
             callLoginFromController(command);
             return mainMenu;
-        }else if(commandType.equals(CommandTypeLoginPage.SHOW_LEADERBOARD)) {
+        }else if(commandType.equals(CommandTypeLoginPage.SHOW_LEAD_BOARD)) {
             callShowLeaderBoardFromController();
         }else if(commandType.equals(CommandTypeLoginPage.SAVE)) {
             callSaveFromController();
