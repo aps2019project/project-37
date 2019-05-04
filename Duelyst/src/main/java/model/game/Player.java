@@ -26,6 +26,14 @@ public class Player {
         initHand();
     }
 
+    public Deck getDeck() {
+        return deck;
+    }
+
+    public Account getAccount() {
+        return account;
+    }
+
     public ArrayList<Card> getHand() {
         return hand;
     }

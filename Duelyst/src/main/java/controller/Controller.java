@@ -200,6 +200,7 @@ public class Controller {
         try {
             Card copiedCard = card.clone();
             copiedCard.setId(id);
+            copiedCard.setAccount(currentAccount);
             return copiedCard;
         } catch (CloneNotSupportedException c) {
         }
@@ -211,6 +212,7 @@ public class Controller {
         try {
             UsableItem copiedItem = usableItem.clone();
             copiedItem.setId(id);
+            copiedItem.setAccount(currentAccount);
             return copiedItem;
         } catch (CloneNotSupportedException c) {
         }
