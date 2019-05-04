@@ -4,6 +4,7 @@ abstract public class Card implements Cloneable{
     private String id;
     private String name;
     private long price;
+    private Account account;
     Card(String name, long price){
         setName(name);
         setPrice(price);
@@ -25,6 +26,9 @@ abstract public class Card implements Cloneable{
     public void setPrice(long price){
         this.price = price;
     }
+    public void setAccount(Account account) {
+        this.account = account;
+    }
     public String getId(){
         return id;
     }
@@ -33,6 +37,9 @@ abstract public class Card implements Cloneable{
     }
     public long getPrice(){
         return price;
+    }
+    public Account getAccount() {
+        return account;
     }
     public boolean idEquals(String id){
         if(getId().equals(id)){
