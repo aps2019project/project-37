@@ -7,6 +7,12 @@ import java.util.List;
 import java.util.Optional;
 
 public class Collection extends Shop {
+
+
+    public Collection() {
+        super(new ArrayList<>(), new ArrayList<>());
+    }
+
     public String getIdsByName(String name) {
         StringBuilder ids = new StringBuilder();
         getCards()

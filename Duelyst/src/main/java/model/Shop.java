@@ -7,15 +7,46 @@ import java.util.List;
 import java.util.Optional;
 
 public class Shop {
-    private ArrayList<Card> cards = new ArrayList<>();
-    private ArrayList<Item> items = new ArrayList<>();
+    private ArrayList<Card> cards;
+    private ArrayList<Item> items;
+
+
+    public Shop(ArrayList<Card> cards, ArrayList<Item> items) {
+        this.cards = cards;
+        this.items = items;
+    }
 
     public ArrayList<Card> getCards() {
         return cards;
     }
 
+    public void setCards(ArrayList<Card> cards) {
+        this.cards = cards;
+    }
+
     public ArrayList<Item> getItems() {
         return items;
+    }
+
+    public void setItems(ArrayList<Item> items) {
+        this.items = items;
+    }
+
+
+    public void add(Card card) {
+        cards.add(card);
+    }
+
+    public void add(Item item) {
+        items.add(item);
+    }
+
+    public void remove(Card card) {
+        cards.remove(card);
+    }
+
+    public void remove(Item item) {
+        items.remove(item);
     }
 
     public ArrayList<UsableItem> getUsableItems() {
@@ -36,14 +67,6 @@ public class Shop {
             }
         }
         return heroes;
-    }
-
-    public void setCards(ArrayList<Card> cards) {
-        this.cards = cards;
-    }
-
-    public void setItems(ArrayList<Item> items) {
-        this.items = items;
     }
 
     public Object getObjectByName(String name) {
@@ -73,20 +96,37 @@ public class Shop {
                 .orElse(null);
     }
 
-    public void add(Card card) {
-        cards.add(card);
+    public String getHeroId(String name) {
+        int index = 0;
+        for (int i = 0; i < getHeroes().size(); i++) {
+            if (getHeroes().get(i).nameEquals(name)) {
+                index = i + 1;
+                break;
+            }
+        }
+        return "shop_hero_" + index;
     }
 
-    public void add(Item item) {
-        items.add(item);
+    public String getCardId(String name) {
+        int index = 0;
+        for (int i = 0; i < getCards().size(); i++) {
+            if (getCards().get(i).nameEquals(name)) {
+                index = i + 1;
+                break;
+            }
+        }
+        return "shop_card_" + index;
     }
 
-    public void remove(Card card) {
-        cards.remove(card);
-    }
-
-    public void remove(Item item) {
-        items.remove(item);
+    public String getItemId(String name) {
+        int index = 0;
+        for (int i = 0; i < getUsableItems().size(); i++) {
+            if (getUsableItems().get(i).nameEquals(name)) {
+                index = i + 1;
+                break;
+            }
+        }
+        return "shop_item_" + index;
     }
 
     public String getInfo() {
@@ -107,37 +147,6 @@ public class Shop {
             info.append(getInfoOfCards());
         }
         return info.toString();
-    }
-
-    public String getHeroId(String name) {
-        int index = 0;
-        for (int i = 0; i < getHeroes().size(); i++) {
-            if (getHeroes().get(i).nameEquals(name)) {
-                index = i + 1;
-                break;
-            }
-        }
-        return "shop_hero_"+index;
-    }
-    public String getCardId(String name) {
-        int index = 0;
-        for (int i = 0; i < getCards().size(); i++) {
-            if (getCards().get(i).nameEquals(name)) {
-                index = i + 1;
-                break;
-            }
-        }
-        return "shop_card_"+index;
-    }
-    public String getItemId(String name) {
-        int index = 0;
-        for (int i = 0; i < getUsableItems().size(); i++) {
-            if (getUsableItems().get(i).nameEquals(name)) {
-                index = i + 1;
-                break;
-            }
-        }
-        return "shop_item_"+index;
     }
 
     public String getInfoOfHeroes() {

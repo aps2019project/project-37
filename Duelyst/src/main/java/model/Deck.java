@@ -6,108 +6,105 @@ import controller.GameException;
 import java.awt.*;
 import java.util.ArrayList;
 
-public class Deck extends Collection{
+public class Deck extends Collection {
     private String name;
-    Deck(String name){
+
+    Deck(String name) {
+        super();
         setName(name);
     }
+
     public String getName() {
         return name;
     }
+
     public void setName(String name) {
         this.name = name;
     }
-    public boolean hasOneHero(){
-        if(getHeroes().size() == 1){
-            return true;
-        }else {
-            return false;
-        }
+
+    public boolean hasOneHero() {
+        return getHeroes().size() == 1;
     }
-    public Hero getHero(){
+
+    public Hero getHero() {
         return getHeroes().stream().findFirst().orElse(null);
     }
-    public String getInfo(){
+
+
+
+    @Override
+    public String getInfoOfHeroes() {
         StringBuilder info = new StringBuilder();
-
-        info.append("Heroes :\n");
-        if(!getHeroes().isEmpty()){
-            info.append(getInfoOfHeroes());
-        }
-
-        info.append("Items :\n");
-        if(!getItems().isEmpty()){
-            info.append(getInfoOfItems());
-        }
-
-        info.append("Cards:\n");
-        if(!getCards().isEmpty()){
-            info.append(getInfoOfCards());
-        }
-        return info.toString();
-    }
-    public String getInfoOfHeroes(){
-        StringBuilder info = new StringBuilder();
-        if(!getHeroes().isEmpty()){
-            for(int i = 0; i < getHeroes().size(); i++){
-                info.append("\t" + (i+1) + " : " + getHeroes().get(i).getInfoWithoutPrice() + "\n");
+        if (!getHeroes().isEmpty()) {
+            for (int i = 0; i < getHeroes().size(); i++) {
+                info.append("\t").append(i + 1).append(" : ")
+                        .append(getHeroes().get(i).getInfoWithoutPrice()).append("\n");
             }
         }
         return info.toString();
     }
-    public String getInfoOfItems(){
-        StringBuilder info = new StringBuilder();
 
-        if(!getItems().isEmpty()){
-            for(int i = 0; i < getItems().size(); i++){
-                Item item = getItems().get(i);
-                info.append("\t" + (i+1) + " : " + item.getInfo() + "\n");
+    @Override
+    public String getInfoOfUsableItems() {
+        StringBuilder info = new StringBuilder();
+        ArrayList<UsableItem> usableItems = getUsableItems();
+
+        if (!usableItems.isEmpty()) {
+            for (int i = 0; i < usableItems.size(); i++) {
+                UsableItem usableItem = usableItems.get(i);
+                info.append("\t").append(i + 1).append(" : ")
+                        .append(usableItem.getInfo()).append("\n");
             }
         }
 
         return info.toString();
     }
-    public String getInfoOfCards(){
+
+    @Override
+    public String getInfoOfCards() {
         StringBuilder info = new StringBuilder();
-        if(!getCards().isEmpty()){
-            for(int i = 0; i < getCards().size(); i++){
-                info.append("\t" + (i+1) + " : " + getCards().get(i).getInfoWithoutPrice() + "\n");
+        if (!getCards().isEmpty()) {
+            for (int i = 0; i < getCards().size(); i++) {
+                info.append("\t").append(i + 1).append(" : ")
+                        .append(getCards().get(i).getInfoWithoutPrice()).append("\n");
             }
         }
         return info.toString();
     }
-    public boolean isValidated(){
-        if(getHeroes().size() == 1 && getCards().size() ==20){
+
+    public boolean isValid() {
+        if (getHeroes().size() == 1 && getCards().size() == 20) {
             return true;
         }
         return false;
     }
-    public boolean nameEquals(String name){
-        if(getName().equals(name)){
-            return true;
-        }else{
-            return false;
-        }
+
+    public boolean nameEquals(String name) {
+        return getName().equals(name);
     }
-    public void add(Card card){
-        if(!hasCardById(card.getId())){
-            if(getCards().size() < Constants.MAXIMUM_NUMBER_OF_CARDS_IN_DECK){
-                if(card.getClass().equals(Hero.class) && hasOneHero()){
+
+    @Override
+    public void add(Card card) {
+        if (!hasCardById(card.getId())) {
+            if (getCards().size() < Constants.MAXIMUM_NUMBER_OF_CARDS_IN_DECK) {
+                if (card.getClass().equals(Hero.class) && hasOneHero()) {
                     throw new GameException("Deck has one Hero!");
-                }else {
+                } else {
                     super.add(card);
                 }
-            }else{
+            } else {
                 throw new GameException("Deck has 20 cards!");
             }
-        }else {
+        } else {
             throw new GameException("Deck has a card with this id!");
         }
     }
-    public void add(UsableItem usableItem){
-        if(!hasUsableItemById(usableItem.getId())){
+
+    @Override
+    public void add(UsableItem usableItem) {
+        if (!hasUsableItemById(usableItem.getId())) {
             super.add(usableItem);
-        }else {
+        } else {
             throw new GameException("Deck has an item with this id!");
         }
     }

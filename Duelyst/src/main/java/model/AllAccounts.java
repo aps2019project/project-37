@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 
 public class AllAccounts {
     private List<Account> accounts = new ArrayList<>();
-    private Shop shop = new Shop();
+    private Shop shop = new Shop(new ArrayList<>(), new ArrayList<>());
 
 
     public void add(Account account) {

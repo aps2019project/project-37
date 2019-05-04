@@ -183,10 +183,10 @@ public class Controller {
 
     public void validateDeck(String name) {
         Deck deck = currentAccount.getDeck(name);
-        if (deck.isValidated()) {
-            showMessage("Deck is validated");
+        if (deck.isValid()) {
+            showMessage("Deck is valid");
         } else {
-            showMessage("Deck is NOT validated");
+            showMessage("Deck is NOT valid");
         }
     }
 
