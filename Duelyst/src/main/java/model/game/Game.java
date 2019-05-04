@@ -1,11 +1,11 @@
 package model.game;
 
+import controller.Constants;
 import controller.GameException;
-import model.AttackType;
-import model.Card;
-import model.Hero;
+import model.*;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
 public class Game {
     private Player player1;
@@ -43,7 +43,10 @@ public class Game {
         this.board = board;
     }
     public void setSelectedCellByCardId(String cardId) {
-        selectedCell = getCellByCardId(cardId);
+        selectedCell=
+                Optional.ofNullable(getCellByCardId(cardId))
+                .filter(cell -> cell.getCard().getAccount().equals(currentPlayer.getAccount()))
+                .orElseThrow(() -> new GameException("This card is not yours!"));
     }
     public void moveSelectedCardTo(int x, int y){
         Cell newCell = board.get(x).get(y);
@@ -76,6 +79,51 @@ public class Game {
             throw new GameException("You cannot move!");
         }
     }
+    public void useSpecialPower(int x, int y){
+        Hero soldier = (Hero) selectedCell.getCard();
+        //....
+    }
+    public ArrayList<Cell> getTargetCellsByRange(Buff buff, Cell pointedCell){
+        ArrayList<Cell> cells = new ArrayList<>();
+        if(buff.getRange().equals(RangeType.ALLBOARD)){
+            cells = getTargetCellsAllBoard();
+        }
+        else if (buff.getRange().equals(RangeType.AROUND8)){
+            cells = getTargetCellsAROUND8(pointedCell);
+        }
+        //other Types should be added ....
+        return cells;
+    }
+    private ArrayList<Cell> getTargetCellsAllBoard(){
+        ArrayList<Cell> cells = new ArrayList<>();
+        for(int i = 0; i < board.size(); i++){
+            for(int j = 0; j<board.get(i).size(); j++){
+                cells.add(board.get(i).get(j));
+            }
+        }
+        return cells;
+    }
+    private ArrayList<Cell> getTargetCellsAROUND8(Cell pointedCell){
+        ArrayList<Cell> cells = new ArrayList<>();
+        int leftX = pointedCell.getX() - 1;
+        int upY = pointedCell.getY() - 1;
+        int rightX = pointedCell.getX() + 1;
+        int downY = pointedCell.getY() + 1;
+        leftX = leftX < 0 ? 0 : leftX;
+        upY = upY < 0 ? 0 : upY;
+        rightX = rightX >= Constants.LENGTH_OF_BOARD ? Constants.LENGTH_OF_BOARD-1 : rightX;
+        downY = downY >= Constants.LENGTH_OF_BOARD ? Constants.WIDTH_OF_BOARD-1 : downY;
+        for (int i = upY; i <= downY ; i++){
+            for(int j = leftX; j <= rightX; j++){
+                if( i == pointedCell.getY() && j == pointedCell.getX()){
+                    continue;
+                }
+                cells.add(board.get(i).get(j));
+            }
+        }
+        return cells;
+    }
+
     public void nextTurn(){
         if(currentPlayer.equals(player1)) {
             setCurrentPlayer(player2);
