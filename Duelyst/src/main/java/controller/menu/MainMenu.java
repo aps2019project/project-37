@@ -64,13 +64,13 @@ public class MainMenu extends Menu {
         CommandTypeMainMenu commandType = getCommandType(command);
         switch (commandType) {
             case COLLECTION:
-                showMessage("You've entered collection menu\n");
+                showMessage("\nYou've entered CollectionMenu\n");
                 return collectionMenu;
             case SHOP:
-                showMessage("You've entered shop menu\n");
+                showMessage("\nYou've entered ShopMenu\n");
                 return shopMenu;
             case BATTLE:
-                showMessage("You've entered battle menu\n");
+                showMessage("\nYou've entered BattleMenu\n");
                 return battleMenu;
             case EXIT:
                 return getParentMenu();

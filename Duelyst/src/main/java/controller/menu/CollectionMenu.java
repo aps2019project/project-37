@@ -44,6 +44,7 @@ public class CollectionMenu extends Menu {
 
     CollectionMenu(Controller controller) {
         super(controller);
+        initCommandPatterns();
     }
 
     private void initCommandPatterns() {
@@ -52,12 +53,12 @@ public class CollectionMenu extends Menu {
         commandRegexes[1] = "^show$";
         commandRegexes[2] = "^search \\w+$";
         commandRegexes[3] = "^save$";
-        commandRegexes[4] = "^create deck\\w+$";
-        commandRegexes[5] = "^delete deck\\w+$";
+        commandRegexes[4] = "^create deck \\w+$";
+        commandRegexes[5] = "^delete deck \\w+$";
         commandRegexes[6] = "^add \\w+ to \\w+$";
         commandRegexes[7] = "^remove \\w+ from \\w+$";
-        commandRegexes[8] = "^validate deck\\w+$";
-        commandRegexes[9] = "^select deck\\w+$";
+        commandRegexes[8] = "^validate deck \\w+$";
+        commandRegexes[9] = "^select deck \\w+$";
         commandRegexes[10] = "^show all decks$";
         commandRegexes[11] = "^show deck \\w+$";
         commandRegexes[12] = "^help$";
@@ -71,6 +72,7 @@ public class CollectionMenu extends Menu {
         CommandTypeCollectionMenu commandType = getCommandType(command);
         switch (commandType) {
             case EXIT:
+                showMessage("\nYou've entered " + getParentMenu().getClass().getSimpleName() + "\n");
                 return getParentMenu();
             case SHOW:
                 callShowCollectionFromController();

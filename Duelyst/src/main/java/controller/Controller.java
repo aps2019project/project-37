@@ -11,13 +11,11 @@ import java.util.List;
 public class Controller {
     private View view;
     private Account currentAccount;
-    private AllAccounts allAccounts;
     private MenuManager menuManager;
     private Game game;
 
     public Controller() {
         view = new View();
-        allAccounts = new AllAccounts();
         menuManager = new MenuManager(this);
         while (true) {
             runCommand(view.getInputAsString());
@@ -43,23 +41,23 @@ public class Controller {
 
 
     public void createAccount(String userName) {
-        if (allAccounts.hasAccount(userName)) {
+        if (Utils.hasAccount(userName)) {
             throw new GameException("There is an account with this user name!");
         } else {
             Account account = new Account();
             account.setUserName(userName);
             showMessage("Enter Password:");
             account.setPassword(view.getInputAsString());
-            allAccounts.add(account);
+            Utils.add(account);
             showMessage("Account Created");
         }
     }
 
     public void login(String userName) {
-        if (!allAccounts.hasAccount(userName)) {
+        if (!Utils.hasAccount(userName)) {
             throw new GameException("There is no such account");
         }
-        Account account = allAccounts.getAccountByUsername(userName);
+        Account account = Utils.getAccountByUsername(userName);
         showMessage("Enter the password:");
         String password = getInputAsString();
         if (account.getPassword().equals(password)) {
@@ -72,10 +70,10 @@ public class Controller {
 
     public void showLeaderBoard() {
         StringBuilder leaderBoard = new StringBuilder();
-        if (allAccounts.getAccounts().isEmpty()) {
+        if (Utils.getAccounts().isEmpty()) {
             throw new GameException("There is no account!");
         }
-        List<Account> sortedAccounts = allAccounts.getSortedAccounts();
+        List<Account> sortedAccounts = Utils.getSortedAccounts();
         for (int i = 0; i < sortedAccounts.size(); i++) {
             Account account = sortedAccounts.get(i);
             leaderBoard.append(i + 1).append("-").append(account.getInfo()).append("\n");
@@ -99,32 +97,26 @@ public class Controller {
     }
 
     public void searchInShop(String name) {
-        Object object = allAccounts.getShop().getObjectByName(name);
-        if (object == null) {
-            throw new GameException("This item is not available in shop");
-        }
-        showMessage("This item is available in shop and it's id is:\n");
+        Object object = Utils.getShop().getObjectByName(name);
+        showMessage("This item/card is available in shop and it's id is:\n");
         if (object instanceof Card) {
             if (object instanceof Hero) {
-                showMessage(allAccounts.getShop().getHeroId(((Hero) object).getName()));
+                showMessage(Utils.getShop().getHeroId(((Hero) object).getName()));
             }
-            showMessage(allAccounts.getShop().getCardId(((Card) object).getName()));
+            showMessage(Utils.getShop().getCardId(((Card) object).getName()));
         } else if (object instanceof UsableItem) {
-            showMessage(allAccounts.getShop().getItemId(((UsableItem) object).getName()));
+            showMessage(Utils.getShop().getItemId(((UsableItem) object).getName()));
         }
     }
 
     public void searchInCollection(String name) {
         String ids = currentAccount.getCollection().getIdsByName(name);
-        showMessage("This item is available in collection and it's id is:\n");
+        showMessage("This item/card is available in collection and it's id is:\n");
         showMessage(ids);
     }
 
     public void buy(String name) {
-        Object object = allAccounts.getShop().getObjectByName(name);
-        if (object==null){
-            throw new GameException("This item is not available in shop");
-        }
+        Object object = Utils.getShop().getObjectByName(name);
         if (object instanceof Card) {
             buyCard((Card) object);
         } else if (object instanceof UsableItem) {
@@ -139,10 +131,11 @@ public class Controller {
         } else if (object instanceof UsableItem) {
             sell((UsableItem) object);
         }
+        showMessage("Sell was successful");
     }
 
     public void showShop() {
-        showMessage(allAccounts.getShop().getInfo());
+        showMessage(Utils.getShop().getInfo());
     }
 
     public void createDeck(String name) {
@@ -151,11 +144,13 @@ public class Controller {
         } else {
             currentAccount.createDeck(name);
         }
+        showMessage("Deck created successfully");
     }
 
     public void deleteDeck(String name) {
         if (currentAccount.hasDeck(name)) {
             currentAccount.removeDeck(name);
+            showMessage("Deck deleted successfully");
         } else {
             throw new GameException("You don't have a deck with this name!");
         }
@@ -192,13 +187,11 @@ public class Controller {
 
     public void setMainDeck(String name) {
         currentAccount.setMainDeck(currentAccount.getDeck(name));
+        showMessage("Deck" + name + "selected successfully");
     }
 
     public void showAllDecksInfo() {
-        showMessage(currentAccount.getMainDeck().getInfo());
-        currentAccount.getDecks().stream()
-                .filter(deck -> !deck.equals(currentAccount.getMainDeck()))
-                .forEach(deck -> showMessage(deck.getInfo()));
+        showMessage(currentAccount.showAllDecks());
     }
 
     public void showDeckInfo(String name) {

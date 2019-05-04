@@ -31,7 +31,6 @@ public class Deck extends Collection {
     }
 
 
-
     @Override
     public String getInfoOfHeroes() {
         StringBuilder info = new StringBuilder();

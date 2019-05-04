@@ -5,25 +5,31 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class AllAccounts {
-    private List<Account> accounts = new ArrayList<>();
-    private Shop shop = new Shop(new ArrayList<>(), new ArrayList<>());
+public class Utils {
+    private static List<Account> accounts = new ArrayList<>();
+    private static Shop shop;
 
+    static {
+        List<Card> cards = new ArrayList<>();
+        List<Item> items = new ArrayList<>();
 
-    public void add(Account account) {
+        shop = new Shop(cards, items);
+    }
+
+    public static void add(Account account) {
         accounts.add(account);
     }
 
-    public boolean hasAccount(String userName) {
+    public static boolean hasAccount(String userName) {
         return getAccountByUsername(userName) != null;
     }
 
-    public Account getAccountByUsername(String userName) {
+    public static Account getAccountByUsername(String userName) {
         return accounts.stream().filter(account -> userName.equals(account.getUserName()))
                 .findFirst().orElse(null);
     }
 
-    public List<Account> getSortedAccounts() {
+    public static List<Account> getSortedAccounts() {
         return accounts.stream()
                 .sorted(Comparator
                         .comparing(Account::getWins).reversed()
@@ -31,11 +37,11 @@ public class AllAccounts {
                 .collect(Collectors.toList());
     }
 
-    public Shop getShop() {
+    public static Shop getShop() {
         return shop;
     }
 
-    public List<Account> getAccounts() {
+    public static List<Account> getAccounts() {
         return accounts;
     }
 

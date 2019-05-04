@@ -65,7 +65,7 @@ public class Collection extends Shop {
             } else {
                 return ((Card) o).idEquals(id);
             }
-        }).findFirst().orElse(null);
+        }).findFirst().orElseThrow(()->new GameException("Card/item not found"));
     }
 
     private Card getCardById(String id) {

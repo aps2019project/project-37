@@ -112,6 +112,23 @@ public class Account {
         }
     }
 
+    public String showAllDecks() {
+        StringBuilder info = new StringBuilder();
+        if (mainDeck != null) {
+            decks.remove(mainDeck);
+            decks.add(0, mainDeck);
+        }
+        if (decks.isEmpty()) {
+            throw new GameException("You dont have any decks");
+        }
+        for (int i = 0; i < decks.size(); i++) {
+            info.append(i + 1).append(" : ")
+                    .append(decks.get(i).getName()).append(" :\n")
+                    .append(decks.get(i).getInfo("\t"));
+        }
+        return info.toString();
+    }
+
     public void selectAsMainDeck(String name) {
         Deck deck = getDeck(name);
         setMainDeck(deck);
@@ -122,11 +139,7 @@ public class Account {
     }
 
     public boolean userNameEquals(String Name) {
-        if (this.userName.equals(Name)) {
-            return true;
-        } else {
-            return false;
-        }
+        return this.userName.equals(Name);
     }
 
 

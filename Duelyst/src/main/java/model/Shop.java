@@ -4,19 +4,18 @@ import controller.GameException;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class Shop {
-    private ArrayList<Card> cards;
-    private ArrayList<Item> items;
+    private List<Card> cards;
+    private List<Item> items;
 
 
-    public Shop(ArrayList<Card> cards, ArrayList<Item> items) {
+    public Shop(List<Card> cards, List<Item> items) {
         this.cards = cards;
         this.items = items;
     }
 
-    public ArrayList<Card> getCards() {
+    public List<Card> getCards() {
         return cards;
     }
 
@@ -24,7 +23,7 @@ public class Shop {
         this.cards = cards;
     }
 
-    public ArrayList<Item> getItems() {
+    public List<Item> getItems() {
         return items;
     }
 
@@ -79,7 +78,7 @@ public class Shop {
             } else {
                 return ((Card) o).nameEquals(name);
             }
-        }).findFirst().orElse(null);
+        }).findFirst().orElseThrow(() -> new GameException("Card/item not found"));
     }
 
     private Card getCardByName(String name) {
@@ -130,19 +129,23 @@ public class Shop {
     }
 
     public String getInfo() {
+        return getInfo("");
+    }
+
+    public String getInfo(String tab){
         StringBuilder info = new StringBuilder();
 
-        info.append("Heroes :\n");
+        info.append(tab).append("Heroes :\n");
         if (!getHeroes().isEmpty()) {
             info.append(getInfoOfHeroes());
         }
 
-        info.append("Items :\n");
+        info.append(tab).append("Items :\n");
         if (!getUsableItems().isEmpty()) {
             info.append(getInfoOfUsableItems());
         }
 
-        info.append("Cards:\n");
+        info.append(tab).append("Cards:\n");
         if (!getCards().isEmpty()) {
             info.append(getInfoOfCards());
         }
