@@ -109,11 +109,43 @@ public class Shop {
         return info.toString();
     }
 
+    public String getHeroId(String name) {
+        int index = 0;
+        for (int i = 0; i < getHeroes().size(); i++) {
+            if (getHeroes().get(i).nameEquals(name)) {
+                index = i + 1;
+                break;
+            }
+        }
+        return "shop_hero_"+index;
+    }
+    public String getCardId(String name) {
+        int index = 0;
+        for (int i = 0; i < getCards().size(); i++) {
+            if (getCards().get(i).nameEquals(name)) {
+                index = i + 1;
+                break;
+            }
+        }
+        return "shop_card_"+index;
+    }
+    public String getItemId(String name) {
+        int index = 0;
+        for (int i = 0; i < getUsableItems().size(); i++) {
+            if (getUsableItems().get(i).nameEquals(name)) {
+                index = i + 1;
+                break;
+            }
+        }
+        return "shop_item_"+index;
+    }
+
     public String getInfoOfHeroes() {
         StringBuilder info = new StringBuilder();
         if (!getHeroes().isEmpty()) {
             for (int i = 0; i < getHeroes().size(); i++) {
-                info.append("\t" + (i + 1) + " : " + getHeroes().get(i).getInfoWithPrice() + "\n");
+                info.append("\t").append(i + 1).append(" : ")
+                        .append(getHeroes().get(i).getInfoWithPrice()).append("\n");
             }
         }
         return info.toString();
@@ -126,7 +158,8 @@ public class Shop {
         if (!usableItems.isEmpty()) {
             for (int i = 0; i < usableItems.size(); i++) {
                 UsableItem usableItem = usableItems.get(i);
-                info.append("\t" + (i + 1) + " : " + usableItem.getInfoWithPrice() + "\n");
+                info.append("\t").append(i + 1).append(" : ")
+                        .append(usableItem.getInfoWithPrice()).append("\n");
             }
         }
 
@@ -137,7 +170,8 @@ public class Shop {
         StringBuilder info = new StringBuilder();
         if (!getCards().isEmpty()) {
             for (int i = 0; i < getCards().size(); i++) {
-                info.append("\t" + (i + 1) + " : " + getCards().get(i).getInfoWithPrice() + "\n");
+                info.append("\t").append(i + 1).append(" : ")
+                        .append(getCards().get(i).getInfoWithPrice()).append("\n");
             }
         }
         return info.toString();

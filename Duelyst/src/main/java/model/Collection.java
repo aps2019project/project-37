@@ -12,11 +12,11 @@ public class Collection extends Shop {
         getCards()
                 .stream()
                 .filter(card -> card.nameEquals(name))
-                .forEach(card -> ids.append(card.getId()).append("\n"));
+                .forEach(card -> ids.append(card.getId()).append(", "));
         getUsableItems()
                 .stream()
                 .filter(usableItem -> usableItem.nameEquals(name))
-                .forEach(usableItem -> ids.append(usableItem.getId()).append("\n"));
+                .forEach(usableItem -> ids.append(usableItem.getId()).append(", "));
         if (!ids.toString().isEmpty()) {
             return ids.toString();
         } else {

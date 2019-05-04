@@ -22,4 +22,8 @@ abstract public class Menu {
     }
 
     abstract public Menu runCommandAndGetNextMenu(String command);
+
+    public void showMessage(String message){
+        controller.showMessage(message);
+    }
 }

@@ -6,7 +6,7 @@ import controller.GameException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-enum CommandTypeCollectionMenu{
+enum CommandTypeCollectionMenu {
     EXIT(0),
     SHOW(1),
     SEARCH(2),
@@ -23,135 +23,161 @@ enum CommandTypeCollectionMenu{
 
 
     int commandIndex;
-    CommandTypeCollectionMenu(int commandIndex){
+
+    CommandTypeCollectionMenu(int commandIndex) {
         this.commandIndex = commandIndex;
     }
-    public static CommandTypeCollectionMenu getCommandType(int commandIndex){
-        for(CommandTypeCollectionMenu commandType :values()){
-            if(commandType.equals(commandIndex)){
+
+    public static CommandTypeCollectionMenu getCommandType(int commandIndex) {
+        for (CommandTypeCollectionMenu commandType : values()) {
+            if (commandType.commandIndex == commandIndex) {
                 return commandType;
             }
         }
         return null;
     }
 }
+
 public class CollectionMenu extends Menu {
     private static final int NUMBER_OF_COMMANDS = 13;
-    private Pattern commandPatterns[] = new Pattern[NUMBER_OF_COMMANDS];
+    private Pattern[] commandPatterns = new Pattern[NUMBER_OF_COMMANDS];
 
-    CollectionMenu(Controller controller){
+    CollectionMenu(Controller controller) {
         super(controller);
     }
-    private void initCommandPatterns(){
-        String commandRegexes[] = new String[NUMBER_OF_COMMANDS];
-        commandRegexes[0] = "^exit\\s*$";
-        commandRegexes[1] = "^show\\s*$";
-        commandRegexes[2] = "^search \\w+\\s*$";
-        commandRegexes[3] = "^save\\s*$";
-        commandRegexes[4] = "^create deck\\w+\\s*$";
-        commandRegexes[5] = "^delete deck\\w+\\s*$";
-        commandRegexes[6] = "^add \\w+ to \\w+\\s*$";
-        commandRegexes[7] = "^remove \\w+ from \\w+\\s*$";
-        commandRegexes[8] = "^validate deck\\w+\\s*$";
-        commandRegexes[9] = "^select deck\\w+\\s*$";
-        commandRegexes[10] = "^show all decks\\s*$";
-        commandRegexes[11] = "^show deck \\w+\\s*$";
-        commandRegexes[12] = "^help\\s*$";
-        for(int i=0; i < NUMBER_OF_COMMANDS; i++){
+
+    private void initCommandPatterns() {
+        String[] commandRegexes = new String[NUMBER_OF_COMMANDS];
+        commandRegexes[0] = "^exit$";
+        commandRegexes[1] = "^show$";
+        commandRegexes[2] = "^search \\w+$";
+        commandRegexes[3] = "^save$";
+        commandRegexes[4] = "^create deck\\w+$";
+        commandRegexes[5] = "^delete deck\\w+$";
+        commandRegexes[6] = "^add \\w+ to \\w+$";
+        commandRegexes[7] = "^remove \\w+ from \\w+$";
+        commandRegexes[8] = "^validate deck\\w+$";
+        commandRegexes[9] = "^select deck\\w+$";
+        commandRegexes[10] = "^show all decks$";
+        commandRegexes[11] = "^show deck \\w+$";
+        commandRegexes[12] = "^help$";
+        for (int i = 0; i < NUMBER_OF_COMMANDS; i++) {
             this.commandPatterns[i] = Pattern.compile(commandRegexes[i]);
         }
     }
+
     @Override
     public Menu runCommandAndGetNextMenu(String command) {
         CommandTypeCollectionMenu commandType = getCommandType(command);
-        if(commandType.equals(CommandTypeCollectionMenu.EXIT)){
-            return getParentMenu();
-        }else if(commandType.equals(CommandTypeCollectionMenu.SHOW)){
-            callShowCollectionFromController();
-        }else if(commandType.equals(CommandTypeCollectionMenu.SEARCH)){
-            String name = extractLastWord(command);
-            callSearchInCollectionFromController(name);
-        }else if(commandType.equals(CommandTypeCollectionMenu.SAVE)){
-            callSaveFromController();
-        }else if(commandType.equals(CommandTypeCollectionMenu.CREATE_DECK)){
-            String name = extractLastWord(command);
-            callCreateDeckFromController(name);
-        }else if(commandType.equals(CommandTypeCollectionMenu.DELETE_DECK)){
-            String name = extractLastWord(command);
-            callDeleteDeckFromController(name);
-        }else if(commandType.equals(CommandTypeCollectionMenu.ADD)){
-            String name = extractLastWord(command);
-            String id = extractIdForAddOrRemove(command);
-            callAddToDeckFromController(id,name);
-        }else if(commandType.equals(CommandTypeCollectionMenu.REMOVE)){
-            String name = extractLastWord(command);
-            String id = extractIdForAddOrRemove(command);
-            getController().removeFromDeck(id, name);
-        }else if(commandType.equals(CommandTypeCollectionMenu.VALIDATE_DECK)){
-            String name = extractLastWord(command);
-            getController().validateDeck(name);
-        }else if(commandType.equals(CommandTypeCollectionMenu.SELECT_DECK)){
-            String name = extractLastWord(command);
-            getController().setMainDeck(name);
-        }else if(commandType.equals(CommandTypeCollectionMenu.SHOW_ALL_DECK)){
-            getController().showAllDecksInfo();
-        }else if(commandType.equals(CommandTypeCollectionMenu.SHOW_DECK)){
-            String name = extractLastWord(command);
-            getController().showDeckInfo(name);
-        }else if(commandType.equals(CommandTypeCollectionMenu.HELP)){
-            printListOfCommands();
+        switch (commandType) {
+            case EXIT:
+                return getParentMenu();
+            case SHOW:
+                callShowCollectionFromController();
+                break;
+            case SEARCH: {
+                String name = extractLastWord(command);
+                callSearchInCollectionFromController(name);
+                break;
+            }
+            case SAVE:
+                callSaveFromController();
+                break;
+            case CREATE_DECK: {
+                String name = extractLastWord(command);
+                callCreateDeckFromController(name);
+                break;
+            }
+            case DELETE_DECK: {
+                String name = extractLastWord(command);
+                callDeleteDeckFromController(name);
+                break;
+            }
+            case ADD: {
+                String[] strings = extractAddRemoveProperties(command);
+                callAddToDeckFromController(strings[0], strings[1]);
+                break;
+            }
+            case REMOVE: {
+                String[] strings = extractAddRemoveProperties(command);
+                getController().removeFromDeck(strings[0], strings[1]);
+                break;
+            }
+            case VALIDATE_DECK: {
+                String name = extractLastWord(command);
+                getController().validateDeck(name);
+                break;
+            }
+            case SELECT_DECK: {
+                String name = extractLastWord(command);
+                getController().setMainDeck(name);
+                break;
+            }
+            case SHOW_ALL_DECK:
+                getController().showAllDecksInfo();
+                break;
+            case SHOW_DECK: {
+                String name = extractLastWord(command);
+                getController().showDeckInfo(name);
+                break;
+            }
+            case HELP:
+                printListOfCommands();
+                break;
         }
         return this;
     }
-    private void callShowCollectionFromController(){
+
+    private void callShowCollectionFromController() {
         getController().showCollection();
     }
-    private void callSearchInCollectionFromController(String name){
+
+    private void callSearchInCollectionFromController(String name) {
         getController().searchInCollection(name);
     }
-    private void callSaveFromController(){
+
+    private void callSaveFromController() {
         getController().save();
     }
-    private void callCreateDeckFromController(String name){
+
+    private void callCreateDeckFromController(String name) {
         getController().createDeck(name);
     }
-    private void callDeleteDeckFromController(String name){
+
+    private void callDeleteDeckFromController(String name) {
         getController().deleteDeck(name);
     }
-    private void callAddToDeckFromController(String id, String name){
+
+    private void callAddToDeckFromController(String id, String name) {
         getController().addToDeck(id, name);
     }
+
     private CommandTypeCollectionMenu getCommandType(String command) {
-        int commandIndex = -1;
-        for(int i=0; i < NUMBER_OF_COMMANDS; i++) {
+        for (int i = 0; i < NUMBER_OF_COMMANDS; i++) {
             Matcher matcher = commandPatterns[i].matcher(command);
-            if(matcher.find()){
-                commandIndex = i;
-                return CommandTypeCollectionMenu.getCommandType(commandIndex);
+            if (matcher.find()) {
+                return CommandTypeCollectionMenu.getCommandType(i);
             }
         }
-        if(commandIndex == -1){
-            throw new GameException("Invalid command!");
-        }
-        return null;
+        throw new GameException("Invalid command!");
     }
-    private String extractLastWord(String command){
-        Pattern pattern = Pattern.compile("\\w+(?=\\s*)$");
-        Matcher matcher = pattern.matcher(command);
-        matcher.find();
-        return matcher.group(0);
+
+    private String extractLastWord(String command) {
+        String[] strings = command.split(" ");
+        return strings[strings.length - 1];
     }
-    private String extractIdForAddOrRemove(String command){
-        Pattern pattern = Pattern.compile("(?<=add |remove )\\w+$");
-        Matcher matcher = pattern.matcher(command);
-        matcher.find();
-        return matcher.group(0);
+
+    private String[] extractAddRemoveProperties(String command) {
+        String[] strings = command.split(" ");
+        return new String[]{strings[1], strings[3]};
     }
-    private void printListOfCommands(){
+
+    private void printListOfCommands() {
         getController().showMessage(getListOfCommands());
     }
-    private String getListOfCommands(){
-        String commands = "Collection Menu\n" +
+
+    private String getListOfCommands() {
+        return "\nCollection Menu\n" +
                 "-----------\n" +
                 "Commands:\n" +
                 "1- exit\n" +
@@ -167,6 +193,5 @@ public class CollectionMenu extends Menu {
                 "11- show all decks\n" +
                 "12- show deck [deck name]\n" +
                 "13- help\n";
-        return commands;
     }
 }

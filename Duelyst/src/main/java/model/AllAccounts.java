@@ -1,35 +1,42 @@
 package model;
 
-import controller.GameException;
-import java.util.TreeSet;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class AllAccounts {
-    TreeSet<Account> accounts = new TreeSet<>();
-    Shop shop = new Shop();
+    private List<Account> accounts = new ArrayList<>();
+    private Shop shop = new Shop();
+
+
+    public void add(Account account) {
+        accounts.add(account);
+    }
+
+    public boolean hasAccount(String userName) {
+        return getAccountByUsername(userName) != null;
+    }
+
+    public Account getAccountByUsername(String userName) {
+        return accounts.stream().filter(account -> userName.equals(account.getUserName()))
+                .findFirst().orElse(null);
+    }
+
+    public List<Account> getSortedAccounts() {
+        return accounts.stream()
+                .sorted(Comparator
+                        .comparing(Account::getWins).reversed()
+                        .thenComparing(Account::getUserName))
+                .collect(Collectors.toList());
+    }
 
     public Shop getShop() {
         return shop;
     }
-    public TreeSet<Account> getAccounts(){
+
+    public List<Account> getAccounts() {
         return accounts;
     }
-    public void add(Account account){
-        accounts.add(account);
-    }
-    public boolean hasAccount(String userName){
-        for(Account account:accounts){
-            if(account.userNameEquals(userName)){
-                return true;
-            }
-        }
-        return false;
-    }
-    public Account getAccount(String userName){
-        for(Account account:accounts){
-            if(account.userNameEquals(userName)){
-                return account;
-            }
-        }
-        throw new GameException("No Account with this user name!");
-    }
+
 }

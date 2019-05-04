@@ -23,7 +23,7 @@ enum CommandTypeShopMenu{
     }
     public static CommandTypeShopMenu getCommandType(int commandIndex){
         for(CommandTypeShopMenu commandType :values()){
-            if(commandType.equals(commandIndex)){
+            if (commandType.commandIndex == commandIndex) {
                 return commandType;
             }
         }
@@ -32,22 +32,22 @@ enum CommandTypeShopMenu{
 }
 public class ShopMenu extends Menu {
     private static final int NUMBER_OF_COMMANDS = 8;
-    private Pattern commandPatterns[] = new Pattern[NUMBER_OF_COMMANDS];
+    private Pattern[] commandPatterns = new Pattern[NUMBER_OF_COMMANDS];
 
     ShopMenu(Controller controller){
         super(controller);
         initCommandPatterns();
     }
     private void initCommandPatterns(){
-        String commandRegexes[] = new String[NUMBER_OF_COMMANDS];
-        commandRegexes[0] = "^exit\\s*$";
-        commandRegexes[1] = "^show collection\\w+\\s*$";
-        commandRegexes[2] = "^search \\w+\\s*$";
-        commandRegexes[3] = "^search collection \\w+\\s*$";
-        commandRegexes[4] = "^buy \\w+\\s*$";
-        commandRegexes[5] = "^sell \\w+\\s*$";
-        commandRegexes[6] = "^show\\s*$";
-        commandRegexes[7] = "^help\\s*$";
+        String[] commandRegexes = new String[NUMBER_OF_COMMANDS];
+        commandRegexes[0] = "^exit$";
+        commandRegexes[1] = "^show collection\\w+$";
+        commandRegexes[2] = "^search \\w+$";
+        commandRegexes[3] = "^search collection \\w+$";
+        commandRegexes[4] = "^buy \\w+$";
+        commandRegexes[5] = "^sell \\w+$";
+        commandRegexes[6] = "^show$";
+        commandRegexes[7] = "^help$";
         for(int i=0; i < NUMBER_OF_COMMANDS; i++){
             this.commandPatterns[i] = Pattern.compile(commandRegexes[i]);
         }
@@ -55,42 +55,49 @@ public class ShopMenu extends Menu {
     @Override
     public Menu runCommandAndGetNextMenu(String command) {
         CommandTypeShopMenu commandType = getCommandType(command);
-        if(commandType.equals(CommandTypeShopMenu.EXIT)) {
-            return getParentMenu();
-        }else if(commandType.equals(CommandTypeShopMenu.SHOW_COLLECTION)) {
-            callShowCollectionFromController();
-        }else if(commandType.equals(CommandTypeShopMenu.SEARCH)) {
-            String name = extractLastWord(command);
-            callSearchInShopFromController(name);
-        }else if(commandType.equals(CommandTypeShopMenu.SEARCH_COLLECTION)) {
-            String name = extractLastWord(command);
-            callSearchInCollectionFromController(name);
-        }else if(commandType.equals(CommandTypeShopMenu.BUY)) {
-            String id = extractLastWord(command);
-            callBuyFromController(id);
-        }else if(commandType.equals(CommandTypeShopMenu.SELL)) {
-            String id = extractLastWord(command);
-            callSellFromController(id);
-        }else if(commandType.equals(CommandTypeShopMenu.SHOW)){
-            callShowShopFromController();
-        }else if(commandType.equals(CommandTypeShopMenu.HELP)){
-            printListOfCommands();
+        switch (commandType) {
+            case EXIT:
+                return getParentMenu();
+            case SHOW_COLLECTION:
+                callShowCollectionFromController();
+                break;
+            case SEARCH: {
+                String name = extractLastWord(command);
+                callSearchInShopFromController(name);
+                break;
+            }
+            case SEARCH_COLLECTION: {
+                String name = extractLastWord(command);
+                callSearchInCollectionFromController(name);
+                break;
+            }
+            case BUY: {
+                String id = extractLastWord(command);
+                callBuyFromController(id);
+                break;
+            }
+            case SELL: {
+                String id = extractLastWord(command);
+                callSellFromController(id);
+                break;
+            }
+            case SHOW:
+                callShowShopFromController();
+                break;
+            case HELP:
+                printListOfCommands();
+                break;
         }
         return this;
     }
     private CommandTypeShopMenu getCommandType(String command) {
-        int commandIndex = -1;
-        for(int i=0; i < NUMBER_OF_COMMANDS; i++) {
+        for (int i = 0; i < NUMBER_OF_COMMANDS; i++) {
             Matcher matcher = commandPatterns[i].matcher(command);
-            if(matcher.find()){
-                commandIndex = i;
-                return CommandTypeShopMenu.getCommandType(commandIndex);
+            if (matcher.find()) {
+                return CommandTypeShopMenu.getCommandType(i);
             }
         }
-        if(commandIndex == -1){
-            throw new GameException("Invalid command!");
-        }
-        return null;
+        throw new GameException("Invalid command!");
     }
     private void callShowCollectionFromController(){
         getController().showCollection();
@@ -111,16 +118,14 @@ public class ShopMenu extends Menu {
         getController().showShop();
     }
     private String extractLastWord(String command){
-        Pattern pattern = Pattern.compile("\\w+(?=\\s*)$");
-        Matcher matcher = pattern.matcher(command);
-        matcher.find();
-        return matcher.group(0);
+        String[] strings = command.split(" ");
+        return strings[strings.length - 1];
     }
     private void printListOfCommands(){
         getController().showMessage(getListOfCommands());
     }
     private String getListOfCommands(){
-        String commands = "Shop Menu\n" +
+        return "\nShop Menu\n" +
                 "-----------\n" +
                 "Commands:\n" +
                 "1- exit\n" +
@@ -131,6 +136,5 @@ public class ShopMenu extends Menu {
                 "6- sell [item id | card id] \n" +
                 "7- show \n" +
                 "8- help \n";
-        return commands;
     }
 }
