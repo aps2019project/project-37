@@ -11,7 +11,8 @@ enum CommandTypeMainMenu {
     SHOP(1),
     BATTLE(2),
     EXIT(3),
-    HELP(4);
+    HELP(4),
+    LOGOUT(5);
 
     int commandIndex;
 
@@ -33,7 +34,7 @@ public class MainMenu extends Menu {
     private CollectionMenu collectionMenu;
     private BattleMenu battleMenu;
     private ShopMenu shopMenu;
-    private static final int NUMBER_OF_COMMANDS = 5;
+    private static final int NUMBER_OF_COMMANDS = 6;
     private Pattern[] commandPatterns = new Pattern[NUMBER_OF_COMMANDS];
 
     MainMenu(Controller controller) {
@@ -54,6 +55,7 @@ public class MainMenu extends Menu {
         commandRegexes[2] = "^enter battle$";
         commandRegexes[3] = "^exit$";
         commandRegexes[4] = "^help$";
+        commandRegexes[5] = "^logout";
         for (int i = 0; i < NUMBER_OF_COMMANDS; i++) {
             this.commandPatterns[i] = Pattern.compile(commandRegexes[i]);
         }
@@ -72,6 +74,9 @@ public class MainMenu extends Menu {
             case BATTLE:
                 showMessage("\nYou've entered BattleMenu\n");
                 return battleMenu;
+            case LOGOUT:
+                getController().logout();
+                return new LoginPage(getController());
             case EXIT:
                 return getParentMenu();
             case HELP:
@@ -102,7 +107,8 @@ public class MainMenu extends Menu {
                 "1- enter collection\n" +
                 "2- enter shop\n" +
                 "3- enter battle\n" +
-                "4- exit\n" +
-                "5- help\n";
+                "4 logout\n" +
+                "5- exit\n" +
+                "6- help\n";
     }
 }

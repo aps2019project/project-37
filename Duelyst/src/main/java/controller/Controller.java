@@ -62,7 +62,7 @@ public class Controller {
         String password = getInputAsString();
         if (account.getPassword().equals(password)) {
             setCurrentAccount(account);
-            showMessage("You've logged in successfully");
+            showMessage("You've logged in successfully\n");
         } else {
             throw new GameException("Entered password is not correct!");
         }
@@ -89,6 +89,7 @@ public class Controller {
             throw new GameException("You are not logged in!");
         } else {
             setCurrentAccount(null);
+            showMessage("You've logged out successfully\n");
         }
     }
 
