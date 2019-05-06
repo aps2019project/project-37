@@ -401,7 +401,7 @@ public class Controller {
     private Item copyWithNewId(UsableItem usableItem) {
         String id = generateNewId(usableItem);
         try {
-            UsableItem copiedItem = usableItem.clone();
+            UsableItem copiedItem = (UsableItem) usableItem.clone();
             copiedItem.setId(id);
             copiedItem.setAccountName(currentAccount.getUserName());
             return copiedItem;
