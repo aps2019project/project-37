@@ -9,9 +9,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class GraveyardMenu extends Menu {
-
     enum GraveyardType{
-        SHOW_INFO(0),
+        SHOW_CARD_INFO(0),
         SHOW_CARDS(1),
         SHOW_MENU(2),
         EXIT(3);
@@ -40,25 +39,43 @@ public class GraveyardMenu extends Menu {
     };
 
     private GraveyardType type;
+    private GraveYard graveYard;
 
     public GraveyardMenu(Controller controller) {
         super(controller);
+    }
+
+    public void setGraveYard(GraveYard graveYard) {
+        this.graveYard = graveYard;
     }
 
     @Override
     public Menu runCommandAndGetNextMenu(String command) {
         match(command);
         switch (type){
-            case SHOW_INFO:
+            case SHOW_CARD_INFO:
+                showCardInfoInGraveYard(extractLastWord(command));
                 break;
             case SHOW_CARDS:
+                showAllCardsInGraveYard();
                 break;
             case SHOW_MENU:
+                showMessage(menuHelp());
                 break;
             case EXIT:
-                break;
+                return getParentMenu();
         }
         return this;
+    }
+
+    private String menuHelp() {
+        return "\nIn Grave Yard Menu\n" +
+                "-----------\n" +
+                "Commands:\n" +
+                "1- show info [card id]\n" +
+                "2- show cards\n" +
+                "3- show menu\n" +
+                "4- exit\n";
     }
 
     private void match(String command) {
@@ -70,5 +87,19 @@ public class GraveyardMenu extends Menu {
             }
         }
         throw new GameException("invalid command");
+    }
+
+    private void showCardInfoInGraveYard(String cardId){
+        //search among all cards in graveYard and get it
+        //show its info
+    }
+
+    private void showAllCardsInGraveYard(){
+
+    }
+
+    private String extractLastWord(String command) {
+        String[] strings = command.split(" ");
+        return strings[strings.length - 1];
     }
 }

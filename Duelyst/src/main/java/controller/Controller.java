@@ -7,11 +7,13 @@ import model.*;
 import model.cards.Card;
 import model.cards.Hero;
 import model.game.Game;
+import model.game.GraveYard;
 import model.items.Item;
 import model.items.UsableItem;
 import view.View;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -294,15 +296,26 @@ public class Controller {
         return "AI_Player_" + card.getName() + "_" + index;
     }
 
-    public void showGameInfo(){ }
+    public void showGameInfo(){
+        //Game should have a method to return an info
+    }
 
-    public void showAllyMinions(){ }
+    public void showAllyMinions(){
+        //get all minions of currentPlayer in game
+    }
 
-    public void showEnemyMinions(){ }
+    public void showEnemyMinions(){
+        //get all minions of other player than currentPlayer in game
+    }
 
-    public void showCardInfo(String id){}
+    public void selectCard(String id){
+        //Game have selectedCell, this cell has a card.
+        //set the selectedCell by this cardId
+    }
 
-    public void selectCard(String id){}
+    public void showCardInfo(String id){
+        //show the info of the card of selectedCell
+    }
 
     public void showHand(){}
 
@@ -312,13 +325,40 @@ public class Controller {
 
     public void showCollectibles(){}
 
-    public void selectCollectible(String id){}
+    public void selectCollectible(String itemId){
+        //search in the collectableItems owned by currentPlayer and get it
+        //Game should have a collectableItem, set this
+    }
 
     public void showNextCard(){}
 
-    public List<Card> getMovableCards(){ return null; }
+    public GraveYard getGraveYard(){
+        return game.getCurrentPlayer().getGraveYard();
+    }
 
-    public List<Card> getAttackingCards(){ return null; }
+    public void showCollectableItemInfo(){ }
+
+    public void useCollectibleItem(int x, int y){ }
+
+    public void moveSelectedCardTo(int x, int y){}
+
+    public void attackSelectedCardOn(String opponentId){}
+
+    public void useSpecialPowerOfSelectedCardOn(int x, int y){}
+
+    public void attackCombo(String opponentId, String[] allyCardIds){}
+
+    public List<Card> getMovableCards(){
+        return game.getCurrentPlayer().getHand().stream()
+                .map(card -> (Hero) card)
+                .filter(hero -> hero.getInGame().isArmed())
+                .collect(Collectors.toList());
+    }
+
+    public List<Card> getAttackingCards(){
+        //return the cards that can be attacked by ally hero and minions
+        return null;
+    }
 
     public List<Card> getInsertableCards(){ return null; }
 

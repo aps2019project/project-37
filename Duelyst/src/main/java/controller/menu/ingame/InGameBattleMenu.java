@@ -118,6 +118,7 @@ public class InGameBattleMenu extends Menu {
                 getController().showNextCard();
                 break;
             case GRAVE_YARD:
+                graveyardMenu.setGraveYard(getController().getGraveYard());
                 return graveyardMenu;
             case HELP:
                 showMessage(getHelpOfPossibleCommands());
@@ -204,15 +205,6 @@ public class InGameBattleMenu extends Menu {
     private String getHelpOfPossibleCommands(){
         int count = 1;
         StringBuilder help = new StringBuilder();
-        help.append("Movable Cards:\n");
-        for(Card card:getController().getMovableCards()){
-            help.append(count + card.getId()+"\n");
-        }
-        count = 1;
-        help.append("Attacking Cards:\n");
-        for(Card card:getController().getAttackingCards()){
-            help.append(count + card.getId()+"\n");
-        }
         count = 1;
         help.append("Insertable Cards:\n");
         for(Card card:getController().getInsertableCards()){
