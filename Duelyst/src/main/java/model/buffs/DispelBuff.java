@@ -16,27 +16,29 @@ public class DispelBuff extends Buff {
     }
 
     @Override
-    void applyBuff(List<Hero> heroes) {
+    public void applyBuff(Hero hero) {
+        if (hero.isImmuneToAllSpells()){
+            return;
+        }
         if (getRemainingTime() > 0) {
-            for (Hero hero : heroes) {
-                List<Buff> buffs = new ArrayList<>(hero.getInGame().getBuffs());
-                for (Buff buff : buffs) {
-                    if ((hero.getInGame().isEnemy() && buff.getSide() == SideType.ALLY)
-                            || (!hero.getInGame().isEnemy() && buff.getSide() == SideType.ENEMY)) {
-                        buff.inactivate(Collections.singletonList(hero));
-                        if (!buff.isContinuous()) {
-                            hero.getInGame().removeBuff(buff);
-                        }
+            List<Buff> buffs = new ArrayList<>(hero.getInGame().getBuffs());
+            for (Buff buff : buffs) {
+                if ((hero.getInGame().isEnemy() && buff.getSide() == SideType.ALLY)
+                        || (!hero.getInGame().isEnemy() && buff.getSide() == SideType.ENEMY)) {
+                    buff.inactivate(hero);
+                    if (!buff.isContinuous()) {
+                        hero.getInGame().removeBuff(buff);
                     }
                 }
             }
-            decreaseRemaningTime();
+
+            decreaseRemainingTime();
         }
 
     }
 
     @Override
-    void inactivate(List<Hero> heroes) {
+    public void inactivate(Hero hero) {
 
     }
 }

@@ -10,7 +10,6 @@ public enum RangeType {
     AROUND8,
     AROUND8_AND_SELF,
     AROUND2,
-    DISTANCE2,
     ALL_IN_ONE_COLUMN,
     ALL_IN_ONE_ROW
 }

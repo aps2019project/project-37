@@ -17,17 +17,20 @@ public class CellBuff extends Buff {
     }
 
     @Override
-    void applyBuff(List<Hero> heroes) {
+    public void applyBuff(Hero hero) {
         if (getRemainingTime() > 0) {
-            for (Hero hero : heroes) {
-                hero.getInGame().addBuff(buff);
-            }
-            decreaseRemaningTime();
+            hero.getInGame().addBuff(buff);
+
+            decreaseRemainingTime();
         }
     }
 
     @Override
-    void inactivate(List<Hero> heroes) {
+    public void inactivate(Hero hero) {
         setRemainingTime(0);
+    }
+
+    public Buff getBuff() {
+        return buff;
     }
 }

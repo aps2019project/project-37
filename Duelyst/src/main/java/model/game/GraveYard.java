@@ -14,7 +14,7 @@ public class GraveYard {
 
     public String getInfoOfAllCards() {
         StringBuilder info = new StringBuilder();
-        cards.stream().forEach(card -> info.append(card.getInfoWithoutPrice()));
+        cards.forEach(card -> info.append(card.getInfoWithoutPrice()));
         return info.toString();
     }
 

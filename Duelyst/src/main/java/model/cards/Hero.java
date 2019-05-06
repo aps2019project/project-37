@@ -16,6 +16,10 @@ public class Hero extends Card {
     private int specialPowerMana;
     private boolean onAttack;
     private boolean passive;
+    private boolean canBeDisarmed = true;
+    private boolean canBePoisoned = true;
+    private boolean immuneToAllSpells = false;
+    private boolean canBeAttackedBySmallerMinions = true;
 
 
     public Hero(String name, long price, int healthPoint,
@@ -27,7 +31,7 @@ public class Hero extends Card {
         setSpecialPower(specialPower);
         setAttackType(attackType);
         setRange(range);
-        inGame = new InGame(healthPoint, attackPower, coolDown);
+        inGame = new InGame(healthPoint, attackPower, 0);
         makeInfo();
     }
 
@@ -46,6 +50,13 @@ public class Hero extends Card {
         makeInfo();
     }
 
+    public void nextRound() {
+        getInGame().setAttacked(false);
+        getInGame().setMoved(false);
+        getInGame().setCoolDown(getInGame().getCoolDown() - 1);
+    }
+
+    @Override
     public Hero clone() throws CloneNotSupportedException {
         Hero hero = (Hero) super.clone();
         if (hero.specialPower != null) {
@@ -171,6 +182,25 @@ public class Hero extends Card {
         inGame.setHolyNumber(0);
     }
 
+    public void attack(Hero hero) {
+        hero.decreaseHealthPointInGame(attackPower);
+    }
+
+    @Override
+    public String getInGameInfo() {
+        String s = "";
+        if (getSpecialPower() != null) {
+            s = "Desc: " + getSpecialPower().getDesc() + "\n";
+        }
+        return "Hero:\n" +
+                "Name: " + getName() + "\n" +
+                "Cost: " + getPrice() + "\n" +
+                s +
+                "HP: " + getHealthPointInGame() + "\n" +
+                "AP: " + getAttackPowerInGame() + "\n" +
+                "MP: " + specialPowerMana + "\n";
+    }
+
     @Override
     public String getInfoWithoutPrice() {
         return info;
@@ -187,5 +217,65 @@ public class Hero extends Card {
 
     public void setPassive(boolean passive) {
         this.passive = passive;
+    }
+
+    public void setPosition(int x, int y) {
+        getInGame().setPosition(x, y);
+    }
+
+    public int getX() {
+        return getInGame().getX();
+    }
+
+    public int getY() {
+        return getInGame().getY();
+    }
+
+    public int getSpecialPowerMana() {
+        return specialPowerMana;
+    }
+
+    public boolean isOnAttack() {
+        return onAttack;
+    }
+
+    public boolean isPassive() {
+        return passive;
+    }
+
+    public int getCoolDown() {
+        return coolDown;
+    }
+
+    public boolean isCanBeDisarmed() {
+        return canBeDisarmed;
+    }
+
+    public void setCanBeDisarmed(boolean canBeDisarmed) {
+        this.canBeDisarmed = canBeDisarmed;
+    }
+
+    public boolean isCanBePoisoned() {
+        return canBePoisoned;
+    }
+
+    public void setCanBePoisoned(boolean canBePoisoned) {
+        this.canBePoisoned = canBePoisoned;
+    }
+
+    public boolean isImmuneToAllSpells() {
+        return immuneToAllSpells;
+    }
+
+    public void setImmuneToAllSpells(boolean immuneToAllSpells) {
+        this.immuneToAllSpells = immuneToAllSpells;
+    }
+
+    public boolean isCanBeAttackedBySmallerMinions() {
+        return canBeAttackedBySmallerMinions;
+    }
+
+    public void setCanBeAttackedBySmallerMinions(boolean canBeAttackedBySmallerMinions) {
+        this.canBeAttackedBySmallerMinions = canBeAttackedBySmallerMinions;
     }
 }

@@ -73,5 +73,7 @@ abstract public class Card implements Cloneable {
     public abstract String getInfoWithPrice();
 
     public abstract String getInfoWithoutPrice();
+
+    public abstract String getInGameInfo();
 }
 

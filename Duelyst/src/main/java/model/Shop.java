@@ -3,11 +3,13 @@ package model;
 import controller.GameException;
 import model.cards.Card;
 import model.cards.Hero;
+import model.items.CollectableItem;
 import model.items.Item;
 import model.items.UsableItem;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Shop {
     private List<Card> cards;
@@ -29,6 +31,12 @@ public class Shop {
 
     public List<Item> getItems() {
         return items;
+    }
+
+    public List<CollectableItem> getCollectableItems() {
+        return items.stream().filter(item -> item instanceof CollectableItem)
+                .map(item -> (CollectableItem) item)
+                .collect(Collectors.toList());
     }
 
     public void setItems(ArrayList<Item> items) {
@@ -68,6 +76,16 @@ public class Shop {
         ArrayList<Hero> heroes = new ArrayList<>();
         for (Card card : getCards()) {
             if (card.getClass() == Hero.class) {
+                heroes.add((Hero) card);
+            }
+        }
+        return heroes;
+    }
+
+    public List<Hero> getHeroMinions() {
+        ArrayList<Hero> heroes = new ArrayList<>();
+        for (Card card : getCards()) {
+            if (card instanceof Hero) {
                 heroes.add((Hero) card);
             }
         }

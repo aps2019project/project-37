@@ -32,10 +32,39 @@ public class Minion extends Hero {
         this.mana = mana;
     }
 
+    @Override
     public void makeInfo() {
         info = "Type : Minion" + " - Name : " + getName();
         info += " - Class : " + getAttackType().toString() + " - AP : " + getAttackPower();
         info += " - HP : " + getHealthPoint() + " - MP : " + getMana();
+
+        info += " - Special Power : " + getSpecialPowerInfo();
+
+    }
+
+
+    @Override
+    public String getInGameInfo() {
+        String s = "Combo Ability: ";
+        if (activationTime == ActivationTime.COMBO) {
+            s += "yes";
+        } else {
+            s += "no";
+        }
+        s += "\n";
+        return "Minion:\n" +
+                "Name: " + getName() + "\n" +
+                "Range: " + getAttackType().toString() + "\n" +
+                s +
+                "Cost: " + getPrice() + "\n" +
+                "Desc: " + getSpecialPower().getDesc() + "\n" +
+                "HP: " + getHealthPointInGame() + "\n" +
+                "AP: " + getAttackPowerInGame() + "\n" +
+                "MP: " + getMana() + "\n" +
+                "Desc: " + getSpecialPower() + "\n";
+    }
+
+    private String getSpecialPowerInfo() {
         String sp = "";
         if (getSpecialPower() != null) {
             sp = getSpecialPower().getDesc();
@@ -46,8 +75,7 @@ public class Minion extends Hero {
         if (activationTime != null) {
             sp += " " + activationTime.name().toLowerCase().replace("_", " ");
         }
-        info += " - Special Power : " + sp;
-
+        return sp;
     }
 
     @Override
@@ -60,15 +88,21 @@ public class Minion extends Hero {
         return info + " Sell Cost : " + getPrice();
     }
 
-    public void attack(Minion minion, int damage) {
-        if (getName().equals("persian-hero")) {
-            minion.decreaseHealthPointInGame(minion.attackedTimes.get(minion.getName())*5 + damage);
-            return;
-        }
-        if (disableEnemyHolyBuff) {
-            minion.addHealthPointInGame(-damage);
+    @Override
+    public void attack(Hero hero) {
+        if (hero instanceof Minion) {
+            Minion minion = (Minion) hero;
+            if (getName().equals("persian-hero")) {
+                minion.decreaseHealthPointInGame(minion.attackedTimes.get(minion.getName()) * 5 + getAttackPower());
+                return;
+            }
+            if (disableEnemyHolyBuff) {
+                minion.addHealthPointInGame(-getAttackPower());
+            } else {
+                minion.decreaseHealthPointInGame(getAttackPower());
+            }
         } else {
-            minion.decreaseHealthPointInGame(damage);
+            super.attack(hero);
         }
     }
 

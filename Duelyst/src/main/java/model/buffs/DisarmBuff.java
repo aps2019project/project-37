@@ -15,26 +15,28 @@ public class DisarmBuff extends Buff {
     }
 
     @Override
-    public void applyBuff(List<Hero> heroes) {
+    public void applyBuff(Hero hero) {
+        if (hero.isImmuneToAllSpells()){
+            return;
+        }
         if (getDuration() == -1 || getRemainingTime() > 0) {
-            for (Hero hero : heroes) {
+            if (hero.isCanBeDisarmed()) {
                 hero.setArmed(false);
             }
             if (getDuration() == -1) {
                 setDuration(0);
             }
-            decreaseRemaningTime();
+            decreaseRemainingTime();
         }
     }
 
     @Override
-    void inactivate(List<Hero> heroes) {
+    public void inactivate(Hero hero) {
         setRemainingTime(0);
         if (isContinuous()) {
             setDuration(-1);
         }
-        for (Hero hero : heroes) {
-            hero.setArmed(true);
-        }
+        hero.setArmed(true);
+
     }
 }

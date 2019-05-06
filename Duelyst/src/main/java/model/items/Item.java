@@ -1,53 +1,90 @@
 package model.items;
 
-public class Item implements Cloneable{
+import model.buffs.Buff;
+import model.cards.ActivationTime;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class Item implements Cloneable {
     private String id;
     private String name;
     private String desc;
+    private List<Buff> buffs = new ArrayList<>();
+    private ActivationTime activationTime;
 
-    public Item(String name, String desc){
-        setName(name);
-        setDesc(desc);
+    public Item(String name, String desc, ActivationTime activationTime, Buff... buffs) {
+        this.name = name;
+        this.desc = desc;
+        this.buffs.addAll(Arrays.asList(buffs));
+        this.activationTime = activationTime;
     }
+
     @Override
     public Item clone() throws CloneNotSupportedException {
-        return (Item) super.clone();
+        Item item= (Item) super.clone();
+        item.buffs = item.buffs.stream().map(buff -> {
+            try {
+                return buff.clone();
+            } catch (CloneNotSupportedException e) {
+                e.printStackTrace();
+                return buff;
+            }
+        }).collect(Collectors.toList());
+        return item;
     }
+
     public String getName() {
         return name;
     }
+
     public String getId() {
         return id;
     }
+
     public String getDesc() {
         return desc;
     }
+
     public void setName(String name) {
         this.name = name;
     }
+
     public void setId(String id) {
         this.id = id;
     }
+
     public void setDesc(String desc) {
         this.desc = desc;
     }
-    public boolean idEquals(String id){
-        if(getId().equals(id)){
+
+    public boolean idEquals(String id) {
+        if (getId().equals(id)) {
             return true;
-        }
-        else{
+        } else {
             return false;
         }
     }
-    public boolean nameEquals(String name){
-        if(getName().equals(name)){
+
+    public boolean nameEquals(String name) {
+        if (getName().equals(name)) {
             return true;
-        }
-        else{
+        } else {
             return false;
         }
     }
-    public String getInfo(){
+
+    public String getInfo() {
         return "Name : " + getName() + " Desc : " + getDesc();
+    }
+
+    public ActivationTime getActivationTime() {
+        return activationTime;
+    }
+
+    public List<Buff> getBuffs() {
+        return buffs;
     }
 }

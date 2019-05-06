@@ -96,7 +96,7 @@ public abstract class Buff implements Cloneable {
         this.remainingTime = remainingTime;
     }
 
-    public void decreaseRemaningTime() {
+    public void decreaseRemainingTime() {
         remainingTime--;
     }
 
@@ -104,9 +104,9 @@ public abstract class Buff implements Cloneable {
         this.continuous = continuous;
     }
 
-    abstract void applyBuff(List<Hero> heroes);
+    public abstract void applyBuff(Hero hero);
 
-    abstract void inactivate(List<Hero> heroes);
+    public abstract void inactivate(Hero hero);
 
     public void setRandom(boolean random) {
         this.random = random;

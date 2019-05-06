@@ -1,8 +1,12 @@
 package model.items;
 
+import model.buffs.Buff;
+import model.cards.ActivationTime;
+
 public class Flag extends Item {
-    Flag(String name, String desc){
-        super(name, desc);
+
+    public Flag(String name, String desc, ActivationTime activationTime, Buff... buffs) {
+        super(name, desc, activationTime, buffs);
     }
 
     @Override

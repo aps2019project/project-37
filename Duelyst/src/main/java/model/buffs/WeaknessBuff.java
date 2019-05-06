@@ -38,35 +38,40 @@ public class WeaknessBuff extends Buff {
 
 
     @Override
-    public void applyBuff(List<Hero> heroes) {
+    public void applyBuff(Hero hero) {
+        if (hero.isImmuneToAllSpells()) {
+            return;
+        }
         if (getDuration() == -1 || getRemainingTime() > 0) {
-            for (Hero hero : heroes) {
-                if (getDamageType().equals(EffectType.HEALTH)) {
-                    hero.addHealthPointInGame(-damage);
-                } else if (getDamageType().equals(EffectType.ATTACK_POWER)) {
-                    hero.addAttackPowerInGame(-damage);
-                }
+            if (isPoison && !hero.isCanBePoisoned()) {
+                return;
+            }
+            if (getDamageType().equals(EffectType.HEALTH)) {
+                hero.addHealthPointInGame(-damage);
+            } else if (getDamageType().equals(EffectType.ATTACK_POWER)) {
+                hero.addAttackPowerInGame(-damage);
             }
             if (getDuration() == -1) {
                 setDuration(0);
             }
-            decreaseRemaningTime();
+            decreaseRemainingTime();
         }
     }
 
     @Override
-    void inactivate(List<Hero> heroes) {
+    public void inactivate(Hero hero) {
+        if (hero.isImmuneToAllSpells()) {
+            return;
+        }
         setRemainingTime(0);
         if (isContinuous()) {
             setDuration(-1);
         }
         if (!isPoison) {
-            for (Hero hero : heroes) {
-                if (getDamageType().equals(EffectType.HEALTH)) {
-                    hero.addHealthPointInGame(damage);
-                } else if (getDamageType().equals(EffectType.ATTACK_POWER)) {
-                    hero.addAttackPowerInGame(damage);
-                }
+            if (getDamageType().equals(EffectType.HEALTH)) {
+                hero.addHealthPointInGame(damage);
+            } else if (getDamageType().equals(EffectType.ATTACK_POWER)) {
+                hero.addAttackPowerInGame(damage);
             }
         }
     }

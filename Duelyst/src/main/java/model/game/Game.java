@@ -3,46 +3,74 @@ package model.game;
 import controller.Constants;
 import controller.GameException;
 import controller.menu.BattleMenu;
-import model.Account;
-import model.Deck;
+import controller.menu.Menu;
+import model.*;
+import model.Collection;
+import model.buffs.AttackBuff;
 import model.buffs.Buff;
+import model.buffs.ManaBuff;
 import model.buffs.traget.RangeType;
 import model.buffs.traget.SideType;
 import model.buffs.traget.TargetType;
 import model.cards.*;
+import model.items.CollectableItem;
 import model.items.Item;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
+@SuppressWarnings("Duplicates")
 public class Game {
     private Player player1;
     private Player player2;
+    private int round;
     private Player currentPlayer;
-    private Cell selectedCell;
     private List<List<Cell>> board = new ArrayList<>();
-    private BattleMenu.CustomGameMode mode = BattleMenu.CustomGameMode.UNKNOWN;
+    private BattleMenu.CustomGameMode mode;
     private int flagNumber;
+    private GraveYard graveYard = new GraveYard();
 
 
-    public static Game createGame(Account account1, Account account2, BattleMenu.CustomGameMode mode, Deck deck,
+    public static Game createGame(Account account1, Account account2,
+                                  BattleMenu.CustomGameMode mode, Deck deck,
                                   int flagNumber) {
-        Player player1 = new Player(account1.getUserName(), account1.getCloneDeck(), false);
+        Player player1 = new Player(account1.getUserName(), account1.getCloneDeck(),
+                false);
         Player player2;
         if (account2 == null) {
             player2 = new Player("AI", deck, true);
         } else {
             player2 = new Player(account2.getUserName(), account2.getMainDeck(), false);
         }
-        return new Game(player1, player2, flagNumber).setMode(mode);
+        return new Game(player1, player2, flagNumber, mode);
     }
 
-    public Game(Player player1, Player player2, int flagNumber) {
+    public Game(Player player1, Player player2, int flagNumber,
+                BattleMenu.CustomGameMode mode) {
         this.player1 = player1;
         this.player2 = player2;
         this.flagNumber = flagNumber;
+        this.mode = mode;
         initGameBoard();
+        List<CollectableItem> collectableItems = Utils.getShop().getCollectableItems();
+        Collections.shuffle(collectableItems);
+        try {
+            board.get(0).get(4)
+                    .setCollectableItem((CollectableItem) collectableItems.get(0).clone());
+            board.get(4).get(4)
+                    .setCollectableItem((CollectableItem) collectableItems.get(1).clone());
+        } catch (CloneNotSupportedException ignored) {
+        }
+        switch (this.mode) {
+
+            case KEEP_FLAG_6_ROUNDS:
+                board.get(2).get(4).setHasFlag(true);
+                break;
+            case COLLECT_HALF_FLAGS:
+                addFlags(flagNumber);
+                break;
+
+        }
 
     }
 
@@ -53,6 +81,998 @@ public class Game {
                 board.get(i).add(new Cell(i, j));
             }
         }
+    }
+
+    private void addFlags(int flagNumber) {
+        for (int[] xy : Utils.getRandomCoordinates(flagNumber)) {
+            board.get(xy[0]).get(xy[1]).setHasFlag(true);
+            board.get(xy[0]).get(8 - xy[1]).setHasFlag(true);
+        }
+        if (flagNumber % 2 != 0) {
+            board.get(2).get(4).setHasFlag(true);
+        }
+    }
+
+    public void startGame() {
+        Item item = player1.startGame();
+        Item item1 = player2.startGame();
+        if (item != null) {
+            addItemBuff(item);
+        }
+        if (item1 != null) {
+            addItemBuff(item1);
+        }
+        currentPlayer = player1;
+        nextRound();
+    }
+
+    public void nextRound() {
+        round++;
+        getInBoardCards().stream().filter(hero -> currentPlayer.hasCard(hero) && hero instanceof Minion)
+                .forEach(hero -> {
+                    Minion minion = (Minion) hero;
+                    if (minion.getActivationTime() == ActivationTime.PASSIVE) {
+                        if (minion.getSpecialPower() != null) {
+                            addMinionSpecialPower(minion,
+                                    minion.getSpecialPower().getEffects());
+                        }
+                    }
+                });
+        for (List<Cell> cells : board) {
+            for (Cell cell : cells) {
+                cell.nextRound();
+            }
+        }
+        currentPlayer.nextRound(round);
+    }
+
+    public String endTurn() {
+        for (Hero allCard : getInBoardCards()) {
+            if (allCard.getInGame().isHasFlag()) {
+                if (player1.hasCard(allCard)) {
+                    player1.addFlagTime();
+                }
+            }
+        }
+
+        currentPlayer = getOpponent();
+        String result = checkEndGame();
+        if (result != null) {
+            return result;
+        }
+        nextRound();
+        return null;
+    }
+
+    private String checkEndGame() {
+        switch (mode) {
+
+            case KILL_ENEMY_HERO:
+                if (player1.getHero().getHealthPointInGame() <= 0) {
+                    return endGame(player2, player1);
+                } else if (player2.getHero().getHealthPointInGame() <= 0) {
+                    return endGame(player1, player2);
+                }
+                break;
+            case KEEP_FLAG_6_ROUNDS:
+                if (player1.getFlagTime() >= 8) {
+                    return endGame(player1, player2);
+                } else if (player2.getFlagTime() >= 8) {
+                    return endGame(player2, player1);
+                }
+                break;
+            case COLLECT_HALF_FLAGS:
+                int p1 = 0, p2 = 0;
+                for (Hero inBoardCard : getInBoardCards()) {
+                    if (player1.hasCard(inBoardCard)) {
+                        if (inBoardCard.getInGame().isHasFlag()) {
+                            p1++;
+                        }
+                    } else {
+                        if (inBoardCard.getInGame().isHasFlag()) {
+                            p2++;
+                        }
+                    }
+                }
+                if (p1 >= Math.ceil(flagNumber / 2f)) {
+                    return endGame(player1, player2);
+                } else if (p2 >= Math.ceil(flagNumber / 2f)) {
+                    return endGame(player2, player1);
+                }
+                break;
+        }
+        return null;
+    }
+
+    private String endGame(Player winner, Player loser) {
+        Utils.getAccountByUsername(winner.getAccountName()).addToHistory(new MatchHistory(loser.getAccountName(), true, new Date()));
+        Utils.getAccountByUsername(loser.getAccountName()).addToHistory(new MatchHistory(winner.getAccountName(), false, new Date()));
+        return winner.getAccountName() + " has won the game";
+    }
+
+    public String getInfo() {
+
+        String info = "";
+        String info1 = "team: " + player1.getAccountName() + "\n";
+        info1 += "\tmana: " + player1.getMana() + "\n";
+        String info2 = "team: " + player2.getAccountName() + "\n";
+        info2 += "\tmana: " + player2.getMana() + "\n";
+        switch (mode) {
+
+            case KILL_ENEMY_HERO:
+                info1 += "\thero HP: " + player1.getHero().getHealthPointInGame() + "\n";
+                info2 += "\thero HP: " + player2.getHero().getHealthPointInGame() + "\n";
+                break;
+            case KEEP_FLAG_6_ROUNDS:
+                info = "flag position: " + Arrays.toString(getFlagPosition()) + "\n";
+                String name =
+                        board.get(getFlagPosition()[0] - 1).get(getFlagPosition()[1] - 1).getCard().getAccountName();
+                if (name != null) {
+                    if (player1.getAccountName().equals(name)) {
+                        info1 += "\t has flag";
+                    } else {
+                        info2 += "\t has flag";
+                    }
+                }
+                break;
+            case COLLECT_HALF_FLAGS:
+                info1 += "\tplayers with flag names: " + player1.getPlayersWithFlag() + "\n";
+                info2 += "\tplayers with flag names: " + player2.getPlayersWithFlag() + "\n";
+
+                break;
+        }
+        return info + info1 + info2;
+    }
+
+    private int[] getFlagPosition() {
+        for (int i = 0; i < board.size(); i++) {
+            for (int j = 0; j < board.get(i).size(); j++) {
+                if (board.get(i).get(j).isHasFlag()) {
+                    return new int[]{i + 1, j + 1};
+                }
+                Hero hero = board.get(i).get(j).getCard();
+                if (hero != null && hero.getInGame().isHasFlag()) {
+                    return new int[]{i + 1, j + 1};
+                }
+            }
+        }
+        return new int[]{0, 0};
+    }
+
+    public String showMinions(boolean ally) {
+        Player player;
+        if (ally) {
+            player = currentPlayer;
+        } else {
+            if (currentPlayer == player1) {
+                player = player2;
+            } else {
+                player = player1;
+            }
+        }
+        StringBuilder builder = new StringBuilder();
+        for (Hero heroMinion : player.getDeck().getHeroMinions()) {
+            builder.append(heroMinion.getId()).append(": ").append(heroMinion.getName())
+                    .append(", health: ").append(heroMinion.getHealthPointInGame())
+                    .append(", location: ").append(heroMinion.getInGame().getPos())
+                    .append(", power: ").append(heroMinion.getAttackPower());
+        }
+        return builder.toString();
+    }
+
+    public String showCardInfo(String id) {
+        return getCard(id).getInGameInfo();
+    }
+
+    private Card selectCard(String id) {
+        Card card = getCard(id);
+        if (currentPlayer.hasCard(card)) {
+            return card;
+        }
+        throw new GameException("it's not your turn");
+    }
+
+    public boolean move(Card card, int x, int y) {
+
+        if (!(card instanceof Hero)) {
+            throw new GameException("card is not movable");
+        } else {
+            Hero hero = (Hero) card;
+            if (hero.getX() < 0) {
+                throw new GameException("card is not in board");
+            }
+            int distance = getDistance(hero.getX(), hero.getY(), x, y);
+            if (x >= 0 && y >= 0 && distance > 2 && checkRoad(hero.getX(), hero.getY(),
+                    x, y)) {
+                if (hero.getInGame().isMoved()) {
+                    throw new GameException("card has moved before");
+                }
+                board.get(hero.getX()).get(hero.getY()).removeCard();
+                board.get(x).get(y).addCard(card);
+                hero.getInGame().setMoved(true);
+                return true;
+            } else {
+                throw new GameException("invalid target");
+            }
+        }
+    }
+
+    public void attack(Card ally, String opponentId, boolean shouldCounter) {
+        Card opponent = getInBoardCard(opponentId);
+        if (opponent == null || !getOpponent().hasCard(opponent)) {
+            throw new GameException("invalid card id");
+        }
+        if (!(ally instanceof Hero)) {
+            throw new GameException("card with id: " + ally.getId() + " cant attack");
+        }
+        Hero allyHero = (Hero) ally;
+        Hero opponentHero = (Hero) opponent;
+        if (allyHero.getX() < 0) {
+            throw new GameException("ally card is not in board");
+        }
+        if (opponentHero.getX() < 0) {
+            throw new GameException("opponent card is not in board");
+        }
+        if (!checkRange(allyHero, opponentHero)) {
+            throw new GameException("opponent minion is unavailable for attack");
+        }
+        if (!allyHero.getInGame().isMovable()) {
+            throw new GameException("card with id: " + ally.getId() + " cant attack");
+        }
+        if (allyHero.getInGame().isAttacked()) {
+            throw new GameException("card has attacked before");
+        }
+
+        if (allyHero instanceof Minion) {
+            if (!opponentHero.isCanBeAttackedBySmallerMinions()) {
+                if (allyHero.getAttackPowerInGame() < opponentHero.getAttackPowerInGame()) {
+                    return;
+                }
+            }
+        }
+        allyHero.attack(opponentHero);
+        allyHero.getInGame().setAttacked(true);
+        for (Item item : allyHero.getInGame().getItems()) {
+            if (item.getActivationTime() == ActivationTime.ON_ATTACK) {
+                applyNonePassiveItem(item, allyHero, opponentHero);
+            }
+        }
+        if (allyHero.isOnAttack()) {
+            addAttackBuffs(opponentHero, allyHero.getSpecialPower().getEffects());
+        }
+        if (allyHero instanceof Minion) {
+            Minion minion = (Minion) allyHero;
+            if (minion.getActivationTime() == ActivationTime.ON_ATTACK) {
+                if (minion.getSpecialPower() != null) {
+                    addAttackBuffs(opponentHero, minion.getSpecialPower().getEffects());
+                }
+            }
+        }
+        if (shouldCounter) {
+            if (opponentHero.getInGame().isArmed()) {
+                if (checkRange(opponentHero, allyHero)) {
+                    opponentHero.attack(allyHero);
+                }
+            }
+        }
+        checkDead(allyHero);
+        checkDead(opponentHero);
+
+    }
+
+    public void attackCombo(Card ally, String opponentId, String... ids) {
+        if (!(ally instanceof Minion)) {
+            throw new GameException("card with id: " + ally.getId() + " cant attack " +
+                    "combo");
+        }
+        Minion allyMinion = (Minion) ally;
+        if (allyMinion.getActivationTime() != ActivationTime.COMBO) {
+            throw new GameException("card with id: " + allyMinion.getId() + " cant " +
+                    "attack combo");
+        }
+        List<Minion> minions = new ArrayList<>();
+        minions.add(allyMinion);
+        for (String id : ids) {
+            Card backup = getInBoardCard(id);
+            if (!(backup instanceof Minion)) {
+                throw new GameException("card with id: " + ally.getId() + " cant attack" +
+                        " combo");
+            }
+            if (((Minion) backup).getActivationTime() != ActivationTime.COMBO) {
+                throw new GameException("card with id: " + backup.getId() + " cant " +
+                        "attack combo");
+            }
+            minions.add((Minion) backup);
+        }
+        for (int i = 0; i < minions.size(); i++) {
+            Minion minion = minions.get(i);
+            try {
+                attack(minion, opponentId, i == 0);
+            } catch (GameException e) {
+                System.out.println(e.getMessage());
+            }
+
+        }
+
+    }
+
+    public String showHand() {
+        StringBuilder builder = new StringBuilder();
+        List<Card> cards = new ArrayList<>(currentPlayer.getHand());
+        cards.add(currentPlayer.getNextCard());
+        for (Card card : cards) {
+            builder.append("card name: ").append(card.getName()).append(" , ");
+        }
+        return builder.toString();
+    }
+
+    public void useSpecialPower(Card card, int x, int y) {
+        if (card.getClass() == Hero.class) {
+            Hero hero = (Hero) card;
+            if (hero.getSpecialPower() == null || hero.isOnAttack() || hero.isPassive()) {
+                throw new GameException("hero doesnt have special power or its power is" +
+                        " not controllable by player");
+            }
+            if (currentPlayer.getMana() < hero.getSpecialPowerMana()) {
+                throw new GameException("not enough mana");
+            }
+            if (hero.getInGame().getCoolDown() > 0) {
+                throw new GameException("cool down time is not over yet");
+            }
+            {
+                currentPlayer.decreaseMana(hero.getSpecialPowerMana());
+                hero.getInGame().setCoolDown(hero.getCoolDown());
+                addHeroSpecialPower(hero.getSpecialPower().getEffects(), hero, x, y);
+            }
+        } else {
+            throw new GameException("card's not a hero");
+        }
+    }
+
+    public String insert(Card card, int x, int y) {
+        if (card.getClass() == Hero.class) {
+            throw new GameException("hero cant be inserted");
+        }
+        if (card instanceof Minion) {
+            Minion minion = (Minion) card;
+            if (minion.getMana() > currentPlayer.getMana()) {
+                throw new GameException("not enough mana");
+            }
+            if (!checkOutOfBounds(x, y) || board.get(x).get(y).getCard() != null) {
+                throw new GameException("invalid target");
+            }
+            boolean validTarget = false;
+            for (Hero inBoardCard : getInBoardCards()) {
+                if (currentPlayer.hasCard(inBoardCard)) {
+                    if (getNeighbours(inBoardCard.getX(), inBoardCard.getY()).contains(new int[]{x, y})) {
+                        validTarget = true;
+                        break;
+                    }
+                }
+            }
+            if (!validTarget) {
+                throw new GameException("invalid target");
+            }
+            board.get(x).get(y).addCard(minion);
+            currentPlayer.decreaseMana(minion.getMana());
+            if (minion.getSpecialPower() != null && minion.getActivationTime() == ActivationTime.ON_SPAWN) {
+                addMinionSpecialPower(minion, minion.getSpecialPower().getEffects());
+            }
+            for (Item item : minion.getInGame().getItems()) {
+                if (item.getActivationTime() == ActivationTime.ON_SPAWN) {
+                    applyNonePassiveItem(item, minion, null);
+                }
+            }
+
+        } else if (card instanceof Spell) {
+            Spell spell = (Spell) card;
+            if (spell.getMana() > currentPlayer.getMana()) {
+                throw new GameException("not enough mana");
+            }
+            if (!checkOutOfBounds(x, y)) {
+                throw new GameException("invalid target");
+            }
+            addSpell(spell.getEffects(), x, y);
+            currentPlayer.decreaseMana(spell.getMana());
+        }
+        return card.getName() + " with card id: " + card.getId() + " inserted to (" + x + 1 + "," + y + 1 + ")";
+
+    }
+
+    public String showCollectables() {
+        StringBuilder builder = new StringBuilder();
+        for (CollectableItem collectableItem : currentPlayer.getCollectableItems()) {
+            builder.append(collectableItem.getInfo()).append("\n");
+        }
+        return builder.toString();
+    }
+
+    public CollectableItem selectCollectable(String id) {
+        return currentPlayer.getCollectableItems().stream().filter(collectableItem -> collectableItem.idEquals(id))
+                .findFirst().orElseThrow(() -> new GameException("collectable not " +
+                        "found"));
+
+    }
+
+    public String getCollectableInfo(CollectableItem collectableItem) {
+        return collectableItem.getInfo();
+    }
+
+    public void useCollectable(CollectableItem collectableItem) {
+        addItemBuff(collectableItem);
+    }
+
+    private void checkDead(Hero card) {
+        if (card.getHealthPointInGame() <= 0) {
+            if (card instanceof Minion && card.getSpecialPower() != null) {
+                for (Item item : card.getInGame().getItems()) {
+                    if (item.getActivationTime() == ActivationTime.ON_SPAWN) {
+                        applyNonePassiveItem(item, card, null);
+                    }
+                }
+
+                if (((Minion) card).getActivationTime() == ActivationTime.ON_DEATH) {
+                    addMinionSpecialPower((Minion) card,
+                            card.getSpecialPower().getEffects());
+                }
+            }
+            board.get(card.getX()).get(card.getY()).removeCard();
+        }
+    }
+
+    private void addHeroSpecialPower(List<Buff> buffs, Hero hero, int x, int y) {
+        if (!checkOutOfBounds(x, y)) {
+            throw new GameException("invalid target");
+        }
+        for (Buff buff : buffs) {
+            if (buff.getTarget() == TargetType.CELL) {
+                board.get(x).get(y).addBuff(buff);
+            }
+            switch (buff.getRange()) {
+
+                case ALL_BOARD:
+                    List<Hero> heroMinions = getAllCards();
+                    for (Hero heroMinion : heroMinions) {
+                        handleSide(buff, heroMinion);
+                    }
+                    break;
+                case ONE:
+                    Hero card = board.get(x).get(y).getCard();
+                    if (card == null) {
+                        throw new GameException("invalid target");
+                    }
+                    if (!handleSide(buff, card)) {
+                        throw new GameException("invalid target");
+                    }
+                    break;
+                case SELF:
+                    handleSide(buff, hero);
+                    break;
+                case ALL_IN_ONE_ROW:
+                    for (List<Cell> cells : board) {
+                        for (Cell cell : cells) {
+                            if (cell.getX() == hero.getX()) {
+                                if (cell.getCard() == null) {
+                                    throw new GameException("invalid target");
+                                }
+                                if (!handleSide(buff, cell.getCard())) {
+                                    throw new GameException("invalid target");
+                                }
+                            }
+                        }
+                    }
+                    break;
+            }
+        }
+    }
+
+    private void addMinionSpecialPower(Minion minion, List<Buff> buffs) {
+        for (Buff buff : buffs) {
+
+            switch (buff.getRange()) {
+
+                case ALL_BOARD:
+                    List<Hero> heroMinions = getAllCards();
+                    for (Hero heroMinion : heroMinions) {
+                        handleSide(buff, heroMinion);
+                    }
+                    break;
+                case ONE:
+                    if (buff.isRandom()) {
+                        List<Hero> cards = getInBoardCards();
+                        cards = cards.stream().filter(hero -> hero.getClass() != Hero.class)
+                                .collect(Collectors.toList());
+                        Collections.shuffle(cards);
+                        if (!cards.isEmpty()) {
+                            handleSide(buff, cards.get(0));
+                        }
+                    } else {
+                        handleSide(buff, getOpponent().getHero());
+                    }
+                    break;
+                case SELF:
+                    handleSide(buff, minion);
+                    break;
+                case AROUND8:
+                    List<int[]> ints = getCellsInRange(minion.getX(), minion.getY(), 8);
+                    for (int[] pos : ints) {
+                        Cell cell = board.get(pos[0]).get(pos[1]);
+                        if (cell.getCard() != null) {
+                            handleSide(buff, cell.getCard());
+                        }
+                    }
+                    break;
+                case AROUND8_AND_SELF:
+                    ints = getCellsInRange(minion.getX(), minion.getY(), 8);
+                    for (int[] pos : ints) {
+                        Cell cell = board.get(pos[0]).get(pos[1]);
+                        if (cell.getCard() != null) {
+                            handleSide(buff, cell.getCard());
+                        }
+                    }
+                    handleSide(buff, minion);
+                    break;
+                case AROUND2:
+                    ints = getCellsInRange(minion.getX(), minion.getY(), 8);
+                    for (int[] pos : ints) {
+                        Cell cell = board.get(pos[0]).get(pos[1]);
+                        if (cell.getCard() != null) {
+                            handleSide(buff, cell.getCard());
+                        }
+                    }
+                    break;
+                case ALL_IN_ONE_COLUMN:
+                    for (List<Cell> cells : board) {
+                        for (Cell cell : cells) {
+                            if (cell.getY() == minion.getY()) {
+                                if (cell.getCard() != null) {
+                                    handleSide(buff, cell.getCard());
+                                }
+                            }
+                        }
+                    }
+                    break;
+                case ALL_IN_ONE_ROW:
+                    for (List<Cell> cells : board) {
+                        for (Cell cell : cells) {
+                            if (cell.getX() == minion.getX()) {
+                                if (cell.getCard() != null) {
+                                    handleSide(buff, cell.getCard());
+                                }
+                            }
+                        }
+                    }
+                    break;
+            }
+        }
+    }
+
+    private void addSpell(List<Buff> buffs, int x, int y) {
+        for (Buff buff : buffs) {
+            if (buff.getTarget() == TargetType.CELL) {
+                int range = Integer.valueOf(buff.getRange().name().split("_")[1]);
+                for (int i = 0; i < range; i++) {
+                    for (int j = 0; j < range; j++) {
+                        if (checkOutOfBounds(x + i, y + j)) {
+                            board.get(x + i).get(y + j).addBuff(buff);
+                        }
+                    }
+                }
+            }
+            switch (buff.getRange()) {
+
+                case ALL_BOARD:
+                    List<Hero> heroMinions = getAllCards();
+                    for (Hero heroMinion : heroMinions) {
+                        handleSide(buff, heroMinion);
+                    }
+                    break;
+                case ONE:
+                    Cell cell = board.get(x).get(y);
+                    if (cell.getCard() == null) {
+                        throw new GameException("invalid target");
+                    }
+                    if (!handleSide(buff, cell.getCard())) {
+                        throw new GameException("invalid target");
+                    }
+                    break;
+                case SQUARE2:
+                    for (int i = 0; i < 2; i++) {
+                        for (int j = 0; j < 2; j++) {
+                            if (checkOutOfBounds(x + i, y + j)) {
+                                cell = board.get(x + i).get(y + j);
+                                if (cell.getCard() != null) {
+                                    handleSide(buff, cell.getCard());
+                                }
+                            }
+                        }
+                    }
+                    break;
+                case SQUARE3:
+                    for (int i = 0; i < 3; i++) {
+                        for (int j = 0; j < 3; j++) {
+                            if (checkOutOfBounds(x + i, y + j)) {
+                                cell = board.get(x + i).get(y + j);
+                                if (cell.getCard() != null) {
+                                    handleSide(buff, cell.getCard());
+                                }
+                            }
+                        }
+                    }
+                    break;
+                case AROUND8:
+                    List<int[]> ints = getCellsInRange(x, y, 8);
+                    Collections.shuffle(ints);
+                    for (int[] pos : ints) {
+                        cell = board.get(pos[0]).get(pos[1]);
+                        if (cell.getCard() != null) {
+                            handleSide(buff, cell.getCard());
+                            break;
+                        }
+                    }
+                    break;
+                case ALL_IN_ONE_COLUMN:
+                    for (List<Cell> cells : board) {
+                        for (Cell cell1 : cells) {
+                            if (cell1.getY() == y) {
+                                if (cell1.getCard() != null) {
+                                    handleSide(buff, cell1.getCard());
+                                }
+                            }
+                        }
+                    }
+                    break;
+            }
+        }
+    }
+
+    private void addItemBuff(Item item) {
+        for (Buff buff : item.getBuffs()) {
+            if (buff instanceof ManaBuff) {
+                currentPlayer.addManaBuff((ManaBuff) buff);
+            } else {
+                if (item.getActivationTime() == ActivationTime.PASSIVE) {
+                    switch (buff.getRange()) {
+
+                        case ALL_BOARD:
+                            List<Hero> heroMinions = getAllCards();
+                            Collections.shuffle(heroMinions);
+                            switch (buff.getSide()) {
+                                case ALLY:
+                                    heroMinions =
+                                            heroMinions.stream().filter(hero -> currentPlayer.hasCard(hero))
+                                                    .filter(hero -> checkTarget(buff,
+                                                            hero))
+                                                    .collect(Collectors.toList());
+                                    if (buff.getAllyAttackTypes() != null) {
+                                        heroMinions = heroMinions.stream()
+                                                .filter(hero -> buff.getAllyAttackTypes().contains(hero.getAttackType()))
+                                                .collect(Collectors.toList());
+                                    }
+                                    for (Hero heroMinion : heroMinions) {
+                                        heroMinion.getInGame().addBuff(buff);
+                                        buff.applyBuff(heroMinion);
+                                    }
+                                    break;
+                                case ENEMY:
+                                    heroMinions =
+                                            heroMinions.stream().filter(hero -> getOpponent().hasCard(hero))
+                                                    .filter(hero -> checkTarget(buff,
+                                                            hero))
+                                                    .collect(Collectors.toList());
+                                    if (buff.getEnemyAttackTypes() != null) {
+                                        heroMinions = heroMinions.stream()
+                                                .filter(hero -> buff.getEnemyAttackTypes().contains(hero.getAttackType()))
+                                                .collect(Collectors.toList());
+                                    }
+                                    for (Hero heroMinion : heroMinions) {
+                                        heroMinion.getInGame().addBuff(buff);
+                                    }
+                                    break;
+                            }
+                            break;
+                        case ONE:
+                            heroMinions = getInBoardCards();
+                            Collections.shuffle(heroMinions);
+                            switch (buff.getSide()) {
+                                case ALLY:
+                                    heroMinions =
+                                            heroMinions.stream().filter(hero -> currentPlayer.hasCard(hero))
+                                                    .filter(hero -> checkTarget(buff,
+                                                            hero))
+                                                    .collect(Collectors.toList());
+                                    if (buff.getAllyAttackTypes() != null) {
+                                        heroMinions = heroMinions.stream()
+                                                .filter(hero -> buff.getAllyAttackTypes().contains(hero.getAttackType()))
+                                                .collect(Collectors.toList());
+                                    }
+                                    if (!heroMinions.isEmpty()) {
+                                        heroMinions.get(0).getInGame().addBuff(buff);
+                                        buff.applyBuff(heroMinions.get(0));
+
+                                    }
+                                    break;
+                                case ENEMY:
+                                    heroMinions =
+                                            heroMinions.stream().filter(hero -> getOpponent().hasCard(hero))
+                                                    .filter(hero -> checkTarget(buff,
+                                                            hero))
+                                                    .collect(Collectors.toList());
+                                    if (buff.getEnemyAttackTypes() != null) {
+                                        heroMinions = heroMinions.stream()
+                                                .filter(hero -> buff.getEnemyAttackTypes().contains(hero.getAttackType()))
+                                                .collect(Collectors.toList());
+                                    }
+                                    if (!heroMinions.isEmpty()) {
+                                        heroMinions.get(0).getInGame().addBuff(buff);
+                                    }
+                                    break;
+                            }
+                            break;
+                    }
+                } else {
+                    if (buff.getAllyType() != null) {
+                        switch (buff.getAllyType()) {
+                            case HERO:
+                                Hero hero = currentPlayer.getHero();
+                                if (buff.getAllyAttackTypes() != null) {
+                                    if (buff.getAllyAttackTypes().contains(hero.getAttackType())) {
+                                        hero.getInGame().addItem(item);
+                                    } else {
+                                        hero.getInGame().addItem(item);
+                                    }
+                                }
+                                break;
+                            case ALL_MINIONS:
+                                getAllCards().stream().filter(hero1 -> currentPlayer.hasCard(hero1))
+                                        .filter(hero1 -> hero1 instanceof Minion)
+                                        .forEach(hero1 -> hero1.getInGame().addItem(item));
+                                break;
+                        }
+                    } else {
+                        List<Hero> cards = getInBoardCards();
+                        Collections.shuffle(cards);
+                        if (buff instanceof AttackBuff) {
+                            cards.stream().filter(hero -> currentPlayer.hasCard(hero))
+                                    .filter(hero -> hero instanceof Minion).findFirst()
+                                    .ifPresent(hero -> hero.getInGame().addItem(item));
+                        } else {
+                            for (Hero card : cards) {
+                                card.getInGame().addItem(item);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void applyNonePassiveItem(Item item, Hero hero, Hero opponent) {
+        for (Buff buff : item.getBuffs()) {
+            switch (buff.getRange()) {
+                case ONE:
+                    if (buff.isRandom()) {
+                        List<Hero> heroes = getInBoardCards();
+                        heroes = heroes.stream().filter(hero1 -> checkTarget(buff, hero1))
+                                .filter(hero1 -> {
+                                    if (buff.getSide() == SideType.ALLY) {
+                                        return currentPlayer.hasCard(hero1);
+                                    } else {
+                                        return getOpponent().hasCard(hero1);
+                                    }
+                                }).collect(Collectors.toList());
+                        Collections.shuffle(heroes);
+                        if (!heroes.isEmpty()) {
+                            heroes.get(0).getInGame().addBuff(buff);
+                            if (buff.getSide() == SideType.ALLY) {
+                                buff.applyBuff(heroes.get(0));
+                            }
+                        }
+                    } else {
+                        switch (buff.getTarget()) {
+                            case HERO:
+                                getOpponent().getHero().getInGame().addBuff(buff);
+                                break;
+                            case MINION:
+                                if (opponent instanceof Minion) {
+                                    opponent.getInGame().addBuff(buff);
+                                }
+                                break;
+                        }
+                    }
+                    break;
+                case SELF:
+                    hero.getInGame().addBuff(buff);
+                    buff.applyBuff(hero);
+                    break;
+            }
+        }
+    }
+
+    private boolean handleSide(Buff buff, Hero heroMinion) {
+        switch (buff.getSide()) {
+            case ALLY:
+                if (currentPlayer.hasCard(heroMinion) && checkTarget(buff, heroMinion)) {
+                    heroMinion.getInGame().addBuff(buff);
+                    buff.applyBuff(heroMinion);
+                    return true;
+
+                }
+                break;
+            case ENEMY:
+                if (getOpponent().hasCard(heroMinion) && checkTarget(buff, heroMinion)) {
+                    heroMinion.getInGame().addBuff(buff);
+                    return true;
+
+                }
+                break;
+
+            case ALL:
+                if (checkTarget(buff, heroMinion)) {
+                    heroMinion.getInGame().addBuff(buff);
+                    return true;
+
+                }
+                break;
+        }
+        return false;
+    }
+
+    private boolean checkTarget(Buff buff, Card card) {
+        return buff.getTarget().getType().contains(card.getClass().getSimpleName());
+    }
+
+    private void addAttackBuffs(Hero opponent, List<Buff> buffs) {
+        for (Buff buff : buffs) {
+            if (buff.getTarget().getType().contains(opponent.getClass().getSimpleName())) {
+                opponent.getInGame().addBuff(buff);
+            }
+        }
+    }
+
+    private Player getOpponent() {
+        if (currentPlayer == player1) {
+            return player2;
+        } else {
+            return player1;
+        }
+    }
+
+    private boolean checkRange(Hero ally, Hero opponent) {
+        switch (ally.getAttackType()) {
+            case MELEE:
+                return getNeighbours(ally.getX(), ally.getY()).contains(new int[]{opponent.getX(), opponent.getY()});
+            case RANGED:
+                List<int[]> ints = getCellsInRange(ally.getX(), ally.getY(),
+                        ally.getRange());
+                for (int[] neighbour : getNeighbours(ally.getX(), ally.getY())) {
+                    //noinspection RedundantCollectionOperation
+                    ints.remove(ints.indexOf(neighbour));
+                }
+                return ints.contains(new int[]{opponent.getX(), opponent.getY()});
+            case HYBRID:
+                return getCellsInRange(ally.getX(), ally.getY(), ally.getRange()).contains(new int[]{opponent.getX(),
+                        opponent.getY()});
+        }
+        return false;
+    }
+
+    private List<int[]> getNeighbours(int x, int y) {
+        List<int[]> ints = new ArrayList<int[]>() {
+
+            @Override
+            public int indexOf(Object o) {
+                for (int i = 0; i < this.size(); i++) {
+                    if (Arrays.equals(this.get(i), (int[]) o)) {
+                        return i;
+                    }
+                }
+                return -1;
+            }
+
+        };
+        for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <= 1; j++) {
+                if (i == 0 && j == 0) {
+                    continue;
+                }
+                if (checkOutOfBounds(x + i, y + j)) {
+                    ints.add(new int[]{x + i, y + j});
+                }
+            }
+        }
+        return ints;
+    }
+
+    private List<int[]> getCellsInRange(int x, int y, int range) {
+        List<int[]> ints = new ArrayList<int[]>() {
+            @Override
+            public int indexOf(Object o) {
+                for (int i = 0; i < this.size(); i++) {
+                    if (Arrays.equals(this.get(i), (int[]) o)) {
+                        return i;
+                    }
+                }
+                return -1;
+            }
+        };
+        for (int i = -range; i <= range; i++) {
+            for (int j = -range; j <= range; j++) {
+                if (i == 0 && j == 0) {
+                    continue;
+                }
+                if (Math.abs(i) + Math.abs(j) <= range && checkOutOfBounds(x + i,
+                        y + j)) {
+                    ints.add(new int[]{x + i, y + j});
+                }
+            }
+        }
+        return ints;
+    }
+
+    private boolean checkOutOfBounds(int x, int y) {
+        return x >= 0 && y >= 0 && x <= 8 && y <= 4;
+    }
+
+    private Card getCard(String id) {
+        if (getInBoardCard(id) != null) {
+            return getInBoardCard(id);
+        }
+        List<Card> cards = new ArrayList<>();
+        cards.addAll(player1.getHand());
+        cards.addAll(player2.getHand());
+        cards.add(player1.getHero());
+        cards.add(player2.getHero());
+        return cards.stream().filter(card -> card.getId().equals(id))
+                .findFirst().orElseThrow(() -> new GameException("no such card in game"));
+    }
+
+    private List<Hero> getAllCards() {
+        List<Card> cards = new ArrayList<>();
+        cards.add(player1.getHero());
+        cards.add(player2.getHero());
+        cards.addAll(player1.getDeck().getCards());
+        cards.addAll(player2.getDeck().getCards());
+        return cards.stream().filter(card -> card instanceof Hero).map(card -> (Hero) card).collect(Collectors.toList());
+    }
+
+    private List<Hero> getInBoardCards() {
+        List<Hero> cards = new ArrayList<>();
+        for (List<Cell> cells : board) {
+            for (Cell cell : cells) {
+                if (cell.getHeroMinion() != null) {
+                    cards.add(cell.getHeroMinion());
+                }
+            }
+        }
+        return cards;
+    }
+
+    private Card getInBoardCard(String id) {
+        for (List<Cell> cells : board) {
+            for (Cell cell : cells) {
+                if (cell.getHeroMinion() != null && cell.getHeroMinion().getId().equals(id)) {
+                    return cell.getHeroMinion();
+                }
+            }
+        }
+        return null;
+    }
+
+    private boolean checkRoad(int x1, int y1, int x2, int y2) {
+        boolean ans = board.get(x2).get(y2).isEmpty();
+        if (Math.abs(x1 - x2) == 2) {
+            ans = ans && board.get((x1 + x2) / 2).get(y2).isEmpty();
+        }
+        if (Math.abs(y1 - y2) == 2) {
+            ans = ans && board.get(x2).get((y1 + y2) / 2).isEmpty();
+        }
+        return ans;
+    }
+
+    private int getDistance(int x1, int y1, int x2, int y2) {
+        return Math.abs(x1 - x2) +
+                Math.abs(y1 - y2);
     }
 
     public Player getPlayer1() {
@@ -96,287 +1116,8 @@ public class Game {
         return mode;
     }
 
-    public String getInfo() {
-        switch (mode) {
-
-            case KILL_ENEMY_HERO:
-                return player1.getAccountName() + "'hero HP: " +"";
-            case KEEP_FLAG_6_ROUNDS:
-                break;
-            case COLLECT_HALF_FLAGS:
-                break;
-            case UNKNOWN:
-                break;
-        }
-        return "";
+    public GraveYard getGraveYard() {
+        return graveYard;
     }
-
-
-    public int getDistance(Cell firstCell, Cell secondCell) {
-        return Math.abs(firstCell.getX() - secondCell.getX()) +
-                Math.abs(firstCell.getY() - secondCell.getY());
-    }
-
- /*   public void setSelectedCellByCardId(String cardId) {
-        selectedCell =
-                Optional.ofNullable(getCellByCardId(cardId))
-                        .filter(cell -> cell.getCard().getAccountName().equals(currentPlayer.getAccountName()))
-                        .orElseThrow(() -> new GameException("This card is not yours!"));
-    }
-
-    public void moveSelectedCardTo(int x, int y) {
-        Cell newCell = board.get(x).get(y);
-        if (getDistance(selectedCell, newCell) <= 2) {
-            if (!newCell.hasCard()) {
-                newCell.setCard(selectedCell.getCard());
-                selectedCell.removeCard();
-                selectedCell = newCell;
-            } else {
-                throw new GameException("The destination has a card!");
-            }
-        } else {
-            throw new GameException("The distance is more than 2!");
-        }
-    }
-
-    public void attack(String cardId) {
-        Cell opponentCell = getCellByCardId(cardId);
-        Hero self = (Hero) selectedCell.getCard();
-        Hero opponent = (Hero) opponentCell.getCard();
-        if (self.getInGame().isArmed()) {
-            if (checkRangeOfAttack(opponentCell)) {
-                opponent.getInGame().decreaseHealthPoint(self.getAttackPower());
-                if (checkRangeOfCounterAttack(opponentCell)) {
-                    self.getInGame().decreaseHealthPoint(opponent.getAttackPower());
-                }
-            } else {
-                throw new GameException("opponent is unavailable for attack");
-            }
-        } else {
-            throw new GameException("You cannot move!");
-        }
-    }
-
-    public void useSpecialPower(int x, int y) {
-        Cell pointedCell = board.get(y).get(x);
-        Hero soldier = (Hero) selectedCell.getCard();
-        Spell spell = soldier.getSpecialPower();
-        ArrayList<Cell> cells;
-        for (Buff buff : spell.getEffects()) {
-            cells = getTargetCellsByRange(buff.getRange(), pointedCell);
-            if (buff.getTarget().equals(TargetType.CELL)) {
-                //applyBuffOnCells(buff,cells);
-                continue;
-            }
-            cells = filterAndGetCellsBySide(cells, buff.getSide());
-            cells = filterAndGetCellsByTargetType(cells, buff.getTarget());
-            //applyBuffOnSoldiersByCells(buff,cells);
-        }
-    }
-
-    public void applyBuffOnCells(Buff buff, ArrayList<Cell> cells) {
-        for (Cell cell : cells) {
-            cell.setBuff(buff);
-        }
-    }
-
-    public ArrayList<Cell> getTargetCellsByRange(RangeType range, Cell pointedCell) {
-        ArrayList<Cell> cells = new ArrayList<>();
-        if (range.equals(RangeType.ALL_BOARD)) {
-            cells = getTargetCellsAllBoard();
-        } else if (range.equals(RangeType.AROUND8)) {
-            cells = getTargetCellsAround8(pointedCell);
-        } else if (range.equals(RangeType.DISTANCE2)) {
-            cells = getTargetCellsByDistance(pointedCell, 2);
-        } else if (range.equals(RangeType.SQUARE1)) {
-            cells.add(pointedCell);
-        } else if (range.equals(RangeType.SQUARE2)) {
-            cells = getTargetCellsBySquareSize(pointedCell, 2);
-        } else if (range.equals(RangeType.SQUARE3)) {
-            cells = getTargetCellsBySquareSize(pointedCell, 3);
-        }
-        return cells;
-    }
-
-    public ArrayList<Cell> filterAndGetCellsBySide(ArrayList<Cell> cells, SideType side) {
-        if (side.equals(SideType.ENEMY)) {
-            return filterAndGetCellsHasEnemy(cells);
-        } else {
-            return filterAndGetCellsHasSelf(cells);
-        }
-    }
-
-    public ArrayList<Cell> filterAndGetCellsByTargetType(ArrayList<Cell> cells, TargetType target) {
-        ArrayList filteredCells = new ArrayList(cells);
-        for (Cell cell : cells) {
-            if (cell.getClass().equals(Hero.class) && target.equals(TargetType.HERO)) {
-                filteredCells.add(cell);
-            } else if (cell.getClass().equals(Minion.class) && target.equals(TargetType.MINION)) {
-                filteredCells.add(cell);
-            } else if (cell.getCard() instanceof Hero && target.equals(TargetType.HERO_MINION)) {
-                filteredCells.add(cell);
-            }
-        }
-        return filteredCells;
-    }
-
-    private ArrayList<Cell> filterAndGetCellsHasEnemy(ArrayList<Cell> cells) {
-        ArrayList<Cell> filteredCells = new ArrayList<>(cells);
-        for (Cell cell : cells) {
-            if (cell.getCard().getAccountName().equals(currentPlayer.getAccountName())) {
-                filteredCells.remove(cell);
-            }
-        }
-        return filteredCells;
-    }
-
-    private ArrayList<Cell> filterAndGetCellsHasSelf(ArrayList<Cell> cells) {
-        ArrayList<Cell> filteredCells = new ArrayList<>();
-        for (Cell cell : cells) {
-            if (cell.getCard().getAccountName().equals(currentPlayer.getAccountName())) {
-                filteredCells.add(cell);
-            }
-        }
-        return filteredCells;
-    }
-
-    private ArrayList<Cell> getTargetCellsAllBoard() {
-        ArrayList<Cell> cells = new ArrayList<>();
-        for (int i = 0; i < board.size(); i++) {
-            for (int j = 0; j < board.get(i).size(); j++) {
-                cells.add(board.get(i).get(j));
-            }
-        }
-        return cells;
-    }
-
-    private ArrayList<Cell> getTargetCellsAround8(Cell pointedCell) {
-        ArrayList<Cell> cells = new ArrayList<>();
-
-        int leftX = pointedCell.getX() - 1;
-        int upY = pointedCell.getY() - 1;
-        int rightX = pointedCell.getX() + 1;
-        int downY = pointedCell.getY() + 1;
-
-        leftX = leftX < 0 ? 0 : leftX;
-        upY = upY < 0 ? 0 : upY;
-
-        rightX = rightX >= Constants.LENGTH_OF_BOARD ? Constants.LENGTH_OF_BOARD - 1 : rightX;
-        downY = downY >= Constants.LENGTH_OF_BOARD ? Constants.WIDTH_OF_BOARD - 1 : downY;
-
-        for (int i = upY; i <= downY; i++) {
-            for (int j = leftX; j <= rightX; j++) {
-                if (i == pointedCell.getY() && j == pointedCell.getX()) {
-                    continue;
-                }
-                cells.add(board.get(i).get(j));
-            }
-        }
-        return cells;
-    }
-
-    private ArrayList<Cell> getTargetCellsByDistance(Cell pointedCell, int distance) {
-        ArrayList<Cell> cells = new ArrayList<>();
-        for (int i = 0; i < Constants.WIDTH_OF_BOARD; i++) {
-            for (int j = 0; j < Constants.LENGTH_OF_BOARD; j++) {
-                if (i == pointedCell.getY() && j == pointedCell.getX()) {
-                    continue;
-                }
-                if (getDistance(pointedCell, board.get(i).get(j)) <= distance) {
-                    cells.add(board.get(i).get(j));
-                }
-            }
-        }
-        return cells;
-    }
-
-    private ArrayList<Cell> getTargetCellsBySquareSize(Cell pointedCell, int size) {
-        ArrayList<Cell> cells = new ArrayList<>();
-
-        int rightX = pointedCell.getX() + size - 1;
-        int downY = pointedCell.getY() + size - 1;
-
-        rightX = rightX >= Constants.WIDTH_OF_BOARD ? Constants.WIDTH_OF_BOARD - 1 : rightX;
-        downY = downY >= Constants.LENGTH_OF_BOARD ? Constants.LENGTH_OF_BOARD - 1 : downY;
-
-        for (int i = pointedCell.getY(); i <= downY; i++) {
-            for (int j = pointedCell.getX(); j <= rightX; j++) {
-                if (i == pointedCell.getY() && j == pointedCell.getX()) {
-                    continue;
-                }
-                cells.add(board.get(i).get(j));
-            }
-        }
-        return cells;
-    }
-
-    public void nextTurn() {
-        if (currentPlayer.equals(player1)) {
-            setCurrentPlayer(player2);
-        } else {
-            setCurrentPlayer(player1);
-        }
-        if (getCurrentPlayer().isAI()) {
-            playAI();
-        }
-    }
-
-    public void playAI() {
-        //Run some random possible moves for the current player;
-        nextTurn();
-    }
-
-    public boolean checkRangeOfAttack(Cell opponentCell) {
-        Hero self = (Hero) selectedCell.getCard();
-        int distance = getDistance(selectedCell, opponentCell);
-        if (self.getAttackType().equals(AttackType.MELEE)) {
-            if (distance == 1) {
-                return true;
-            }
-        }
-        if (self.getAttackType().equals(AttackType.RANGED)) {
-            if (distance <= self.getRange() && distance > 1) {
-                return true;
-            }
-        }
-        if (self.getAttackType().equals(AttackType.HYBRID)) {
-            if (distance <= self.getRange()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public boolean checkRangeOfCounterAttack(Cell opponentCell) {
-        Hero opponent = (Hero) opponentCell.getCard();
-        int distance = getDistance(selectedCell, opponentCell);
-        if (opponent.getAttackType().equals(AttackType.MELEE)) {
-            if (distance == 1) {
-                return true;
-            }
-        }
-        if (opponent.getAttackType().equals(AttackType.RANGED)) {
-            if (distance <= opponent.getRange() && distance > 1) {
-                return true;
-            }
-        }
-        if (opponent.getAttackType().equals(AttackType.HYBRID)) {
-            if (distance <= opponent.getRange()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public Cell getCellByCardId(String id) {
-        for (List<Cell> row : board) {
-            for (Cell cell : row) {
-                if (cell.getCard().idEquals(id)) {
-                    return cell;
-                }
-            }
-        }
-        throw new GameException("Card with this id is not on the board!");
-    }*/
 
 }

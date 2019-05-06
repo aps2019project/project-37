@@ -15,17 +15,15 @@ public class KingsGuardBuff extends Buff {
     }
 
     @Override
-    void applyBuff(List<Hero> heroes) {
-        for (Hero hero : heroes) {
-            if (getTarget().getType().contains(hero.getClass().getSimpleName()) || getTarget() == TargetType.CELL) {
-                hero.setHealthPointInGame(0);
-            }
+    public void applyBuff(Hero hero) {
+        if (hero.isImmuneToAllSpells()) {
+            return;
         }
-
+        hero.setHealthPointInGame(0);
     }
 
     @Override
-    void inactivate(List<Hero> heroes) {
+    public void inactivate(Hero hero) {
 
     }
 }

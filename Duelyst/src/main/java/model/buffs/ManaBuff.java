@@ -11,7 +11,6 @@ import java.util.List;
 public class ManaBuff extends Buff {
 
     private int amount;
-    private Player player;
 
     public ManaBuff(int duration, boolean continuous, TargetType target, SideType side, RangeType range, int amount) {
         super(duration, continuous, target, side, range);
@@ -20,20 +19,16 @@ public class ManaBuff extends Buff {
     }
 
     @Override
-    void applyBuff(List<Hero> heroes) {
-        player.setMana(player.getMana() + amount);
+    public void applyBuff(Hero hero) {
+
     }
 
     @Override
-    void inactivate(List<Hero> heroes) {
+    public void inactivate(Hero hero) {
 
     }
 
-    public Player getPlayer() {
-        return player;
-    }
-
-    public void setPlayer(Player player) {
-        this.player = player;
+    public int getAmount() {
+        return amount;
     }
 }

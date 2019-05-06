@@ -15,7 +15,7 @@ public class Spell extends Card {
     public Spell(String name, long price,
                  int mana, String desc, Buff... effects) {
         super(name, price);
-        this.effects= new ArrayList<>(Arrays.asList(effects));
+        this.effects = new ArrayList<>(Arrays.asList(effects));
         setMana(mana);
         setDesc(desc);
         makeInfo();
@@ -62,6 +62,15 @@ public class Spell extends Card {
     public void makeInfo() {
         info = "Type : Spell - Name : " + getName();
         info += " - MP : " + getMana() + " Description : " + getDesc();
+    }
+
+    @Override
+    public String getInGameInfo() {
+        return "Spell:\n" +
+                "Name: " + getName() + "\n" +
+                "MP: " + mana + "\n" +
+                "Cost: " + getPrice() + "\n" +
+                "Desc: " + desc + "\n";
     }
 
     @Override
