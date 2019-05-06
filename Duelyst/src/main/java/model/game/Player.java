@@ -23,7 +23,6 @@ public class Player {
     private List<CollectableItem> collectableItems = new ArrayList<>();
     private List<ManaBuff> buffs = new ArrayList<>();
     private int mana;
-    private GraveYard graveYard = new GraveYard();
     private int indexOfNextCard;
     private boolean AI;
     private int flagTime;
@@ -35,7 +34,6 @@ public class Player {
         this.deck.remove(hero);
         Collections.shuffle(this.deck.getCards());
         this.AI = AI;
-        fillHand();
     }
 
     public Item startGame() {
@@ -107,10 +105,6 @@ public class Player {
         return mana;
     }
 
-    public GraveYard getGraveYard() {
-        return graveYard;
-    }
-
     public Hero getHero() {
         return hero;
     }
@@ -126,8 +120,9 @@ public class Player {
     public void decreaseMana(int mana) {
         if (this.mana >= mana) {
             this.mana -= mana;
+        } else {
+            throw new GameException("Not enough mana!");
         }
-        throw new GameException("Not enough mana!");
     }
 
     public void increaseMana(int mana) {
@@ -135,7 +130,7 @@ public class Player {
     }
 
     public void fillHand() {
-        int size = hand.size() - 1;
+        int size = hand.size();
         for (int i = size; i < Constants.SIZE_OF_HAND; i++) {
             addNextCardFromDeckToHand();
         }

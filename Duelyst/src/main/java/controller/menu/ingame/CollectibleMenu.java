@@ -3,10 +3,6 @@ package controller.menu.ingame;
 import controller.Controller;
 import controller.GameException;
 import controller.menu.Menu;
-import model.items.CollectableItem;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class CollectibleMenu extends Menu {
 
@@ -33,8 +29,8 @@ public class CollectibleMenu extends Menu {
     }
 
     private String[] matchers = {
-            "^show info (\\w+_){2}\\d+$",
-            "^use location \\(\\d+,\\d+\\)$",
+            "^show info$",
+            "^use$",
             "^show menu$",
             "^exit$"
     };
@@ -52,14 +48,14 @@ public class CollectibleMenu extends Menu {
                 getController().showCollectableItemInfo();
                 break;
             case USE:
-                int x = extractXForUse(command);
-                int y = extractYForUse(command);
-                getController().useCollectibleItem(x, y);
+                getController().useCollectibleItem();
                 break;
             case SHOW_MENU:
                 showMessage(menuHelp());
                 break;
             case EXIT:
+                getController().deselectItem();
+                showMessage("\nyou've entered game menu\n");
                 return getParentMenu();
         }
         return this;
@@ -71,7 +67,7 @@ public class CollectibleMenu extends Menu {
                 "-----------\n" +
                 "Commands:\n" +
                 "1- show info\n" +
-                "2- use (x,y)\n" +
+                "2- use\n" +
                 "3- show menu\n" +
                 "4- exit\n";
     }
@@ -84,30 +80,6 @@ public class CollectibleMenu extends Menu {
             }
         }
         throw new GameException("invalid command");
-    }
-
-    private int extractXForUse(String command){
-        String[] strings = command.split(" ");
-        String string = strings[strings.length - 1];
-        Pattern pattern = Pattern.compile("\\d+(?=,)");
-        Matcher matcher = pattern.matcher(string);
-        if(matcher.find()){
-            return Integer.parseInt(matcher.group(0));
-        }else{
-            return -1;
-        }
-    }
-
-    private int extractYForUse(String command){
-        String[] strings = command.split(" ");
-        String string = strings[strings.length - 1];
-        Pattern pattern = Pattern.compile("(?<=,)\\d+");
-        Matcher matcher = pattern.matcher(string);
-        if(matcher.find()){
-            return Integer.parseInt(matcher.group(0));
-        }else{
-            return -1;
-        }
     }
 
 }

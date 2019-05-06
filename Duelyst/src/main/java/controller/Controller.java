@@ -8,6 +8,7 @@ import model.cards.Card;
 import model.cards.Hero;
 import model.game.Game;
 import model.game.GraveYard;
+import model.items.CollectableItem;
 import model.items.Item;
 import model.items.UsableItem;
 import view.View;
@@ -22,6 +23,8 @@ public class Controller {
     private Account currentAccount;
     private MenuManager menuManager;
     private Game game;
+    private Card selectedCard;
+    private CollectableItem selectedItem;
 
     public Controller() {
         view = new View();
@@ -59,6 +62,20 @@ public class Controller {
         }
     }
 
+    public void showAccounts() {
+        List<Account> accounts = Utils.getAccounts().stream()
+                .filter(account -> !account.userNameEquals(currentAccount.getUserName()))
+                .collect(Collectors.toList());
+        if (accounts.isEmpty()) {
+            throw new GameException("\nthere is no other account\n");
+        }
+        showMessage("select one account\n");
+        for (Account account : accounts) {
+            showMessage(account.getUserName() + "\n");
+        }
+        showMessage("tip: select user [user name]\n");
+    }
+
     public void login(String userName) {
         if (!Utils.hasAccount(userName)) {
             throw new GameException("There is no such account");
@@ -75,8 +92,10 @@ public class Controller {
 
 //            todo remove test initializer
         account.getCollection().add(copyWithNewId(Utils.getShop().getHeroes().get(0)));
-        List<Card> cards = Utils.getShop().getCards().stream().filter(card -> card.getClass() != Hero.class)
-                .collect(Collectors.toList());
+        List<Card> cards =
+                Utils.getShop().getCards().stream().filter(card -> card.getClass() != Hero.class)
+                        .collect(Collectors.toList());
+        Collections.shuffle(cards);
         for (int i = 0; i < 20; i++) {
             account.getCollection().add(copyWithNewId(cards.get(i)));
         }
@@ -215,28 +234,52 @@ public class Controller {
         }
     }
 
+    public void validateMainDeck(Account account) {
+        if (account.getMainDeck() == null) {
+            throw new GameException("no deck is selected");
+        }
+        if (!account.getMainDeck().isValid()) {
+            throw new GameException("selected deck is not valid");
+        }
+    }
+
     public void setMainDeck(String name) {
         currentAccount.setMainDeck(currentAccount.getDeck(name));
-        showMessage("Deck" + name + "selected successfully");
+        showMessage("Deck " + name + " selected successfully");
     }
 
     private Deck getMainDeck() {
         return currentAccount.getMainDeck();
     }
 
-    public void createGame(BattleMenu.StoryLevel storyLevel, int flagNumber) throws CloneNotSupportedException {
+    public void deleteGame() {
+        game = null;
+        selectedCard = null;
+        selectedItem = null;
+    }
 
-        BattleMenu.CustomGameMode mode = BattleMenu.CustomGameMode.getMode(storyLevel.value);
+    public void createGame(BattleMenu.StoryLevel storyLevel, int flagNumber)
+            throws CloneNotSupportedException {
+
+        BattleMenu.CustomGameMode mode =
+                BattleMenu.CustomGameMode.getMode(storyLevel.value);
         Deck deck = createDeck(Integer.valueOf(storyLevel.value));
-        game = Game.createGame(currentAccount, null, mode, deck, flagNumber);
+        game = Game.createGame(currentAccount, null, mode, deck, flagNumber,
+                Integer.valueOf(storyLevel.value) * 500);
     }
 
-    public void createGame(int deckNumber, BattleMenu.CustomGameMode mode, int flagNumber) throws CloneNotSupportedException {
+    public void createGame(int deckNumber, BattleMenu.CustomGameMode mode,
+                           int flagNumber) throws CloneNotSupportedException {
         Deck deck = createDeck(deckNumber);
-        game = Game.createGame(currentAccount, null, mode, deck, flagNumber);
+        game = Game.createGame(currentAccount, null, mode, deck, flagNumber, 1000);
     }
 
-    private Deck createDeck(int deckNumber) throws CloneNotSupportedException {
+    public void createGame(BattleMenu.CustomGameMode mode, Account account,
+                           int flagNumber) {
+        game = Game.createGame(currentAccount, account, mode, null, flagNumber, 1000);
+    }
+
+    public Deck createDeck(int deckNumber) throws CloneNotSupportedException {
 
         List<Card> cards = new ArrayList<>();
         Item item = null;
@@ -244,24 +287,34 @@ public class Controller {
         switch (deckNumber) {
             case 1:
                 addCard(cards, "white-beast", "persian-archer", "transoxianain-spear-man",
-                        "transoxianain-trench-raider", "transoxianain-trench-raider", "black-beast", "one-eyed-giant"
-                        , "poisonous-snake", "gigantic-snake", "White-wolf", "high-witch", "nane-sarma", "siavash",
-                        "beast-arjang", "total-disarm", "lightning-bolt", "all-disarm", "all-poison", "dispel",
+                        "transoxianain-trench-raider", "transoxianain-trench-raider",
+                        "black-beast", "one-eyed-giant"
+                        , "poisonous-snake", "gigantic-snake", "White-wolf", "high" +
+                                "-witch", "nane-sarma", "siavash",
+                        "beast-arjang", "total-disarm", "lightning-bolt", "all-disarm",
+                        "all-poison", "dispel",
                         "sacrifice", "kings-guard");
                 item = getItem("wisdom-throne");
                 break;
             case 2:
-                addCard(cards, "zahhak", "persian-swordsman", "persian-spear-man", "persian-hero",
-                        "transoxianain-sling-man", "transoxianain-prince", "giant-rock-thrower", "giant-rock-thrower",
-                        "fire-dragon", "panther", "ghost", "giv", "iraj", "giant-king", "aria-dispel", "empower",
-                        "god-strength", "poison-lake", "madness", "health-with-benefit", "kings-guard");
+                addCard(cards, "zahhak", "persian-swordsman", "persian-spear-man",
+                        "persian-hero",
+                        "transoxianain-sling-man", "transoxianain-prince", "giant-rock" +
+                                "-thrower", "giant-rock-thrower",
+                        "fire-dragon", "panther", "ghost", "giv", "iraj", "giant-king",
+                        "aria-dispel", "empower",
+                        "god-strength", "poison-lake", "madness", "health-with-benefit"
+                        , "kings-guard");
                 item = getItem("soul-eater");
                 break;
             case 3:
-                addCard(cards, "arash", "persian-commander", "transoxianain-archer", "transoxianain-spy",
-                        "giant-rock-thrower", "cavalry-beast", "cavalry-beast", "fierce-lion", "wolf", "witch", "wild" +
+                addCard(cards, "arash", "persian-commander", "transoxianain-archer",
+                        "transoxianain-spy",
+                        "giant-rock-thrower", "cavalry-beast", "cavalry-beast", "fierce" +
+                                "-lion", "wolf", "witch", "wild" +
                                 "-pig",
-                        "piran", "bahman", "big-giant", "hellfire", "all-disarm", "dispel", "power-up", "all-power",
+                        "piran", "bahman", "big-giant", "hellfire", "all-disarm",
+                        "dispel", "power-up", "all-power",
                         "all-attack", "weakening");
                 item = getItem("terror-hood");
                 break;
@@ -280,6 +333,7 @@ public class Controller {
             Card card = ((Card) Utils.getShop().getObjectByName(name)).clone();
             String id = generateId(cards, card);
             card.setId(id);
+            card.setAccountName("AI");
             cards.add(card);
         }
     }
@@ -296,71 +350,121 @@ public class Controller {
         return "AI_Player_" + card.getName() + "_" + index;
     }
 
-    public void showGameInfo(){
-        //Game should have a method to return an info
+    public void inGameHelp() {
+        showMessage(game.getInGameHelp());
     }
 
-    public void showAllyMinions(){
-        //get all minions of currentPlayer in game
+    public void getCardHelp() {
+        showMessage(game.getCardHelp(selectedCard));
     }
 
-    public void showEnemyMinions(){
-        //get all minions of other player than currentPlayer in game
+    public void showGameInfo() {
+        showMessage(game.getInfo());
     }
 
-    public void selectCard(String id){
-        //Game have selectedCell, this cell has a card.
-        //set the selectedCell by this cardId
+    public void showAllyMinions() {
+        showMessage(game.showMinions(true));
     }
 
-    public void showCardInfo(String id){
-        //show the info of the card of selectedCell
+    public void showEnemyMinions() {
+        showMessage(game.showMinions(false));
     }
 
-    public void showHand(){}
-
-    public void insertCardInXY(String id, int x, int y){ }
-
-    public void endTurn(){ }
-
-    public void showCollectibles(){}
-
-    public void selectCollectible(String itemId){
-        //search in the collectableItems owned by currentPlayer and get it
-        //Game should have a collectableItem, set this
+    public void selectCard(String id) {
+        selectedCard = game.selectCard(id);
     }
 
-    public void showNextCard(){}
-
-    public GraveYard getGraveYard(){
-        return game.getCurrentPlayer().getGraveYard();
+    public void showCardInfo(String id) {
+        showMessage(game.showCardInfo(id));
     }
 
-    public void showCollectableItemInfo(){ }
+    public void showHand() {
+        showMessage(game.showHand());
+    }
 
-    public void useCollectibleItem(int x, int y){ }
+    public void insertCardInXY(int x, int y) {
+        showMessage(game.insert(selectedCard, x, y));
+    }
 
-    public void moveSelectedCardTo(int x, int y){}
+    public boolean endTurn() {
+        String result = game.endTurn();
+        if (result != null) {
+            showMessage(result);
+            return true;
+        }
+        return false;
+    }
 
-    public void attackSelectedCardOn(String opponentId){}
+    public void showCollectibles() {
+        showMessage(game.showCollectables());
+    }
 
-    public void useSpecialPowerOfSelectedCardOn(int x, int y){}
+    public void selectCollectible(String itemId) {
+        selectedItem = game.selectCollectable(itemId);
+    }
 
-    public void attackCombo(String opponentId, String[] allyCardIds){}
+    public void showNextCard() {
+        showMessage(game.showNextCard());
+    }
 
-    public List<Card> getMovableCards(){
+    public void showCollectableItemInfo() {
+        showMessage(game.getCollectableInfo(selectedItem));
+    }
+
+    public void useCollectibleItem() {
+        game.useCollectable(selectedItem);
+    }
+
+    public void moveSelectedCardTo(int x, int y) {
+        if (game.move(selectedCard, x, y)) {
+            showMessage(selectedCard.getId() + " has moved to "
+                    + ((Hero) selectedCard).getInGame().getPos());
+        }
+    }
+
+    public void attackSelectedCardOn(String opponentId) {
+        game.attack(selectedCard, opponentId, true);
+    }
+
+    public void useSpecialPowerOfSelectedCardOn(int x, int y) {
+        game.useSpecialPower(selectedCard, x, y);
+    }
+
+    public void attackCombo(String opponentId, String[] allyCardIds) {
+        game.attackCombo(selectedCard, opponentId, allyCardIds);
+    }
+
+    public void deselectCard() {
+        selectedCard = null;
+    }
+
+    public void deselectItem() {
+        selectedItem = null;
+    }
+
+    public void showCardInfoInGraveYard(String id) {
+        game.getGraveYard().getInfo(id);
+    }
+
+    public void showAllCardsInGraveYard() {
+        game.getGraveYard().getInfoOfAllCards();
+    }
+
+    public List<Card> getMovableCards() {
         return game.getCurrentPlayer().getHand().stream()
                 .map(card -> (Hero) card)
                 .filter(hero -> hero.getInGame().isArmed())
                 .collect(Collectors.toList());
     }
 
-    public List<Card> getAttackingCards(){
+    public List<Card> getAttackingCards() {
         //return the cards that can be attacked by ally hero and minions
         return null;
     }
 
-    public List<Card> getInsertableCards(){ return null; }
+    public List<Card> getInsertableCards() {
+        return null;
+    }
 
     public void showAllDecksInfo() {
         showMessage(currentAccount.showAllDecks());

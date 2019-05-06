@@ -144,7 +144,7 @@ public class InGame implements Cloneable {
         if (x < 0) {
             return "out of board";
         }
-        return "(" + x + 1 + "," + y + 1 + ")";
+        return "(" + (x + 1) + "," + (y + 1) + ")";
     }
 
     public boolean isAttacked() {

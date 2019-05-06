@@ -1,5 +1,8 @@
 package model.cards;
 
+import model.buffs.Buff;
+import model.buffs.traget.SideType;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,7 +14,8 @@ public class Minion extends Hero {
     private Map<String, Integer> attackedTimes = new HashMap<>();
 
     public Minion(String name, long price, int mana, int healthPoint, int attackPower,
-                  AttackType attackType, int range, Spell specialPower, ActivationTime activationTime) {
+                  AttackType attackType, int range, Spell specialPower,
+                  ActivationTime activationTime) {
         super(name, price, healthPoint, attackPower, attackType, range, specialPower, 0);
         this.activationTime = activationTime;
         setMana(mana);
@@ -46,6 +50,10 @@ public class Minion extends Hero {
     @Override
     public String getInGameInfo() {
         String s = "Combo Ability: ";
+        String desc = "Desc:\n";
+        if (getSpecialPower() != null) {
+            desc = "Desc: " + getSpecialPower().getDesc() + "\n";
+        }
         if (activationTime == ActivationTime.COMBO) {
             s += "yes";
         } else {
@@ -57,11 +65,10 @@ public class Minion extends Hero {
                 "Range: " + getAttackType().toString() + "\n" +
                 s +
                 "Cost: " + getPrice() + "\n" +
-                "Desc: " + getSpecialPower().getDesc() + "\n" +
+                desc +
                 "HP: " + getHealthPointInGame() + "\n" +
                 "AP: " + getAttackPowerInGame() + "\n" +
-                "MP: " + getMana() + "\n" +
-                "Desc: " + getSpecialPower() + "\n";
+                "MP: " + getMana() + "\n";
     }
 
     private String getSpecialPowerInfo() {
@@ -93,13 +100,24 @@ public class Minion extends Hero {
         if (hero instanceof Minion) {
             Minion minion = (Minion) hero;
             if (getName().equals("persian-hero")) {
-                minion.decreaseHealthPointInGame(minion.attackedTimes.get(minion.getName()) * 5 + getAttackPower());
+                minion.decreaseHealthPointInGame(minion.attackedTimes.get(minion.getName()) * 5 + getAttackPowerInGame());
+                return;
+            }
+            if (getName().equals("double-headed-giant")) {
+                for (Buff buff : minion.getInGame().getBuffs()) {
+                    if (buff.getSide() == SideType.ALLY) {
+                        if (buff.isCancelable()) {
+                            buff.inactivate(hero);
+                        }
+                    }
+                }
+                minion.decreaseHealthPointInGame(getAttackPowerInGame());
                 return;
             }
             if (disableEnemyHolyBuff) {
-                minion.addHealthPointInGame(-getAttackPower());
+                minion.addHealthPointInGame(-getAttackPowerInGame());
             } else {
-                minion.decreaseHealthPointInGame(getAttackPower());
+                minion.decreaseHealthPointInGame(getAttackPowerInGame());
             }
         } else {
             super.attack(hero);

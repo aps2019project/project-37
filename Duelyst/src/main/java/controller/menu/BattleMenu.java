@@ -3,6 +3,8 @@ package controller.menu;
 import controller.Controller;
 import controller.GameException;
 import controller.menu.ingame.InGameBattleMenu;
+import model.Account;
+import model.Utils;
 
 public class BattleMenu extends Menu {
 
@@ -50,7 +52,7 @@ public class BattleMenu extends Menu {
 
     public enum CustomGameMode {
         KILL_ENEMY_HERO("1"),
-        KEEP_FLAG_6_ROUNDS("2"),
+        KEEP_FLAG_8_ROUNDS("2"),
         COLLECT_HALF_FLAGS("3"),
         UNKNOWN("-1");
 
@@ -97,6 +99,7 @@ public class BattleMenu extends Menu {
     private CustomGameMode customGameMode;
     private StoryLevel storyLevel;
     private InGameBattleMenu inGameBattleMenu;
+    private Account account;
 
     BattleMenu(Controller controller) {
         super(controller);
@@ -105,15 +108,23 @@ public class BattleMenu extends Menu {
         init();
     }
 
-    public void init(){
+    public void init() {
         playMode = PlayMode.UNKNOWN;
         singleMode = SingleMode.UNKNOWN;
         customGameMode = CustomGameMode.UNKNOWN;
         storyLevel = StoryLevel.UNKNOWN;
+        inGameBattleMenu.setGameOn(true);
+        account = null;
     }
 
     @Override
     public Menu runCommandAndGetNextMenu(String command) {
+
+        if (command.equals("exit")) {
+            getController().deleteGame();
+            init();
+            return getParentMenu();
+        }
 
         switch (playMode) {
             case SINGLE_PLAYER:
@@ -121,6 +132,7 @@ public class BattleMenu extends Menu {
                     case STORY:
                         if (storyLevel == StoryLevel.UNKNOWN) {
                             handleStoryMode(command);
+                            showMessage("\nyou've enter in game menu\n");
                             return inGameBattleMenu;
                         }
                         break;
@@ -128,6 +140,7 @@ public class BattleMenu extends Menu {
                         if (customGameMode == CustomGameMode.UNKNOWN) {
                             try {
                                 handleGameMode(command);
+                                showMessage("\nyou've enter in game menu\n");
                                 return inGameBattleMenu;
                             } catch (Exception e) {
                                 throw new GameException("invalid command");
@@ -140,6 +153,17 @@ public class BattleMenu extends Menu {
                 }
                 break;
             case MULTI_PLAYER:
+                if (account == null) {
+                    handleAccount(command);
+                } else {
+                    try {
+                        handleMulti(command);
+                        showMessage("\nyou've enter in game menu\n");
+                        return inGameBattleMenu;
+                    } catch (Exception e) {
+                        throw new GameException("invalid command");
+                    }
+                }
                 break;
             case UNKNOWN:
                 handlePlayMode(command);
@@ -167,6 +191,42 @@ public class BattleMenu extends Menu {
         }
     }
 
+    private void handleMulti(String command) {
+        String[] strings = command.replace("start game ", "").split(" ");
+        if (CustomGameMode.getMode(strings[0]) == null) {
+            throw new GameException("Invalid command");
+        } else {
+            this.customGameMode = CustomGameMode.getMode(strings[0]);
+            int flagNumber = 0;
+            assert customGameMode != null;
+            switch (customGameMode) {
+                case KEEP_FLAG_8_ROUNDS:
+                    flagNumber = 1;
+                    break;
+                case COLLECT_HALF_FLAGS:
+                    flagNumber = Integer.valueOf(strings[1]);
+                    break;
+            }
+            getController().createGame(customGameMode, account, flagNumber);
+        }
+
+    }
+
+    private void handleAccount(String command) {
+        if (command.matches("select user \\S+")) {
+            String[] strings = command.split(" ");
+            String name = strings[strings.length - 1];
+            if (Utils.hasAccount(name)) {
+                account = Utils.getAccountByUsername(name);
+                showHelp();
+            } else {
+                throw new GameException("there is no such account");
+            }
+        } else {
+            throw new GameException("invalid command");
+        }
+    }
+
     private void handleStoryMode(String command) {
         if (StoryLevel.getMode(command) == null) {
             throw new GameException("Invalid command");
@@ -179,7 +239,7 @@ public class BattleMenu extends Menu {
                     flagNumber = 1;
                     break;
                 case THREE:
-                    flagNumber = 5;
+                    flagNumber = 7;
                     break;
             }
             try {
@@ -201,7 +261,7 @@ public class BattleMenu extends Menu {
                 int flagNumber = 0;
                 assert customGameMode != null;
                 switch (customGameMode) {
-                    case KEEP_FLAG_6_ROUNDS:
+                    case KEEP_FLAG_8_ROUNDS:
                         flagNumber = 1;
                         break;
                     case COLLECT_HALF_FLAGS:
@@ -224,7 +284,7 @@ public class BattleMenu extends Menu {
                         showMessage(storyString());
                         break;
                     case CUSTOM_GAME:
-                        showMessage("start game [ AI_deck1 | AI_deck2 | AI_deck3 ] [mode] [flag numbers]");
+                        showMessage(customGameString());
                         break;
                     case UNKNOWN:
                         showMessage("choose one\n1. story\n2. custom game");
@@ -232,6 +292,27 @@ public class BattleMenu extends Menu {
                 }
                 break;
             case MULTI_PLAYER:
+                if (account == null) {
+                    try {
+                        getController().showAccounts();
+                    } catch (GameException e) {
+                        showMessage(e.getMessage());
+                        init();
+                        showHelp();
+                    }
+                } else {
+                    try {
+                        getController().validateMainDeck(account);
+                        showMessage("\t1. kill-enemy-hero\n" +
+                                "\t2. keep-flags-8-rounds\n" +
+                                "\t3. collect-half-flags\n" +
+                                "tip: start game [mode] [flag numbers]\n");
+                    } catch (GameException e) {
+                        showMessage(e.getMessage());
+                        init();
+                        showHelp();
+                    }
+                }
                 break;
             case UNKNOWN:
                 showMessage("choose one\n1. single player\n2. multi player");
@@ -240,8 +321,29 @@ public class BattleMenu extends Menu {
     }
 
     private String storyString() {
-        return "choose one\n1.  Hero: white-beast   mode: kill-enemy-hero  reward: 500\n" +
-                "2.  Hero: zahhak   mode: keep-flags-6-rounds  reward: 1000\n" +
+        return "choose one\n1.  Hero: white-beast   mode: kill-enemy-hero  reward: " +
+                "500\n" +
+                "2.  Hero: zahhak   mode: keep-flags-8-rounds  reward: 1000\n" +
                 "3.  Hero: arash   mode: collect-half-flags  reward: 1500\n";
+    }
+
+    private String customGameString() {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 1; i <= 3; i++) {
+            try {
+                builder.append("AI_deck").append(i).append("\n")
+                        .append(getController().createDeck(i).getInfo("\t"))
+                        .append("\n");
+            } catch (CloneNotSupportedException ignored) {
+            }
+        }
+        return "decks:\n" +
+                builder.toString() +
+                "modes:\n" +
+                "\t1. kill-enemy-hero\n" +
+                "\t2. keep-flags-8-rounds\n" +
+                "\t3. collect-half-flags\n" +
+                "reward: 1000\n" +
+                "tip: start game [deck name] [mode] [flag numbers]\n";
     }
 }

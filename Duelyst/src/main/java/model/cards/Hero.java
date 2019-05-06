@@ -46,7 +46,7 @@ public class Hero extends Card {
         setSpecialPower(specialPower);
         setAttackType(attackType);
         setRange(range);
-        inGame = new InGame(healthPoint, attackPower, coolDown);
+        inGame = new InGame(healthPoint, attackPower, 0);
         makeInfo();
     }
 
@@ -183,7 +183,7 @@ public class Hero extends Card {
     }
 
     public void attack(Hero hero) {
-        hero.decreaseHealthPointInGame(attackPower);
+        hero.decreaseHealthPointInGame(getAttackPowerInGame());
     }
 
     @Override

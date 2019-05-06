@@ -5,6 +5,8 @@ import controller.GameException;
 import controller.menu.Menu;
 import model.cards.Card;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -14,10 +16,11 @@ public class CardMenu extends Menu {
         MOVE_TO(0),
         ATTACK(1),
         ATTACK_COMBO(2),
-        SPECIAL_POWER(3),
-        SHOW_MENU(4),
-        HELP(5),
-        EXIT(6);
+        INSERT(3),
+        SPECIAL_POWER(4),
+        SHOW_MENU(5),
+        HELP(6),
+        EXIT(7);
 
         int commandIndex;
 
@@ -35,16 +38,19 @@ public class CardMenu extends Menu {
         }
 
     }
+
     private String[] matchers = {
-            "^move to \\(\\d+,\\d+\\)",
+            "^move to \\(\\d+,\\d+\\)$",
             "^attack \\S+$",
             "^attack combo \\S+ (\\S+)+$",
-            "^use special power \\(\\d+,\\d+\\)",
+            "^insert \\(\\d+,\\d+\\)$",
+            "^use special power \\(\\d+,\\d+\\)$",
             "^show menu$",
             "^help$",
             "^exit$"
     };
     private CardType type;
+
     public CardMenu(Controller controller) {
         super(controller);
     }
@@ -52,23 +58,24 @@ public class CardMenu extends Menu {
     @Override
     public Menu runCommandAndGetNextMenu(String command) {
         match(command);
-        int x, y;
         String opponentId;
         String[] allyCardIds;
-        switch (type){
+        switch (type) {
             case MOVE_TO:
-                x = extractXForMove(command);
-                y = extractYForMove(command);
-                getController().moveSelectedCardTo(x, y);
+                List<Integer> pos = getPosition(command);
+                getController().moveSelectedCardTo(pos.get(0), pos.get(1));
                 break;
             case ATTACK:
                 opponentId = extractLastWord(command);
                 getController().attackSelectedCardOn(opponentId);
                 break;
+            case INSERT:
+                pos = getPosition(command);
+                getController().insertCardInXY(pos.get(0), pos.get(1));
+                break;
             case SPECIAL_POWER:
-                x = extractXForMove(command);
-                y = extractYForMove(command);
-                getController().useSpecialPowerOfSelectedCardOn(x, y);
+                pos = getPosition(command);
+                getController().useSpecialPowerOfSelectedCardOn(pos.get(0), pos.get(1));
                 break;
             case ATTACK_COMBO:
                 opponentId = extractOpponentIdForCombo(command);
@@ -79,9 +86,11 @@ public class CardMenu extends Menu {
                 showMessage(menuHelp());
                 break;
             case HELP:
-                showMessage(getHelpOfPossibleCommands());
+                getController().getCardHelp();
                 break;
             case EXIT:
+                getController().deselectCard();
+                showMessage("\nyou've entered game menu\n");
                 return getParentMenu();
         }
         return this;
@@ -103,36 +112,21 @@ public class CardMenu extends Menu {
         return strings[strings.length - 1];
     }
 
-    private int extractXForMove(String command){
-        String[] strings = command.split(" ");
-        String string = strings[strings.length - 1];
-        Pattern pattern = Pattern.compile("\\d+(?=,)");
-        Matcher matcher = pattern.matcher(string);
-        if(matcher.find()){
-            return Integer.parseInt(matcher.group(0));
-        }else{
-            return -1;
+    private List<Integer> getPosition(String command) {
+        List<Integer> positions = new ArrayList<>();
+        Matcher matcher = Pattern.compile("\\d+").matcher(command);
+        while (matcher.find()) {
+            positions.add(Integer.valueOf(matcher.group()) - 1);
         }
+        return positions;
     }
 
-    private int extractYForMove(String command){
-        String[] strings = command.split(" ");
-        String string = strings[strings.length - 1];
-        Pattern pattern = Pattern.compile("(?<=,)\\d+");
-        Matcher matcher = pattern.matcher(string);
-        if(matcher.find()){
-            return Integer.parseInt(matcher.group(0));
-        }else{
-            return -1;
-        }
-    }
-
-    private String[] extractMyCardIdsForCombo(String command){
-        String str = command.replaceFirst("attack combo \\S+ ","");
+    private String[] extractMyCardIdsForCombo(String command) {
+        String str = command.replaceFirst("attack combo \\S+ ", "");
         return str.split(" ");
     }
 
-    private String extractOpponentIdForCombo(String command){
+    private String extractOpponentIdForCombo(String command) {
         String[] strings = command.split(" ");
         return strings[2];
     }
@@ -144,23 +138,11 @@ public class CardMenu extends Menu {
                 "1- move to (x,y)\n" +
                 "2- attack [opponent card id]\n" +
                 "3- Attack combo [opponent card id] [my card id] [my card id] [...]\n" +
-                "4- use special power (x,y)\n" +
-                "5- show menu\n" +
-                "6- help\n" +
-                "7- exit\n";
+                "4- insert (x,y)\n" +
+                "5- use special power (x,y)\n" +
+                "6- show menu\n" +
+                "7- help\n" +
+                "8- exit\n";
     }
-    public String getHelpOfPossibleCommands(){
-        int count = 1;
-        StringBuilder help = new StringBuilder();
-        help.append("Movable Cards:\n");
-        for(Card card:getController().getMovableCards()){
-            help.append(count + card.getId()+"\n");
-        }
-        count = 1;
-        help.append("Attacking Cards:\n");
-        for(Card card:getController().getAttackingCards()){
-            help.append(count + card.getId()+"\n");
-        }
-        return help.toString();
-    }
+
 }

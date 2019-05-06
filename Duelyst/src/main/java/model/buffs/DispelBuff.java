@@ -11,13 +11,14 @@ import java.util.List;
 
 public class DispelBuff extends Buff {
 
-    public DispelBuff(int duration, boolean continuous, TargetType target, SideType side, RangeType range) {
+    public DispelBuff(int duration, boolean continuous, TargetType target,
+                      SideType side, RangeType range) {
         super(duration, continuous, target, side, range);
     }
 
     @Override
     public void applyBuff(Hero hero) {
-        if (hero.isImmuneToAllSpells()){
+        if (hero.isImmuneToAllSpells()) {
             return;
         }
         if (getRemainingTime() > 0) {
@@ -25,7 +26,9 @@ public class DispelBuff extends Buff {
             for (Buff buff : buffs) {
                 if ((hero.getInGame().isEnemy() && buff.getSide() == SideType.ALLY)
                         || (!hero.getInGame().isEnemy() && buff.getSide() == SideType.ENEMY)) {
-                    buff.inactivate(hero);
+                    if (buff.isCancelable()) {
+                        buff.inactivate(hero);
+                    }
                     if (!buff.isContinuous()) {
                         hero.getInGame().removeBuff(buff);
                     }

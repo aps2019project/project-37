@@ -21,7 +21,7 @@ public class Cell {
 
     }
 
-    public void addCard(Card card) {
+    public CollectableItem addCard(Card card) {
         heroMinion = (Hero) card;
         heroMinion.setPosition(x, y);
         if (hasFlag) {
@@ -32,6 +32,9 @@ public class Cell {
             CellBuff cellBuff = (CellBuff) buff;
             applyBuff(cellBuff);
         }
+        CollectableItem item = collectableItem;
+        collectableItem = null;
+        return item;
     }
 
     public Hero getCard() {
@@ -133,18 +136,6 @@ public class Cell {
 
     public void setCollectableItem(CollectableItem collectableItem) {
         this.collectableItem = collectableItem;
-    }
-
-    public void removeCollectableItem() {
-        collectableItem = null;
-    }
-
-    public boolean hasCollectableItem() {
-        if (collectableItem != null) {
-            return true;
-        } else {
-            return false;
-        }
     }
 
     public boolean isHasFlag() {

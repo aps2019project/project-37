@@ -430,9 +430,7 @@ public class Utils {
         minion = new Minion("big-giant", 600, 9, 30, 8, AttackType.HYBRID, 2, null, null);
         cards.add(minion);
 
-        //todo spell
-//        buff = new;
-//        spell = new;
+
         minion = new Minion("double-headed-giant", 550, 4, 10, 4, AttackType.MELEE, 0,
                 null, null);
         cards.add(minion);
@@ -458,7 +456,7 @@ public class Utils {
         buff = new AttackBuff(1, false, TargetType.HERO, SideType.ENEMY, RangeType.ONE,
                 6);
         spell = new Spell("sp", 0, 0, "attacks enemy hero 6 points", buff);
-        minion = new Minion("siavaCombosh", 350, 4, 8, 5, AttackType.MELEE, 0, spell,
+        minion = new Minion("siavash", 350, 4, 8, 5, AttackType.MELEE, 0, spell,
                 ActivationTime.ON_DEATH);
         cards.add(minion);
 

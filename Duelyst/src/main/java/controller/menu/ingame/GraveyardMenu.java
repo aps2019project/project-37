@@ -32,37 +32,34 @@ public class GraveyardMenu extends Menu {
     }
 
     private String[] matchers = {
-            "^game info (\\w+_){2}\\d+$",
+            "^show info \\S+$",
             "^show cards$",
             "^show menu$",
             "^exit$"
     };
 
     private GraveyardType type;
-    private GraveYard graveYard;
 
     public GraveyardMenu(Controller controller) {
         super(controller);
     }
 
-    public void setGraveYard(GraveYard graveYard) {
-        this.graveYard = graveYard;
-    }
 
     @Override
     public Menu runCommandAndGetNextMenu(String command) {
         match(command);
         switch (type){
             case SHOW_CARD_INFO:
-                showCardInfoInGraveYard(extractLastWord(command));
+                getController().showCardInfoInGraveYard(extractLastWord(command));
                 break;
             case SHOW_CARDS:
-                showAllCardsInGraveYard();
+                getController().showAllCardsInGraveYard();
                 break;
             case SHOW_MENU:
                 showMessage(menuHelp());
                 break;
             case EXIT:
+                showMessage("\nyou've entered game menu\n");
                 return getParentMenu();
         }
         return this;
@@ -87,15 +84,6 @@ public class GraveyardMenu extends Menu {
             }
         }
         throw new GameException("invalid command");
-    }
-
-    private void showCardInfoInGraveYard(String cardId){
-        //search among all cards in graveYard and get it
-        //show its info
-    }
-
-    private void showAllCardsInGraveYard(){
-
     }
 
     private String extractLastWord(String command) {
