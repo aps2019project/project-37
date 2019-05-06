@@ -1,6 +1,9 @@
-package model;
+package model.buffs;
 
-import javafx.geometry.Side;
+import model.Hero;
+import model.RangeType;
+import model.SideType;
+import model.TargetType;
 
 public abstract class Buff implements Cloneable{
     private int duration;
@@ -11,14 +14,14 @@ public abstract class Buff implements Cloneable{
     private SideType side;
     private RangeType range;
 
-    Buff(int duration, boolean continuous){
+    public Buff(int duration, boolean continuous){
         setDuration(duration);
         initRemainingTime();
         setContinuous(continuous);
     }
 
     @Override
-    protected Buff clone() throws CloneNotSupportedException {
+    public Buff clone() throws CloneNotSupportedException {
         return (Buff) super.clone();
     }
 

@@ -1,6 +1,6 @@
 package model;
 
-import model.game.Cell;
+import model.buffs.Buff;
 
 import java.util.ArrayList;
 

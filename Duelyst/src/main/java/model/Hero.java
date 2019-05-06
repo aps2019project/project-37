@@ -1,5 +1,7 @@
 package model;
 
+import model.buffs.Buff;
+
 import java.util.ArrayList;
 
 public class Hero extends Card {

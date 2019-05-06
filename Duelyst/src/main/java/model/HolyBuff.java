@@ -1,5 +1,7 @@
 package model;
 
+import model.buffs.Buff;
+
 public class HolyBuff extends Buff {
     private int holyNumber;
     HolyBuff(int duration ,boolean continuous,int holyNumber){

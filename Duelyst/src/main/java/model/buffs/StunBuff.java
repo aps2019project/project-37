@@ -1,4 +1,6 @@
-package model;
+package model.buffs;
+
+import model.Hero;
 
 public class StunBuff extends Buff {
     StunBuff(int duration , boolean continuous){

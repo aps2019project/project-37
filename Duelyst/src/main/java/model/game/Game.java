@@ -3,6 +3,7 @@ package model.game;
 import controller.Constants;
 import controller.GameException;
 import model.*;
+import model.buffs.Buff;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -85,7 +86,7 @@ public class Game {
     }
     public ArrayList<Cell> getTargetCellsByRange(Buff buff, Cell pointedCell){
         ArrayList<Cell> cells = new ArrayList<>();
-        if(buff.getRange().equals(RangeType.ALLBOARD)){
+        if(buff.getRange().equals(RangeType.ALL_BOARD)){
             cells = getTargetCellsAllBoard();
         }
         else if (buff.getRange().equals(RangeType.AROUND8)){

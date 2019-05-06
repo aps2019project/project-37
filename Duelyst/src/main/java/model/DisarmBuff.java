@@ -1,5 +1,7 @@
 package model;
 
+import model.buffs.Buff;
+
 public class DisarmBuff extends Buff {
     DisarmBuff(int duration, boolean continuous){
         super(duration, continuous);

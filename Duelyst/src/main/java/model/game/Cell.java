@@ -1,6 +1,6 @@
 package model.game;
 
-import model.Buff;
+import model.buffs.Buff;
 import model.Card;
 import model.CollectableItem;
 

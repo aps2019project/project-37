@@ -1,7 +1,7 @@
 package model;
 
 public enum RangeType {
-    ALLBOARD,
+    ALL_BOARD,
     SQUARE1,
     SQUARE2,
     SQUARE3,
