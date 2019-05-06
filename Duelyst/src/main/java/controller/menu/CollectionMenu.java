@@ -51,12 +51,12 @@ public class CollectionMenu extends Menu {
         String[] commandRegexes = new String[NUMBER_OF_COMMANDS];
         commandRegexes[0] = "^exit$";
         commandRegexes[1] = "^show$";
-        commandRegexes[2] = "^search \\w+$";
+        commandRegexes[2] = "^search (\\w+-*)+$";
         commandRegexes[3] = "^save$";
         commandRegexes[4] = "^create deck \\w+$";
         commandRegexes[5] = "^delete deck \\w+$";
         commandRegexes[6] = "^add \\w+ to \\w+$";
-        commandRegexes[7] = "^remove \\w+ from \\w+$";
+        commandRegexes[7] = "^remove (\\w+-*)+ from \\w+$";
         commandRegexes[8] = "^validate deck \\w+$";
         commandRegexes[9] = "^select deck \\w+$";
         commandRegexes[10] = "^show all decks$";

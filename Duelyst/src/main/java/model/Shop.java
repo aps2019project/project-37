@@ -23,7 +23,7 @@ public class Shop {
         return cards;
     }
 
-    public void setCards(ArrayList<Card> cards) {
+    public void setCards(List<Card> cards) {
         this.cards = cards;
     }
 
@@ -41,7 +41,9 @@ public class Shop {
     }
 
     public void add(Item item) {
-        items.add(item);
+        if (item != null) {
+            items.add(item);
+        }
     }
 
     public void remove(Card card) {
@@ -65,7 +67,7 @@ public class Shop {
     public ArrayList<Hero> getHeroes() {
         ArrayList<Hero> heroes = new ArrayList<>();
         for (Card card : getCards()) {
-            if (card instanceof Hero) {
+            if (card.getClass() == Hero.class) {
                 heroes.add((Hero) card);
             }
         }
@@ -75,7 +77,7 @@ public class Shop {
     public Object getObjectByName(String name) {
         List<Object> cardsAndItems = new ArrayList<>();
         cardsAndItems.addAll(cards);
-        cardsAndItems.addAll(items);
+        cardsAndItems.addAll(getUsableItems());
         return cardsAndItems.stream().filter(o -> {
             if (o instanceof Item) {
                 return ((Item) o).nameEquals(name);
@@ -136,7 +138,7 @@ public class Shop {
         return getInfo("");
     }
 
-    public String getInfo(String tab){
+    public String getInfo(String tab) {
         StringBuilder info = new StringBuilder();
 
         info.append(tab).append("Heroes :\n");
@@ -186,8 +188,10 @@ public class Shop {
         StringBuilder info = new StringBuilder();
         if (!getCards().isEmpty()) {
             for (int i = 0; i < getCards().size(); i++) {
-                info.append("\t").append(i + 1).append(" : ")
-                        .append(getCards().get(i).getInfoWithPrice()).append("\n");
+                if (getCards().get(i).getClass() != Hero.class) {
+                    info.append("\t").append(i + 1).append(" : ")
+                            .append(getCards().get(i).getInfoWithPrice()).append("\n");
+                }
             }
         }
         return info.toString();

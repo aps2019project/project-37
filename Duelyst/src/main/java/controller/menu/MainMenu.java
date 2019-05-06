@@ -72,7 +72,10 @@ public class MainMenu extends Menu {
                 showMessage("\nYou've entered ShopMenu\n");
                 return shopMenu;
             case BATTLE:
+                getController().validateMainDeck();
                 showMessage("\nYou've entered BattleMenu\n");
+                battleMenu.init();
+                battleMenu.showHelp();
                 return battleMenu;
             case LOGOUT:
                 getController().logout();

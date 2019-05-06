@@ -2,16 +2,18 @@ package model.game;
 
 import controller.Constants;
 import controller.GameException;
+import controller.menu.BattleMenu;
+import model.Account;
+import model.Deck;
 import model.buffs.Buff;
-import model.buffs.RangeType;
-import model.buffs.SideType;
-import model.buffs.TargetType;
-import model.cards.AttackType;
-import model.cards.Hero;
-import model.cards.Minion;
-import model.cards.Spell;
+import model.buffs.traget.RangeType;
+import model.buffs.traget.SideType;
+import model.buffs.traget.TargetType;
+import model.cards.*;
+import model.items.Item;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class Game {
@@ -19,11 +21,38 @@ public class Game {
     private Player player2;
     private Player currentPlayer;
     private Cell selectedCell;
-    private ArrayList<ArrayList<Cell>> board = new ArrayList<>();
+    private List<List<Cell>> board = new ArrayList<>();
+    private BattleMenu.CustomGameMode mode = BattleMenu.CustomGameMode.UNKNOWN;
+    private int flagNumber;
 
-    public Game(Player player1, Player player2) {
+
+    public static Game createGame(Account account1, Account account2, BattleMenu.CustomGameMode mode, Deck deck,
+                                  int flagNumber) {
+        Player player1 = new Player(account1.getUserName(), account1.getCloneDeck(), false);
+        Player player2;
+        if (account2 == null) {
+            player2 = new Player("AI", deck, true);
+        } else {
+            player2 = new Player(account2.getUserName(), account2.getMainDeck(), false);
+        }
+        return new Game(player1, player2, flagNumber).setMode(mode);
+    }
+
+    public Game(Player player1, Player player2, int flagNumber) {
         this.player1 = player1;
         this.player2 = player2;
+        this.flagNumber = flagNumber;
+        initGameBoard();
+
+    }
+
+    private void initGameBoard() {
+        for (int i = 0; i < 5; i++) {
+            board.add(new ArrayList<>());
+            for (int j = 0; j < 9; j++) {
+                board.get(i).add(new Cell(i, j));
+            }
+        }
     }
 
     public Player getPlayer1() {
@@ -38,7 +67,7 @@ public class Game {
         return currentPlayer;
     }
 
-    public ArrayList<ArrayList<Cell>> getBoard() {
+    public List<List<Cell>> getBoard() {
         return board;
     }
 
@@ -54,14 +83,44 @@ public class Game {
         this.currentPlayer = currentPlayer;
     }
 
-    public void setBoard(ArrayList<ArrayList<Cell>> board) {
+    public void setBoard(List<List<Cell>> board) {
         this.board = board;
     }
 
-    public void setSelectedCellByCardId(String cardId) {
+    public Game setMode(BattleMenu.CustomGameMode mode) {
+        this.mode = mode;
+        return this;
+    }
+
+    public BattleMenu.CustomGameMode getMode() {
+        return mode;
+    }
+
+    public String getInfo() {
+        switch (mode) {
+
+            case KILL_ENEMY_HERO:
+                return player1.getAccountName() + "'hero HP: " +"";
+            case KEEP_FLAG_6_ROUNDS:
+                break;
+            case COLLECT_HALF_FLAGS:
+                break;
+            case UNKNOWN:
+                break;
+        }
+        return "";
+    }
+
+
+    public int getDistance(Cell firstCell, Cell secondCell) {
+        return Math.abs(firstCell.getX() - secondCell.getX()) +
+                Math.abs(firstCell.getY() - secondCell.getY());
+    }
+
+ /*   public void setSelectedCellByCardId(String cardId) {
         selectedCell =
                 Optional.ofNullable(getCellByCardId(cardId))
-                        .filter(cell -> cell.getCard().getAccount().equals(currentPlayer.getAccount()))
+                        .filter(cell -> cell.getCard().getAccountName().equals(currentPlayer.getAccountName()))
                         .orElseThrow(() -> new GameException("This card is not yours!"));
     }
 
@@ -115,11 +174,12 @@ public class Game {
         }
     }
 
-    public void applyBuffOnCells(Buff buff, ArrayList<Cell> cells){
-        for(Cell cell:cells){
+    public void applyBuffOnCells(Buff buff, ArrayList<Cell> cells) {
+        for (Cell cell : cells) {
             cell.setBuff(buff);
         }
     }
+
     public ArrayList<Cell> getTargetCellsByRange(RangeType range, Cell pointedCell) {
         ArrayList<Cell> cells = new ArrayList<>();
         if (range.equals(RangeType.ALL_BOARD)) {
@@ -147,25 +207,23 @@ public class Game {
     }
 
     public ArrayList<Cell> filterAndGetCellsByTargetType(ArrayList<Cell> cells, TargetType target) {
-    ArrayList filteredCells = new ArrayList(cells);
-    for(Cell cell:cells){
-        if(cell.getClass().equals(Hero.class) && target.equals(TargetType.HERO)){
-            filteredCells.add(cell);
+        ArrayList filteredCells = new ArrayList(cells);
+        for (Cell cell : cells) {
+            if (cell.getClass().equals(Hero.class) && target.equals(TargetType.HERO)) {
+                filteredCells.add(cell);
+            } else if (cell.getClass().equals(Minion.class) && target.equals(TargetType.MINION)) {
+                filteredCells.add(cell);
+            } else if (cell.getCard() instanceof Hero && target.equals(TargetType.HERO_MINION)) {
+                filteredCells.add(cell);
+            }
         }
-        else if(cell.getClass().equals(Minion.class) && target.equals(TargetType.MINION)){
-            filteredCells.add(cell);
-        }
-        else if(cell.getCard() instanceof Hero && target.equals(TargetType.HERO_MINION)){
-            filteredCells.add(cell);
-        }
-    }
-    return filteredCells;
+        return filteredCells;
     }
 
     private ArrayList<Cell> filterAndGetCellsHasEnemy(ArrayList<Cell> cells) {
         ArrayList<Cell> filteredCells = new ArrayList<>(cells);
         for (Cell cell : cells) {
-            if (cell.getCard().getAccount().equals(currentPlayer.getAccount())) {
+            if (cell.getCard().getAccountName().equals(currentPlayer.getAccountName())) {
                 filteredCells.remove(cell);
             }
         }
@@ -175,7 +233,7 @@ public class Game {
     private ArrayList<Cell> filterAndGetCellsHasSelf(ArrayList<Cell> cells) {
         ArrayList<Cell> filteredCells = new ArrayList<>();
         for (Cell cell : cells) {
-            if (cell.getCard().getAccount().equals(currentPlayer.getAccount())) {
+            if (cell.getCard().getAccountName().equals(currentPlayer.getAccountName())) {
                 filteredCells.add(cell);
             }
         }
@@ -311,7 +369,7 @@ public class Game {
     }
 
     public Cell getCellByCardId(String id) {
-        for (ArrayList<Cell> row : board) {
+        for (List<Cell> row : board) {
             for (Cell cell : row) {
                 if (cell.getCard().idEquals(id)) {
                     return cell;
@@ -319,10 +377,6 @@ public class Game {
             }
         }
         throw new GameException("Card with this id is not on the board!");
-    }
+    }*/
 
-    public int getDistance(Cell firstCell, Cell secondCell) {
-        return Math.abs(firstCell.getX() - secondCell.getX()) +
-                Math.abs(firstCell.getY() - secondCell.getY());
-    }
 }

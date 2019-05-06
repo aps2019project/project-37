@@ -1,15 +1,17 @@
 package model.cards;
 
 public enum AttackType {
-    MELEE ("Melee"),
-    RANGED ("Ranged"),
-    HYBRID ("Hybrid");
+    MELEE("Melee"),
+    RANGED("Ranged"),
+    HYBRID("Hybrid");
 
     String attackType;
-    AttackType(String type){
+
+    AttackType(String type) {
         this.attackType = type;
     }
-    public String toString(){
+
+    public String toString() {
         return attackType;
     }
 }

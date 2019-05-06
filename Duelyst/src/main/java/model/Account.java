@@ -1,8 +1,11 @@
 package model;
 
 import controller.GameException;
+import model.cards.Card;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class Account {
     private String userName;
@@ -11,7 +14,8 @@ public class Account {
     private Collection collection = new Collection();
     private ArrayList<Deck> decks = new ArrayList<>();
     private Deck mainDeck;
-    private long budget;
+    private long budget = 15000;
+    private List<MatchHistory> histories=new ArrayList<>();
 
 
     public void setUserName(String userName) {
@@ -60,6 +64,27 @@ public class Account {
 
     public Deck getMainDeck() {
         return mainDeck;
+    }
+
+    public Deck getCloneDeck() {
+        Deck deck = new Deck(mainDeck.getName());
+        List<Card> cards = mainDeck.getCards().stream().map(card -> {
+            try {
+                return card.clone();
+            } catch (CloneNotSupportedException e) {
+                e.printStackTrace();
+                return card;
+            }
+        }).collect(Collectors.toList());
+        deck.setCards(cards);
+        try {
+            if (mainDeck.getUsableItems().size() == 1) {
+                deck.add(mainDeck.getUsableItems().get(0).clone());
+            }
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
+        return deck;
     }
 
     public int getWins() {
@@ -142,5 +167,12 @@ public class Account {
         return this.userName.equals(Name);
     }
 
+    public List<MatchHistory> getHistories() {
+        return histories;
+    }
 
+    public void addToHistory(MatchHistory history){
+        histories.add(history);
+    }
 }
+

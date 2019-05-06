@@ -7,18 +7,20 @@ import model.cards.Hero;
 
 import java.util.List;
 
-public class DisarmBuff extends Buff {
+public class AttackBuff extends Buff {
 
-    public DisarmBuff(int duration, boolean continuous, TargetType target, SideType side,
-                      RangeType range) {
+    private int amount;
+
+    public AttackBuff(int duration, boolean continuous, TargetType target, SideType side, RangeType range, int amount) {
         super(duration, continuous, target, side, range);
+        this.amount = amount;
     }
 
     @Override
-    public void applyBuff(List<Hero> heroes) {
+    void applyBuff(List<Hero> heroes) {
         if (getDuration() == -1 || getRemainingTime() > 0) {
             for (Hero hero : heroes) {
-                hero.setArmed(false);
+                hero.decreaseHealthPointInGame(amount);
             }
             if (getDuration() == -1) {
                 setDuration(0);
@@ -32,9 +34,6 @@ public class DisarmBuff extends Buff {
         setRemainingTime(0);
         if (isContinuous()) {
             setDuration(-1);
-        }
-        for (Hero hero : heroes) {
-            hero.setArmed(true);
         }
     }
 }

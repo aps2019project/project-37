@@ -1,12 +1,11 @@
 package model.cards;
 
-import model.Account;
 
 abstract public class Card implements Cloneable {
     private String id;
     private String name;
     private long price;
-    private Account account;
+    private String accountName;
 
     Card(String name, long price) {
         setName(name);
@@ -35,8 +34,8 @@ abstract public class Card implements Cloneable {
         this.price = price;
     }
 
-    public void setAccount(Account account) {
-        this.account = account;
+    public void setAccountName(String accountName) {
+        this.accountName = accountName;
     }
 
     public String getId() {
@@ -51,8 +50,8 @@ abstract public class Card implements Cloneable {
         return price;
     }
 
-    public Account getAccount() {
-        return account;
+    public String getAccountName() {
+        return accountName;
     }
 
     public boolean idEquals(String id) {

@@ -46,10 +46,10 @@ public class ShopMenu extends Menu {
         String[] commandRegexes = new String[NUMBER_OF_COMMANDS];
         commandRegexes[0] = "^exit$";
         commandRegexes[1] = "^show collection$";
-        commandRegexes[2] = "^search \\w+$";
-        commandRegexes[3] = "^search collection \\w+$";
-        commandRegexes[4] = "^buy \\w+$";
-        commandRegexes[5] = "^sell \\w+$";
+        commandRegexes[2] = "^search (\\w+-*)+$";
+        commandRegexes[3] = "^search collection (\\w+-*)+$";
+        commandRegexes[4] = "^buy (\\w+-*)+$";
+        commandRegexes[5] = "^sell (\\w+_){2}\\d+$";
         commandRegexes[6] = "^show$";
         commandRegexes[7] = "^help$";
         for (int i = 0; i < NUMBER_OF_COMMANDS; i++) {

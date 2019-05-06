@@ -5,20 +5,26 @@ import model.buffs.traget.SideType;
 import model.buffs.traget.TargetType;
 import model.cards.Hero;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-public class DisarmBuff extends Buff {
+public class HistoryBuff extends Buff {
 
-    public DisarmBuff(int duration, boolean continuous, TargetType target, SideType side,
-                      RangeType range) {
-        super(duration, continuous, target, side, range);
+    private List<Integer> damages;
+
+    public HistoryBuff(boolean continuous, TargetType target, SideType side, RangeType range,
+                       Integer... damages) {
+        super(0, continuous, target, side, range);
+        this.damages = new ArrayList<>(Arrays.asList(damages));
+        setDuration(this.damages.size());
     }
 
     @Override
-    public void applyBuff(List<Hero> heroes) {
+    void applyBuff(List<Hero> heroes) {
         if (getDuration() == -1 || getRemainingTime() > 0) {
             for (Hero hero : heroes) {
-                hero.setArmed(false);
+                hero.addHealthPointInGame(-damages.get(getRemainingTime() - 1));
             }
             if (getDuration() == -1) {
                 setDuration(0);
@@ -32,9 +38,6 @@ public class DisarmBuff extends Buff {
         setRemainingTime(0);
         if (isContinuous()) {
             setDuration(-1);
-        }
-        for (Hero hero : heroes) {
-            hero.setArmed(true);
         }
     }
 }

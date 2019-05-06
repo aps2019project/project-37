@@ -11,7 +11,7 @@ import java.util.ArrayList;
 public class Deck extends Collection {
     private String name;
 
-    Deck(String name) {
+    public Deck(String name) {
         super();
         setName(name);
     }
@@ -74,10 +74,7 @@ public class Deck extends Collection {
     }
 
     public boolean isValid() {
-        if (getHeroes().size() == 1 && getCards().size() == 20) {
-            return true;
-        }
-        return false;
+        return getHeroes().size() == 1 && getCards().size() == 21 && getUsableItems().size() <= 1;
     }
 
     public boolean nameEquals(String name) {
@@ -87,7 +84,7 @@ public class Deck extends Collection {
     @Override
     public void add(Card card) {
         if (!hasCardById(card.getId())) {
-            if (getCards().size() < Constants.MAXIMUM_NUMBER_OF_CARDS_IN_DECK) {
+            if (getCards().size() - getHeroes().size() < Constants.MAXIMUM_NUMBER_OF_CARDS_IN_DECK) {
                 if (card.getClass().equals(Hero.class) && hasOneHero()) {
                     throw new GameException("Deck has one Hero!");
                 } else {

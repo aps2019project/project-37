@@ -1,5 +1,6 @@
 package controller;
 
+import controller.menu.BattleMenu;
 import controller.menu.MenuManager;
 import controller.menu.Menu;
 import model.*;
@@ -10,7 +11,9 @@ import model.items.Item;
 import model.items.UsableItem;
 import view.View;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Controller {
     private View view;
@@ -21,12 +24,9 @@ public class Controller {
     public Controller() {
         view = new View();
         menuManager = new MenuManager(this);
-        while (true) {
+        do {
             runCommand(view.getInputAsString());
-            if (menuManager.getCurrentMenu() == null) {
-                break;
-            }
-        }
+        } while (menuManager.getCurrentMenu() != null);
     }
 
     public void setCurrentAccount(Account currentAccount) {
@@ -70,6 +70,20 @@ public class Controller {
         } else {
             throw new GameException("Entered password is not correct!");
         }
+
+//            todo remove test initializer
+        account.getCollection().add(copyWithNewId(Utils.getShop().getHeroes().get(0)));
+        List<Card> cards = Utils.getShop().getCards().stream().filter(card -> card.getClass() != Hero.class)
+                .collect(Collectors.toList());
+        for (int i = 0; i < 20; i++) {
+            account.getCollection().add(copyWithNewId(cards.get(i)));
+        }
+        createDeck("amin");
+        for (Card card : account.getCollection().getCards()) {
+            addToDeck(card.getId(), "amin");
+        }
+        setMainDeck("amin");
+//
     }
 
     public void showLeaderBoard() {
@@ -105,7 +119,7 @@ public class Controller {
         Object object = Utils.getShop().getObjectByName(name);
         showMessage("This item/card is available in shop and it's id is:\n");
         if (object instanceof Card) {
-            if (object instanceof Hero) {
+            if (object.getClass() == Hero.class) {
                 showMessage(Utils.getShop().getHeroId(((Hero) object).getName()));
             }
             showMessage(Utils.getShop().getCardId(((Card) object).getName()));
@@ -190,9 +204,94 @@ public class Controller {
         }
     }
 
+    public void validateMainDeck() {
+        if (getMainDeck() == null) {
+            throw new GameException("no deck is selected");
+        }
+        if (!getMainDeck().isValid()) {
+            throw new GameException("selected deck is not valid");
+        }
+    }
+
     public void setMainDeck(String name) {
         currentAccount.setMainDeck(currentAccount.getDeck(name));
         showMessage("Deck" + name + "selected successfully");
+    }
+
+    private Deck getMainDeck() {
+        return currentAccount.getMainDeck();
+    }
+
+    public void createGame(BattleMenu.StoryLevel storyLevel, int flagNumber) throws CloneNotSupportedException {
+
+        BattleMenu.CustomGameMode mode = BattleMenu.CustomGameMode.getMode(storyLevel.value);
+        Deck deck = createDeck(Integer.valueOf(storyLevel.value));
+        game = Game.createGame(currentAccount, null, mode, deck, flagNumber);
+    }
+
+    public void createGame(int deckNumber, BattleMenu.CustomGameMode mode, int flagNumber) throws CloneNotSupportedException {
+        Deck deck = createDeck(deckNumber);
+        game = Game.createGame(currentAccount, null, mode, deck, flagNumber);
+    }
+
+    private Deck createDeck(int deckNumber) throws CloneNotSupportedException {
+
+        List<Card> cards = new ArrayList<>();
+        Item item = null;
+
+        switch (deckNumber) {
+            case 1:
+                addCard(cards, "white-beast", "persian-archer", "transoxianain-spear-man",
+                        "transoxianain-trench-raider", "transoxianain-trench-raider", "black-beast", "one-eyed-giant"
+                        , "poisonous-snake", "gigantic-snake", "White-wolf", "high-witch", "nane-sarma", "siavash",
+                        "beast-arjang", "total-disarm", "lightning-bolt", "all-disarm", "all-poison", "dispel",
+                        "sacrifice", "kings-guard");
+                item = getItem("wisdom-throne");
+                break;
+            case 2:
+                addCard(cards, "zahhak", "persian-swordsman", "persian-spear-man", "persian-hero",
+                        "transoxianain-sling-man", "transoxianain-prince", "giant-rock-thrower", "giant-rock-thrower",
+                        "fire-dragon", "panther", "ghost", "giv", "iraj", "giant-king", "aria-dispel", "empower",
+                        "god-strength", "poison-lake", "madness", "health-with-benefit", "kings-guard");
+                item = getItem("soul-eater");
+                break;
+            case 3:
+                addCard(cards, "arash", "persian-commander", "transoxianain-archer", "transoxianain-spy",
+                        "giant-rock-thrower", "cavalry-beast", "cavalry-beast", "fierce-lion", "wolf", "witch", "wild" +
+                                "-pig",
+                        "piran", "bahman", "big-giant", "hellfire", "all-disarm", "dispel", "power-up", "all-power",
+                        "all-attack", "weakening");
+                item = getItem("terror-hood");
+                break;
+        }
+
+        Deck deck = new Deck("AI_deck" + deckNumber);
+        for (Card card : cards) {
+            deck.add(card);
+        }
+        deck.add(item);
+        return deck;
+    }
+
+    private void addCard(List<Card> cards, String... names) throws CloneNotSupportedException {
+        for (String name : names) {
+            Card card = ((Card) Utils.getShop().getObjectByName(name)).clone();
+            String id = generateId(cards, card);
+            card.setId(id);
+            cards.add(card);
+        }
+    }
+
+    private Item getItem(String name) throws CloneNotSupportedException {
+        Item item = ((Item) Utils.getShop().getObjectByName(name)).clone();
+        item.setId("AI_Player_" + name + "_1");
+        return item;
+    }
+
+    private String generateId(List<Card> cards, Card card) {
+        int index = 1;
+        index += cards.stream().filter(card1 -> card.nameEquals(card1.getName())).count();
+        return "AI_Player_" + card.getName() + "_" + index;
     }
 
     public void showAllDecksInfo() {
@@ -224,7 +323,7 @@ public class Controller {
         try {
             Card copiedCard = card.clone();
             copiedCard.setId(id);
-            copiedCard.setAccount(currentAccount);
+            copiedCard.setAccountName(currentAccount.getUserName());
             return copiedCard;
         } catch (CloneNotSupportedException c) {
         }
@@ -236,7 +335,7 @@ public class Controller {
         try {
             UsableItem copiedItem = usableItem.clone();
             copiedItem.setId(id);
-            copiedItem.setAccount(currentAccount);
+            copiedItem.setAccountName(currentAccount.getUserName());
             return copiedItem;
         } catch (CloneNotSupportedException c) {
         }
