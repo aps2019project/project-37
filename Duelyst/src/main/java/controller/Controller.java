@@ -294,6 +294,34 @@ public class Controller {
         return "AI_Player_" + card.getName() + "_" + index;
     }
 
+    public void showGameInfo(){ }
+
+    public void showAllyMinions(){ }
+
+    public void showEnemyMinions(){ }
+
+    public void showCardInfo(String id){}
+
+    public void selectCard(String id){}
+
+    public void showHand(){}
+
+    public void insertCardInXY(String id, int x, int y){ }
+
+    public void endTurn(){ }
+
+    public void showCollectibles(){}
+
+    public void selectCollectible(String id){}
+
+    public void showNextCard(){}
+
+    public List<Card> getMovableCards(){ return null; }
+
+    public List<Card> getAttackingCards(){ return null; }
+
+    public List<Card> getInsertableCards(){ return null; }
+
     public void showAllDecksInfo() {
         showMessage(currentAccount.showAllDecks());
     }
