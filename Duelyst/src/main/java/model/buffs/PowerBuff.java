@@ -1,7 +1,6 @@
 package model.buffs;
 
-import model.EffectType;
-import model.Hero;
+import model.cards.Hero;
 
 public class PowerBuff extends Buff {
     private EffectType type;

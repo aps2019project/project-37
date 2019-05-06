@@ -1,4 +1,6 @@
-package model;
+package model.items;
+
+import model.Account;
 
 public class UsableItem extends Item {
     private long price;

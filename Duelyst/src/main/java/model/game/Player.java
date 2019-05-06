@@ -3,9 +3,11 @@ package model.game;
 import controller.Constants;
 import controller.GameException;
 import model.*;
+import model.cards.Card;
+import model.cards.Hero;
+import model.items.CollectableItem;
 
 import java.util.ArrayList;
-import java.util.Random;
 
 public class Player {
     private Account account;

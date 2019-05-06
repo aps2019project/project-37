@@ -2,8 +2,10 @@ package model;
 
 import controller.Constants;
 import controller.GameException;
+import model.cards.Card;
+import model.cards.Hero;
+import model.items.UsableItem;
 
-import java.awt.*;
 import java.util.ArrayList;
 
 public class Deck extends Collection {

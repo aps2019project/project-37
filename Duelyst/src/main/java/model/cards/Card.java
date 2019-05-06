@@ -1,4 +1,6 @@
-package model;
+package model.cards;
+
+import model.Account;
 
 abstract public class Card implements Cloneable {
     private String id;

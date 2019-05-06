@@ -1,9 +1,6 @@
 package model.buffs;
 
-import model.Hero;
-import model.RangeType;
-import model.SideType;
-import model.TargetType;
+import model.cards.Hero;
 
 public abstract class Buff implements Cloneable{
     private int duration;

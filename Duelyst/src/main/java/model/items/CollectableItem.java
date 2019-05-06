@@ -1,4 +1,4 @@
-package model;
+package model.items;
 
 public class CollectableItem extends Item{
     CollectableItem(String name, String desc){

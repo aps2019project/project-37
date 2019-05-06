@@ -3,7 +3,11 @@ package controller;
 import controller.menu.MenuManager;
 import controller.menu.Menu;
 import model.*;
+import model.cards.Card;
+import model.cards.Hero;
 import model.game.Game;
+import model.items.Item;
+import model.items.UsableItem;
 import view.View;
 
 import java.util.List;

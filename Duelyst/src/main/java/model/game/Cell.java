@@ -1,8 +1,8 @@
 package model.game;
 
 import model.buffs.Buff;
-import model.Card;
-import model.CollectableItem;
+import model.cards.Card;
+import model.items.CollectableItem;
 
 public class Cell {
     private Player player;

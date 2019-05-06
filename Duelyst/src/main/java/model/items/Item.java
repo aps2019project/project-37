@@ -1,4 +1,4 @@
-package model;
+package model.items;
 
 public class Item implements Cloneable{
     private String id;

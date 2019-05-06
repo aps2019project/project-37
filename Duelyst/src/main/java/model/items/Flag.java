@@ -1,4 +1,4 @@
-package model;
+package model.items;
 
 public class Flag extends Item {
     Flag(String name, String desc){

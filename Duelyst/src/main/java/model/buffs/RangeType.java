@@ -1,4 +1,4 @@
-package model;
+package model.buffs;
 
 public enum RangeType {
     ALL_BOARD,

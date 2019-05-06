@@ -1,6 +1,10 @@
 package model;
 
 import controller.GameException;
+import model.cards.Card;
+import model.cards.Hero;
+import model.items.Item;
+import model.items.UsableItem;
 
 import java.util.ArrayList;
 import java.util.List;

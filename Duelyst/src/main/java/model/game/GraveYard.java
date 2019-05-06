@@ -1,7 +1,7 @@
 package model.game;
 
 import controller.GameException;
-import model.Card;
+import model.cards.Card;
 
 import java.util.ArrayList;
 

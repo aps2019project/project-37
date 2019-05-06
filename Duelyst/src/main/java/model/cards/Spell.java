@@ -1,20 +1,18 @@
-package model;
+package model.cards;
 
 import model.buffs.Buff;
 
 import java.util.ArrayList;
 
 public class Spell extends Card{
-    private Target target;
     private ArrayList<Buff> effects = new ArrayList<>();
     private int mana;
     private String desc;
     private String info;
 
-    public Spell(String name, long price, Target target,
-          ArrayList<Buff> effects, int mana, String desc){
+    public Spell(String name, long price, ArrayList<Buff> effects,
+                 int mana, String desc){
         super(name, price);
-        setTarget(target);
         setEffects(effects);
         setMana(mana);
         setDesc(desc);
@@ -30,9 +28,6 @@ public class Spell extends Card{
         }
         return spell;
     }
-    public void setTarget(Target target) {
-        this.target = target;
-    }
     public void setEffects(ArrayList<Buff> effects) {
         this.effects = effects;
     }
@@ -41,9 +36,6 @@ public class Spell extends Card{
     }
     public void setDesc(String desc){
         this.desc = desc;
-    }
-    public Target getTarget() {
-        return target;
     }
     public ArrayList<Buff> getEffects() {
         return effects;

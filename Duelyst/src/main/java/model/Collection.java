@@ -1,10 +1,12 @@
 package model;
 
 import controller.GameException;
+import model.cards.Card;
+import model.items.Item;
+import model.items.UsableItem;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class Collection extends Shop {
 

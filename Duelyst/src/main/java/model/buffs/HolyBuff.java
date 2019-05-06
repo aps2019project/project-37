@@ -1,6 +1,6 @@
-package model;
+package model.buffs;
 
-import model.buffs.Buff;
+import model.cards.Hero;
 
 public class HolyBuff extends Buff {
     private int holyNumber;
