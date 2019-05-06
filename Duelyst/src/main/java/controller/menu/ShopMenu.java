@@ -49,7 +49,7 @@ public class ShopMenu extends Menu {
         commandRegexes[2] = "^search (\\w+-*)+$";
         commandRegexes[3] = "^search collection (\\w+-*)+$";
         commandRegexes[4] = "^buy (\\w+-*)+$";
-        commandRegexes[5] = "^sell (\\w+_){2}\\d+$";
+        commandRegexes[5] = "^sell \\S+$";
         commandRegexes[6] = "^show$";
         commandRegexes[7] = "^help$";
         for (int i = 0; i < NUMBER_OF_COMMANDS; i++) {

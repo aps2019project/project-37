@@ -204,6 +204,7 @@ public class Controller {
         } else if (object instanceof UsableItem) {
             deck.add((UsableItem) object);
         }
+        showMessage("card/item added");
     }
 
     public void removeFromDeck(String id, String name) {
@@ -214,6 +215,7 @@ public class Controller {
         } else if (object instanceof UsableItem) {
             deck.remove((UsableItem) object);
         }
+        showMessage("card/item removed");
     }
 
     public void validateDeck(String name) {
