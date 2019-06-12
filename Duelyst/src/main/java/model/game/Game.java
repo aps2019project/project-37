@@ -102,9 +102,11 @@ public class Game {
         if (item != null) {
             addItemBuff(item);
         }
+        currentPlayer = player2;
         if (item1 != null) {
             addItemBuff(item1);
         }
+        currentPlayer = player1;
         nextRound();
     }
 
@@ -359,11 +361,11 @@ public class Game {
                 break;
             case KEEP_FLAG_8_ROUNDS:
                 info = "flag position: " + Arrays.toString(getFlagPosition()) + "\n";
-                String name =
+                Card card =
                         board.get(getFlagPosition()[0] - 1).get(getFlagPosition()[1] - 1)
-                                .getCard().getAccountName();
-                if (name != null) {
-                    if (player1.getAccountName().equals(name)) {
+                                .getCard();
+                if (card != null) {
+                    if (player1.hasCard(card)) {
                         info1 += "\t has flag";
                     } else {
                         info2 += "\t has flag";
@@ -437,7 +439,8 @@ public class Game {
                 throw new GameException("card is not in board");
             }
             int distance = getDistance(hero.getX(), hero.getY(), x, y);
-            if (x >= 0 && y >= 0 && distance <= 2 && checkRoad(hero.getX(), hero.getY(),
+            if (checkOutOfBounds(x, y) && distance <= 2 && checkRoad(hero.getX(),
+                    hero.getY(),
                     x, y)) {
                 if (hero.getInGame().isMoved()) {
                     throw new GameException("card has moved before");
@@ -1071,15 +1074,24 @@ public class Game {
         switch (buff.getSide()) {
             case ALLY:
                 if (currentPlayer.hasCard(heroMinion) && checkTarget(buff, heroMinion)) {
-                    heroMinion.getInGame().addBuff(buff);
-                    buff.applyBuff(heroMinion);
+                    try {
+                        Buff buff1 = buff.clone();
+                        heroMinion.getInGame().addBuff(buff1);
+                        buff1.applyBuff(heroMinion);
+                    } catch (CloneNotSupportedException e) {
+                        e.printStackTrace();
+                    }
                     return true;
 
                 }
                 break;
             case ENEMY:
                 if (getOpponent().hasCard(heroMinion) && checkTarget(buff, heroMinion)) {
-                    heroMinion.getInGame().addBuff(buff);
+                    try {
+                        heroMinion.getInGame().addBuff(buff.clone());
+                    } catch (CloneNotSupportedException e) {
+                        e.printStackTrace();
+                    }
                     return true;
 
                 }
@@ -1087,7 +1099,11 @@ public class Game {
 
             case ALL:
                 if (checkTarget(buff, heroMinion)) {
-                    heroMinion.getInGame().addBuff(buff);
+                    try {
+                        heroMinion.getInGame().addBuff(buff.clone());
+                    } catch (CloneNotSupportedException e) {
+                        e.printStackTrace();
+                    }
                     return true;
 
                 }
@@ -1193,7 +1209,7 @@ public class Game {
     }
 
     private boolean checkOutOfBounds(int x, int y) {
-        return x >= 0 && y >= 0 && x <= 8 && y <= 4;
+        return x >= 0 && y >= 0 && x <= 4 && y <= 8;
     }
 
     private Card getCard(String id) {

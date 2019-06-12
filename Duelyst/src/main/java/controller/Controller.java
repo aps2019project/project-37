@@ -91,17 +91,28 @@ public class Controller {
         }
 
 //            todo remove test initializer
-        account.getCollection().add(copyWithNewId(Utils.getShop().getHeroes().get(0)));
+        /*account.getCollection().add(copyWithNewId(Utils.getShop().getHeroes().get(0)));
         List<Card> cards =
-                Utils.getShop().getCards().stream().filter(card -> card.getClass() != Hero.class)
+                Utils.getShop().getCards().stream().filter(card -> card.getClass() !=
+                Hero.class)
                         .collect(Collectors.toList());
         Collections.shuffle(cards);
         for (int i = 0; i < 20; i++) {
             account.getCollection().add(copyWithNewId(cards.get(i)));
+        }*/
+        account.getCollection().add(copyWithNewId(Utils.getShop().getHeroes().get(0)));
+        account.getCollection().add(copyWithNewId((UsableItem) Utils.getShop().getObjectByName("king-wisdom")));
+        for (int i = 0; i < 10; i++) {
+            account.getCollection().add(copyWithNewId((Card) Utils.getShop().getObjectByName("persian-commander")));
+            account.getCollection().add(copyWithNewId((Card) Utils.getShop().getObjectByName("all-power")));
         }
+
         createDeck("amin");
         for (Card card : account.getCollection().getCards()) {
             addToDeck(card.getId(), "amin");
+        }
+        for (Item usableItem : account.getCollection().getUsableItems()) {
+            addToDeck(usableItem.getId(), "amin");
         }
         setMainDeck("amin");
 //

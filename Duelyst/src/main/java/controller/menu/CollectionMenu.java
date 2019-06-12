@@ -171,7 +171,7 @@ public class CollectionMenu extends Menu {
 
     private String[] extractAddRemoveProperties(String command) {
         String[] strings = command.split(" ");
-        return new String[]{strings[1], strings[3]};
+        return new String[]{strings[1], strings[4]};
     }
 
     private void printListOfCommands() {
