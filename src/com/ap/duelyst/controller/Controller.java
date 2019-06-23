@@ -8,6 +8,7 @@ import com.ap.duelyst.model.Deck;
 import com.ap.duelyst.model.Utils;
 import com.ap.duelyst.model.cards.Card;
 import com.ap.duelyst.model.cards.Hero;
+import com.ap.duelyst.model.cards.Minion;
 import com.ap.duelyst.model.game.Game;
 import com.ap.duelyst.model.items.CollectableItem;
 import com.ap.duelyst.model.items.Item;
@@ -15,6 +16,7 @@ import com.ap.duelyst.model.items.UsableItem;
 import com.ap.duelyst.view.View;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,9 +31,16 @@ public class Controller {
     public Controller() {
         view = new View();
         menuManager = new MenuManager(this);
+    }
+
+    public void start(){
         do {
             runCommand(view.getInputAsString());
         } while (menuManager.getCurrentMenu() != null);
+    }
+
+    public Game getGame() {
+        return game;
     }
 
     public void setCurrentAccount(Account currentAccount) {
@@ -60,6 +69,10 @@ public class Controller {
             Utils.add(account);
             showMessage("Account Created");
         }
+    }
+
+    public Account getCurrentAccount() {
+        return currentAccount;
     }
 
     public void showAccounts() {
@@ -91,21 +104,20 @@ public class Controller {
         }
 
 //            todo remove test initializer
-        /*account.getCollection().add(copyWithNewId(Utils.getShop().getHeroes().get(0)));
+        account.getCollection().add(copyWithNewId(Utils.getShop().getHeroes().get(0)));
         List<Card> cards =
-                Utils.getShop().getCards().stream().filter(card -> card.getClass() !=
-                Hero.class)
+                Utils.getShop().getCards().stream().filter(card -> card instanceof Minion)
                         .collect(Collectors.toList());
         Collections.shuffle(cards);
         for (int i = 0; i < 20; i++) {
             account.getCollection().add(copyWithNewId(cards.get(i)));
-        }*/
-        account.getCollection().add(copyWithNewId(Utils.getShop().getHeroes().get(0)));
+        }
+        /*account.getCollection().add(copyWithNewId(Utils.getShop().getHeroes().get(0)));
         account.getCollection().add(copyWithNewId((UsableItem) Utils.getShop().getObjectByName("king-wisdom")));
         for (int i = 0; i < 10; i++) {
             account.getCollection().add(copyWithNewId((Card) Utils.getShop().getObjectByName("persian-commander")));
             account.getCollection().add(copyWithNewId((Card) Utils.getShop().getObjectByName("all-power")));
-        }
+        }*/
 
         createDeck("amin");
         for (Card card : account.getCollection().getCards()) {

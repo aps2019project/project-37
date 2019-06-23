@@ -9,6 +9,12 @@ import com.ap.duelyst.model.cards.*;
 import com.ap.duelyst.model.items.CollectableItem;
 import com.ap.duelyst.model.items.Item;
 import com.ap.duelyst.model.items.UsableItem;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -196,6 +202,7 @@ public class Utils {
 //        minions
         Minion minion = new Minion("persian-archer", 300, 2, 6, 4, AttackType.RANGED, 7
                 , null, null);
+        minion.setFileName("f5_ragnoramk2");
         cards.add(minion);
 
 
@@ -203,16 +210,19 @@ public class Utils {
         spell = new Spell("SP", 0, 0, "stuns enemy on attack for two rounds", buff);
         minion = new Minion("persian-swordsman", 400, 2, 6, 4, AttackType.MELEE, 0,
                 spell, ActivationTime.ON_ATTACK);
+        minion.setFileName("f6_altgeneraltier2");
         cards.add(minion);
 
 
         minion = new Minion("persian-spear-man", 500, 1, 5, 3, AttackType.HYBRID, 3,
                 null, null);
+        minion.setFileName("boss_chaosknight");
         cards.add(minion);
 
 
         minion = new Minion("persian-cavalry", 200, 4, 10, 6, AttackType.MELEE, 0, null
                 , null);
+        minion.setFileName("f5_altgeneraltier2");
         cards.add(minion);
 
 
@@ -220,26 +230,31 @@ public class Utils {
                 "minion");
         minion = new Minion("persian-hero", 600, 9, 24, 6, AttackType.MELEE, 0, spell,
                 ActivationTime.ON_ATTACK);
+        minion.setFileName("f4_maehvmk2");
         cards.add(minion);
 
 
         minion = new Minion("persian-commander", 800, 7, 12, 4, AttackType.MELEE, 0,
                 null, ActivationTime.COMBO);
+        minion.setFileName("f1_bromemk2");
         cards.add(minion);
 
 
         minion = new Minion("transoxianain-archer", 500, 1, 3, 4, AttackType.RANGED, 5,
                 null, null);
+        minion.setFileName("neutral_ironclad");
         cards.add(minion);
 
 
         minion = new Minion("transoxianain-sling-man", 600, 1, 4, 2, AttackType.RANGED,
                 7, null, null);
+        minion.setFileName("f2_shidaimk2");
         cards.add(minion);
 
 
         minion = new Minion("transoxianain-spear-man", 600, 1, 4, 4, AttackType.HYBRID,
                 3, null, null);
+        minion.setFileName("f5_tier2general");
         cards.add(minion);
 
 
@@ -250,26 +265,31 @@ public class Utils {
                 "rounds", buff, buff1);
         minion = new Minion("transoxianain-spy", 700, 4, 6, 6, AttackType.MELEE, 0,
                 spell, ActivationTime.ON_ATTACK);
+        minion.setFileName("f2_tier2general");
         cards.add(minion);
 
 
         minion = new Minion("transoxianain-trench-raider", 450, 2, 3, 10,
                 AttackType.MELEE, 0, null, null);
+        minion.setFileName("f3_altgeneraltier2");
         cards.add(minion);
 
 
         minion = new Minion("transoxianain-prince", 800, 6, 6, 10, AttackType.MELEE, 0,
                 null, ActivationTime.COMBO);
+        minion.setFileName("f4_3rdgeneral");
         cards.add(minion);
 
 
         minion = new Minion("black-beast", 300, 9, 14, 10, AttackType.HYBRID, 7, null,
                 null);
+        minion.setFileName("boss_antiswarm");
         cards.add(minion);
 
 
         minion = new Minion("giant-rock-thrower", 300, 9, 12, 12, AttackType.RANGED, 7,
                 null, null);
+        minion.setFileName("f2_altgeneraltier2");
         cards.add(minion);
 
 
@@ -282,6 +302,7 @@ public class Utils {
 
         minion = new Minion("cavalry-beast", 300, 6, 16, 8, AttackType.MELEE, 0, null,
                 null);
+        minion.setFileName("f3_tier2general");
         cards.add(minion);
 
 
@@ -291,6 +312,7 @@ public class Utils {
                 "points", buff);
         minion = new Minion("one-eyed-giant", 500, 7, 12, 11, AttackType.HYBRID, 3,
                 spell, ActivationTime.ON_DEATH);
+        minion.setFileName("neutral_bloodletter");
         cards.add(minion);
 
 
@@ -298,17 +320,20 @@ public class Utils {
         spell = new Spell("sp", 0, 0, "poisons enemy for 3 rounds", buff);
         minion = new Minion("poisonous-snake", 300, 4, 5, 6, AttackType.RANGED, 4,
                 spell, ActivationTime.ON_ATTACK);
+        minion.setFileName("neutral_moltengolem");
         cards.add(minion);
 
 
         minion = new Minion("fire-dragon", 250, 5, 9, 5, AttackType.RANGED, 4, null,
                 null);
+        minion.setFileName("f4_tier2general");
         cards.add(minion);
 
 
         minion = new Minion("fierce-lion", 600, 2, 1, 8, AttackType.MELEE, 0, null,
                 ActivationTime.ON_ATTACK);
         minion.setDisableEnemyHolyBuff(true);
+        minion.setFileName("f6_buildlegendary");
         cards.add(minion);
 
 
@@ -318,6 +343,7 @@ public class Utils {
                 "more point", buff);
         minion = new Minion("gigantic-snake", 500, 8, 14, 7, AttackType.RANGED, 5,
                 spell, ActivationTime.ON_SPAWN);
+        minion.setFileName("f3_ciphyronmk2");
         cards.add(minion);
 
 
@@ -327,6 +353,7 @@ public class Utils {
                 "next rounds", buff);
         minion = new Minion("White-wolf", 400, 5, 8, 2, AttackType.MELEE, 0, spell,
                 ActivationTime.ON_ATTACK);
+        minion.setFileName("f6_frostiva");
         cards.add(minion);
 
 
@@ -336,6 +363,7 @@ public class Utils {
                 "round", buff);
         minion = new Minion("panther", 400, 4, 6, 2, AttackType.MELEE, 0, spell,
                 ActivationTime.ON_ATTACK);
+        minion.setFileName("boss_invader");
         cards.add(minion);
 
 
@@ -345,6 +373,7 @@ public class Utils {
                 "round", buff);
         minion = new Minion("wolf", 400, 3, 6, 1, AttackType.MELEE, 0, spell,
                 ActivationTime.ON_ATTACK);
+        minion.setFileName("f1_altgeneraltier2");
         cards.add(minion);
 
 
@@ -360,6 +389,7 @@ public class Utils {
                         "for 1 round", buff, buff1);
         minion = new Minion("witch", 550, 4, 5, 4, AttackType.RANGED, 3, spell,
                 ActivationTime.PASSIVE);
+        minion.setFileName("f6_ilenamk2");
         cards.add(minion);
 
 
@@ -374,6 +404,7 @@ public class Utils {
                         "continues", buff, buff1);
         minion = new Minion("high-witch", 550, 6, 6, 6, AttackType.RANGED, 5, spell,
                 ActivationTime.PASSIVE);
+        minion.setFileName("f5_rancour");
         cards.add(minion);
 
 
@@ -383,6 +414,7 @@ public class Utils {
         spell = new Spell("sp", 0, 0, "increases all ally minions ap by 1 point", buff);
         minion = new Minion("ghost", 500, 5, 10, 4, AttackType.RANGED, 4, spell,
                 ActivationTime.PASSIVE);
+        minion.setFileName("boss_treatdrake");
         cards.add(minion);
 
 
@@ -390,18 +422,21 @@ public class Utils {
         minion = new Minion("wild-pig", 500, 6, 10, 14, AttackType.MELEE, 0, spell,
                 ActivationTime.ON_DEFEND);
         minion.setCanBeDisarmed(false);
+        minion.setFileName("boss_spelleater");
         cards.add(minion);
 
         spell = new Spell("sp", 0, 0, "this minion cant be poisoned");
         minion = new Minion("piran", 400, 8, 20, 12, AttackType.MELEE, 0, spell,
                 ActivationTime.ON_DEFEND);
         minion.setCanBePoisoned(false);
+        minion.setFileName("f1_3rdgeneral");
         cards.add(minion);
 
         spell = new Spell("sp", 0, 0, "this minion is immune to all spells");
         minion = new Minion("giv", 450, 4, 5, 7, AttackType.RANGED, 5, spell,
                 ActivationTime.ON_DEFEND);
         minion.setImmuneToAllSpells(true);
+        minion.setFileName("f1_tier2general");
         cards.add(minion);
 
 
@@ -412,6 +447,7 @@ public class Utils {
                 "points");
         minion = new Minion("bahman", 300, 2, 6, 4, AttackType.RANGED, 7, spell,
                 ActivationTime.ON_SPAWN);
+        minion.setFileName("boss_borealjuggernaut");
         cards.add(minion);
 
         spell = new Spell("sp", 0, 0, "this minion cant be attacked by minions with " +
@@ -419,19 +455,23 @@ public class Utils {
         minion = new Minion("ashkboos", 400, 7, 14, 8, AttackType.MELEE, 0, spell,
                 ActivationTime.ON_DEFEND);
         minion.setCanBeAttackedBySmallerMinions(false);
+        minion.setFileName("f5_grandmasterkraigon");
         cards.add(minion);
 
 
         minion = new Minion("iraj", 500, 4, 6, 20, AttackType.RANGED, 3, null, null);
+        minion.setFileName("boss_wraith");
         cards.add(minion);
 
 
         minion = new Minion("big-giant", 600, 9, 30, 8, AttackType.HYBRID, 2, null, null);
+        minion.setFileName("boss_cindera");
         cards.add(minion);
 
 
         minion = new Minion("double-headed-giant", 550, 4, 10, 4, AttackType.MELEE, 0,
                 null, null);
+        minion.setFileName("f5_3rdgeneral");
         cards.add(minion);
 
 
@@ -441,6 +481,7 @@ public class Utils {
                 "for 1 round", buff);
         minion = new Minion("nane-sarma", 300, 2, 6, 4, AttackType.RANGED, 5, spell,
                 ActivationTime.ON_SPAWN);
+        minion.setFileName("boss_gol");
         cards.add(minion);
 
 
@@ -449,6 +490,7 @@ public class Utils {
         spell = new Spell("sp", 0, 0, "it has 12 holy buff continues", buff);
         minion = new Minion("steel-shield", 650, 3, 1, 1, AttackType.MELEE, 0, spell,
                 ActivationTime.PASSIVE);
+        minion.setFileName("f5_megabrontodon");
         cards.add(minion);
 
 
@@ -457,16 +499,19 @@ public class Utils {
         spell = new Spell("sp", 0, 0, "attacks enemy hero 6 points", buff);
         minion = new Minion("siavash", 350, 4, 8, 5, AttackType.MELEE, 0, spell,
                 ActivationTime.ON_DEATH);
+        minion.setFileName("f3_grandmasternoshrak");
         cards.add(minion);
 
 
         minion = new Minion("giant-king", 600, 5, 10, 4, AttackType.MELEE, 0, null,
                 ActivationTime.COMBO);
+        minion.setFileName("boss_skyfalltyrant");
         cards.add(minion);
 
 
         minion = new Minion("beast-arjang", 600, 3, 6, 6, AttackType.MELEE, 0, null,
                 ActivationTime.COMBO);
+        minion.setFileName("f4_altgeneraltier2");
         cards.add(minion);
 
 
@@ -476,6 +521,7 @@ public class Utils {
         spell = new Spell("sp", 0, 0, "increases his ap by 4", buff);
         Hero hero = new Hero("white-beast", 8000, 50, 4, AttackType.MELEE, 0, spell, 1,
                 2);
+        hero.setFileName("f6_tier2general");
         cards.add(hero);
 
 
@@ -483,6 +529,7 @@ public class Utils {
                 RangeType.ALL_BOARD);
         spell = new Spell("sp", 0, 0, "stuns all enemy minions for 1 round", buff);
         hero = new Hero("phoenix", 9000, 50, 4, AttackType.MELEE, 0, spell, 5, 8);
+        hero.setFileName("boss_legion");
         cards.add(hero);
 
 
@@ -491,12 +538,14 @@ public class Utils {
         spell = new Spell("sp", 0, 0, "disarms 1 enemy", buff);
         hero = new Hero("seven-headed-dragon", 8000, 50, 4, AttackType.MELEE, 0, spell,
                 0, 1);
+        hero.setFileName("neutral_boulderbreach");
         cards.add(hero);
 
 
         buff = new StunBuff(1, false, TargetType.MINION, SideType.ENEMY, RangeType.ONE);
         spell = new Spell("sp", 0, 0, "stuns one enemy minion for 1 round", buff);
         hero = new Hero("rakhsh", 8000, 50, 4, AttackType.MELEE, 0, spell, 0, 1);
+        hero.setFileName("f5_ankylos");
         cards.add(hero);
 
 
@@ -505,6 +554,7 @@ public class Utils {
         spell = new Spell("sp", 0, 0, "poisons enemy for 3 round on attack", buff);
         hero = new Hero("zahhak", 10000, 50, 2, AttackType.MELEE, 0, spell, 0, 0);
         hero.setOnAttack(true);
+        hero.setFileName("f3_allomancer");
         cards.add(hero);
 
 
@@ -514,6 +564,7 @@ public class Utils {
                 RangeType.SQUARE1, buff);
         spell = new Spell("sp", 0, 0, "makes a cell holy for 3 rounds", buff1);
         hero = new Hero("kaveh", 8000, 50, 4, AttackType.MELEE, 0, spell, 1, 3);
+        hero.setFileName("f4_phantasm");
         cards.add(hero);
 
 
@@ -522,12 +573,14 @@ public class Utils {
         spell = new Spell("sp", 0, 0, "attacks all enemy minions in 1 row for 4 hp",
                 buff);
         hero = new Hero("arash", 10000, 30, 2, AttackType.RANGED, 6, spell, 2, 2);
+        hero.setFileName("neutral_astralprime");
         cards.add(hero);
 
 
         buff = new DispelBuff(1, false, TargetType.MINION, SideType.ENEMY, RangeType.ONE);
         spell = new Spell("sp", 0, 0, "dispels one enemy minion", buff);
         hero = new Hero("afsaneh", 11000, 40, 3, AttackType.RANGED, 3, spell, 1, 2);
+        hero.setFileName("f5_upgradizon");
         cards.add(hero);
 
 
@@ -536,10 +589,11 @@ public class Utils {
                 buff);
         hero = new Hero("esfandiar", 12000, 35, 3, AttackType.HYBRID, 3, spell, 0, 0);
         hero.setPassive(true);
+        hero.setFileName("neutral_pennyarcade03");
         cards.add(hero);
 
-
         hero = new Hero("rostam", 8000, 55, 7, AttackType.HYBRID, 4, null, 0, 0);
+        hero.setFileName("f6_greatwhitenorth");
         cards.add(hero);
 
 
@@ -701,7 +755,8 @@ public class Utils {
         items.add(item);
 
 
-        buff = new HolyBuff(2, false, TargetType.MINION, SideType.ALLY, RangeType.SELF, 1);
+        buff = new HolyBuff(2, false, TargetType.MINION, SideType.ALLY, RangeType.SELF,
+                1);
         buff.setAllyType(TargetType.ALL_MINIONS);
         item = new UsableItem("baptise", 20000, "every minion will get a holy buff for " +
                 "2 rounds on spawn",
@@ -755,6 +810,23 @@ public class Utils {
     public static List<int[]> getRandomCoordinates(int count) {
         Collections.shuffle(nums);
         return nums.subList(0, count);
+    }
+
+    public static String getPath(String name) {
+        try {
+            return Files.walk(Paths.get("resources"))
+                    .filter(path -> !Files.isDirectory(path))
+                    .filter(path -> name.equals(path.getFileName().toString()))
+                    .findFirst().orElseThrow(() -> new IOException("file not found"))
+                    .toUri().toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
+
+    public static URI getURI(String name) throws URISyntaxException {
+        return new URI(getPath(name));
     }
 
 }

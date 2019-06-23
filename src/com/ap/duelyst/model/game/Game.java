@@ -14,6 +14,7 @@ import com.ap.duelyst.model.buffs.traget.TargetType;
 import com.ap.duelyst.model.cards.*;
 import com.ap.duelyst.model.items.CollectableItem;
 import com.ap.duelyst.model.items.Item;
+import com.ap.duelyst.view.GameEvents;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -29,6 +30,7 @@ public class Game {
     private int flagNumber;
     private int reward;
     private GraveYard graveYard = new GraveYard();
+    private GameEvents events;
 
 
     public static Game createGame(Account account1, Account account2,
@@ -42,9 +44,7 @@ public class Game {
         } else {
             player2 = new Player(account2.getUserName(), account2.getMainDeck(), false);
         }
-        Game game = new Game(player1, player2, flagNumber, mode, reward);
-        game.startGame();
-        return game;
+        return new Game(player1, player2, flagNumber, mode, reward);
     }
 
     public Game(Player player1, Player player2, int flagNumber,
@@ -136,6 +136,8 @@ public class Game {
         if (currentPlayer.isAI()) {
             playAI();
         }
+        events.nextRound(player1.getHand(), player1.getMana(), player2.getMana(),
+                getInGameCards());
     }
 
     public String endTurn() {
@@ -1185,7 +1187,7 @@ public class Game {
         return ints;
     }
 
-    private List<int[]> getCellsInRange(int x, int y, int range) {
+    public List<int[]> getCellsInRange(int x, int y, int range) {
         List<int[]> ints = new ArrayList<int[]>() {
             @Override
             public int indexOf(Object o) {
@@ -1323,4 +1325,7 @@ public class Game {
         endTurn();
     }
 
+    public void setEvents(GameEvents events) {
+        this.events = events;
+    }
 }

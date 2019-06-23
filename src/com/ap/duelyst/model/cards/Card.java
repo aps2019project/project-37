@@ -1,7 +1,11 @@
 package com.ap.duelyst.model.cards;
 
 
-abstract public class Card implements Cloneable {
+import com.ap.duelyst.view.card.CardSprite;
+
+public abstract class Card implements Cloneable {
+    private String fileName;
+    private CardSprite cardSprite;
     private String id;
     private String name;
     private long price;
@@ -20,6 +24,18 @@ abstract public class Card implements Cloneable {
 
     public Card clone() throws CloneNotSupportedException {
         return (Card) super.clone();
+    }
+
+    public void makeCardSprite() {
+        this.cardSprite = new CardSprite(fileName);
+    }
+
+    public CardSprite getCardSprite() {
+        return cardSprite;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
     }
 
     public void setId(String id) {
@@ -75,5 +91,9 @@ abstract public class Card implements Cloneable {
     public abstract String getInfoWithoutPrice();
 
     public abstract String getInGameInfo();
+
+    public String getFileName() {
+        return fileName;
+    }
 }
 
