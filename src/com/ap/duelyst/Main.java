@@ -1,12 +1,15 @@
 package com.ap.duelyst;
 
 import com.ap.duelyst.controller.Controller;
+import com.ap.duelyst.model.Utils;
 import com.ap.duelyst.view.battle.BattleController;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.ImageCursor;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 public class Main extends Application {
@@ -29,6 +32,7 @@ public class Main extends Application {
                 }
             }
         }.start();
+        primaryStage.getScene().setCursor(new ImageCursor(new Image(Utils.getPath("mouse_auto.png"))));
         primaryStage.show();
     }
 

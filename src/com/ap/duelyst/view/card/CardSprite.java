@@ -13,30 +13,29 @@ import javafx.util.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CardSprite extends Transition {
+public class CardSprite extends Transition implements Cloneable {
     private ImageView imageView;
     private CardFrames cardFrames;
     private List<Frame> currentFrames;
-    private FrameType frameType;
     private int currentIndex;
+    private String fileName;
 
     public CardSprite(String filename) {
+        this.fileName = filename;
         cardFrames = new CardFrames(filename);
         currentFrames = cardFrames.getBreathingFrames();
-        frameType = FrameType.BREATHING;
-        currentIndex = 0;
-        Image image = new Image(Utils.getPath(filename + ".png"));
-        this.imageView = new ImageView(image);
-        Frame currentFrame = currentFrames.get(currentIndex);
-        imageView.setTranslateY(-20);
+        this.imageView = new ImageView(Utils.getPath(filename + ".png"));
+        imageView.setTranslateY(-30);
         imageView.setScaleX(1.5);
         imageView.setScaleY(1.5);
-        imageView.setViewport(new Rectangle2D(
-                currentFrame.getPosX(), currentFrame.getPosY(),
-                currentFrame.getWidth(), currentFrame.getHeight()));
-        setCycleDuration(Duration.millis(1500));
+        setCycleDuration(Duration.seconds(1));
         setInterpolator(Interpolator.LINEAR);
         setCycleCount(Animation.INDEFINITE);
+    }
+
+    @Override
+    public CardSprite clone()  {
+        return new CardSprite(fileName);
     }
 
     @Override
@@ -51,38 +50,26 @@ public class CardSprite extends Transition {
                         currentFrame.getWidth(), currentFrame.getHeight()));
                 currentIndex = index;
             }
-            if (index == currentFrames.size() - 1) {
-                if (frameType == FrameType.ATTACK) {
-                    currentFrames = cardFrames.getBreathingFrames();
-                    frameType = FrameType.BREATHING;
-                } else if (frameType == FrameType.DEATH) {
-                    imageView.setImage(null);
-                }
-            }
         }
     }
 
     public void showAttack() {
         currentFrames = cardFrames.getAttackFrames();
-        frameType = FrameType.ATTACK;
         currentIndex = -1;
     }
 
     public void showDeath() {
         currentFrames = cardFrames.getDeathFrames();
-        frameType = FrameType.DEATH;
         currentIndex = -1;
     }
 
     public void showBreathing() {
         currentFrames = cardFrames.getBreathingFrames();
-        frameType = FrameType.BREATHING;
         currentIndex = -1;
     }
 
     public void showRun() {
         currentFrames = cardFrames.getRunFrames();
-        frameType = FrameType.RUN;
         currentIndex = -1;
     }
 

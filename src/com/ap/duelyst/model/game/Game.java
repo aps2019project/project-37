@@ -15,6 +15,8 @@ import com.ap.duelyst.model.cards.*;
 import com.ap.duelyst.model.items.CollectableItem;
 import com.ap.duelyst.model.items.Item;
 import com.ap.duelyst.view.GameEvents;
+import com.ap.duelyst.view.card.CardSprite;
+import javafx.application.Platform;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -136,8 +138,7 @@ public class Game {
         if (currentPlayer.isAI()) {
             playAI();
         }
-        events.nextRound(player1.getHand(), player1.getMana(), player2.getMana(),
-                getInGameCards());
+        events.nextRound(getInBoardCards());
     }
 
     public String endTurn() {
@@ -319,7 +320,6 @@ public class Game {
                         .append("\n");
                 if (canInsert) {
                     builder.append("\tpossible targets: ");
-                    List<int[]> ints = new ArrayList<>();
                     getInBoardCards().stream().filter(hero1 -> currentPlayer.hasCard(hero1))
                             .forEach(hero1 -> {
                                 for (int[] p : getNeighbours(hero1.getX(),
@@ -463,7 +463,7 @@ public class Game {
         }
     }
 
-    public void attack(Card ally, String opponentId, boolean shouldCounter) {
+    public List<CardSprite> attack(Card ally, String opponentId, boolean shouldCounter) {
         Card opponent = getInBoardCard(opponentId);
         if (opponent == null || !getOpponent().hasCard(opponent)) {
             throw new GameException("invalid card id");
@@ -492,7 +492,7 @@ public class Game {
         if (allyHero instanceof Minion) {
             if (!opponentHero.isCanBeAttackedBySmallerMinions()) {
                 if (allyHero.getAttackPowerInGame() < opponentHero.getAttackPowerInGame()) {
-                    return;
+                    return new ArrayList<>();
                 }
             }
         }
@@ -521,8 +521,8 @@ public class Game {
                 }
             }
         }
-        checkDead(allyHero);
-        checkDead(opponentHero);
+        return Arrays.asList(checkDead(allyHero), checkDead(opponentHero));
+
 
     }
 
@@ -680,7 +680,7 @@ public class Game {
         addItemBuff(collectableItem);
     }
 
-    private void checkDead(Hero card) {
+    private CardSprite checkDead(Hero card) {
         if (card.getHealthPointInGame() <= 0) {
             if (card instanceof Minion && card.getSpecialPower() != null) {
                 for (Item item : card.getInGame().getItems()) {
@@ -694,8 +694,11 @@ public class Game {
                             card.getSpecialPower().getEffects());
                 }
             }
+            graveYard.add(card);
             board.get(card.getX()).get(card.getY()).removeCard();
+            return card.getCardSprite();
         }
+        return null;
     }
 
     private void addHeroSpecialPower(List<Buff> buffs, Hero hero, int x, int y) {
@@ -1160,7 +1163,7 @@ public class Game {
         return false;
     }
 
-    private List<int[]> getNeighbours(int x, int y) {
+    public List<int[]> getNeighbours(int x, int y) {
         List<int[]> ints = new ArrayList<int[]>() {
 
             @Override
@@ -1230,7 +1233,7 @@ public class Game {
                 .findFirst().orElseThrow(() -> new GameException("no such card in game"));
     }
 
-    private List<Card> getInGameCards() {
+    public List<Card> getInGameCards() {
         List<Card> cards = new ArrayList<>();
         cards.addAll(getInBoardCards());
         cards.addAll(player1.getHand());
@@ -1248,7 +1251,7 @@ public class Game {
                 .map(card -> (Hero) card).collect(Collectors.toList());
     }
 
-    private List<Hero> getInBoardCards() {
+    public List<Hero> getInBoardCards() {
         List<Hero> cards = new ArrayList<>();
         for (List<Cell> cells : board) {
             for (Cell cell : cells) {
@@ -1271,7 +1274,7 @@ public class Game {
         return null;
     }
 
-    private boolean checkRoad(int x1, int y1, int x2, int y2) {
+    public boolean checkRoad(int x1, int y1, int x2, int y2) {
         boolean ans = board.get(x2).get(y2).isEmpty();
         if (Math.abs(x1 - x2) == 2) {
             ans = ans && board.get((x1 + x2) / 2).get(y2).isEmpty();
@@ -1322,10 +1325,31 @@ public class Game {
 
         } catch (GameException ignored) {
         }
-        endTurn();
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                Platform.runLater(() -> endTurn());
+            }
+        }, 5000);
     }
 
     public void setEvents(GameEvents events) {
         this.events = events;
+    }
+
+    public boolean isEmpty(int x, int y) {
+        return board.get(x).get(y).getCard() == null;
+    }
+
+    public Hero getCardAt(int x, int y) {
+        return board.get(x).get(y).getCard();
+    }
+
+    public List<Player> getPlayers() {
+        return Arrays.asList(player1, player2);
+    }
+
+    public List<List<Cell>> getBoard() {
+        return board;
     }
 }
