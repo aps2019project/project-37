@@ -15,7 +15,7 @@ public class Item implements Cloneable {
     private String desc;
     private List<Buff> buffs = new ArrayList<>();
     private ActivationTime activationTime;
-    private CardSprite cardSprite;
+    private transient CardSprite cardSprite;
     private String fileName;
 
     public Item(String name, String desc, ActivationTime activationTime, Buff... buffs) {
@@ -28,6 +28,7 @@ public class Item implements Cloneable {
     @Override
     public Item clone() throws CloneNotSupportedException {
         Item item = (Item) super.clone();
+        item.cardSprite = null;
         item.buffs = item.buffs.stream().map(buff -> {
             try {
                 return buff.clone();

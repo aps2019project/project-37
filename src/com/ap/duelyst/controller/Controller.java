@@ -15,7 +15,10 @@ import com.ap.duelyst.model.items.CollectableItem;
 import com.ap.duelyst.model.items.Item;
 import com.ap.duelyst.model.items.UsableItem;
 import com.ap.duelyst.view.View;
-
+import com.google.gson.reflect.TypeToken;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -133,6 +136,7 @@ public class Controller {
             addToDeck(usableItem.getId(), "amin");
         }
         setMainDeck("amin");
+        save();
 //
     }
 
@@ -150,6 +154,48 @@ public class Controller {
     }
 
     public void save() {
+        try {
+            Files.createDirectories(Paths.get("src/com/ap/duelyst/data"));
+            FileWriter writer = new FileWriter("src/com/ap/duelyst/data/accounts.txt",
+                    false);
+            writer.write(Utils.getGson().toJson(Utils.getAccounts()));
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private Deck importDeck(String name) {
+        try {
+            Files.createDirectories(Paths.get("src/com/ap/duelyst/data"));
+            FileReader reader =
+                    new FileReader("src/com/ap/duelyst/data/" + name + ".txt");
+            int c = reader.read();
+            StringBuilder deckString = new StringBuilder();
+            while (c != -1) {
+                deckString.append((char) c);
+                c = reader.read();
+            }
+            return Utils.getGson().fromJson(deckString.toString(),
+                    new TypeToken<Deck>() {
+            }.getType());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private void exportDeck(Deck deck) {
+        try {
+            Files.createDirectories(Paths.get("src/com/ap/duelyst/data"));
+            FileWriter writer = new FileWriter(
+                    "src/com/ap/duelyst/data/" + deck.getName() + ".txt",
+                    false);
+            writer.write(Utils.getGson().toJson(deck));
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void logout() {

@@ -13,6 +13,7 @@ import com.ap.duelyst.model.game.Game;
 import com.ap.duelyst.model.game.Player;
 import com.ap.duelyst.model.items.CollectableItem;
 import com.ap.duelyst.model.items.Item;
+import com.ap.duelyst.model.items.UsableItem;
 import com.ap.duelyst.view.GameEvents;
 import com.ap.duelyst.view.card.CardSprite;
 import javafx.animation.*;
@@ -220,7 +221,7 @@ public class BattleController implements Initializable {
         });
         root.setOnMouseMoved(event -> {
             if (dialogContainer.isVisible() || notificationContainer.isVisible()
-                    || root.getChildren().size() > 4) {
+                    || root.getChildren().size() > 5) {
                 return;
             }
             boolean shouldHide = true;
@@ -433,7 +434,7 @@ public class BattleController implements Initializable {
             heroDialogCard
                     .setTranslateX(box.getLayoutX() + box.getWidth() / 2 - heroDialogCard.getWidth() / 2);
             heroDialogCard
-                    .setTranslateY(manaBox.localToScene(manaBox.getBoundsInLocal()).getMaxY());
+                    .setTranslateY(p1ManaBox.localToScene(p1ManaBox.getBoundsInLocal()).getMaxY());
         }
         FadeTransition fadeTransition = new FadeTransition(Duration.millis(300),
                 heroDialogCard);
@@ -909,6 +910,34 @@ public class BattleController implements Initializable {
                 }
             });
             this.game.startGame();
+            addUsableItem(0, p1Box);
+            addUsableItem(1, p2Box);
+        }
+    }
+
+    private void addUsableItem(int i, VBox vBox) {
+        List<Item> items = game.getPlayers().get(i).getDeck().getItems();
+        if (items != null && !items.isEmpty()) {
+            Label name = new Label(items.get(0).getName());
+            name.setTextFill(Color.WHITE);
+            name.setStyle("-fx-font-size: 18");
+            Label desc = new Label(items.get(0).getDesc());
+            desc.setTextFill(Color.WHITE);
+            CardSprite sprite = items.get(0).getCardSprite();
+            if (sprite == null) {
+                items.get(0).makeSprite();
+            }
+            sprite = items.get(0).getCardSprite().clone();
+            sprite.play();
+            ImageView imageView = sprite.getImageView();
+            imageView.setScaleX(1.4);
+            imageView.setScaleY(1.4);
+            imageView.setFitWidth(100);
+            name.setMaxWidth(180);
+            desc.setMaxWidth(180);
+            name.setWrapText(true);
+            desc.setWrapText(true);
+            vBox.getChildren().addAll(imageView, name, desc);
         }
     }
 

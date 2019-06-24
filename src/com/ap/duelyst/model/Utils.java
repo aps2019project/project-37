@@ -7,9 +7,14 @@ import com.ap.duelyst.model.buffs.traget.SideType;
 import com.ap.duelyst.model.buffs.traget.TargetType;
 import com.ap.duelyst.model.cards.*;
 import com.ap.duelyst.model.items.CollectableItem;
+import com.ap.duelyst.model.items.Flag;
 import com.ap.duelyst.model.items.Item;
 import com.ap.duelyst.model.items.UsableItem;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -100,7 +105,8 @@ public class Utils {
                 EffectType.HEALTH, 2);
         buff = new CellBuff(2, false, TargetType.CELL, SideType.ALL, RangeType.SQUARE2,
                 buff1);
-        spell = new Spell("hellfire", 450, 2, "adds fire effect to square2 for 2 rounds", buff);
+        spell = new Spell("hellfire", 450, 2, "adds fire effect to square2 for 2 " +
+                "rounds", buff);
         spell.setFileName("icon_f1_blessing");
         spell.setEffectFileName("fx_f1_bbs_kingsguard");
         cards.add(spell);
@@ -845,6 +851,57 @@ public class Utils {
 
 
         shop = new Shop(cards, items);
+    }
+
+    static {
+        try {
+            FileReader reader = new FileReader(
+                    "src/com/ap/duelyst/data/accounts.txt");
+            int c = reader.read();
+            StringBuilder accountsString = new StringBuilder();
+            while (c != -1) {
+                accountsString.append((char) c);
+                c = reader.read();
+            }
+            List<Account> accounts1 = getGson().fromJson(accountsString.toString(),
+                    new TypeToken<List<Account>>() {
+                    }.getType());
+            accounts.addAll(accounts1);
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static Gson getGson() {
+        RuntimeTypeAdapterFactory<Card> cardRuntimeTypeAdapterFactory =
+                RuntimeTypeAdapterFactory.of(Card.class)
+                        .registerSubtype(Spell.class)
+                        .registerSubtype(Hero.class)
+                        .registerSubtype(Minion.class);
+        RuntimeTypeAdapterFactory<Item> itemRuntimeTypeAdapterFactory =
+                RuntimeTypeAdapterFactory.of(Item.class)
+                        .registerSubtype(CollectableItem.class)
+                        .registerSubtype(UsableItem.class)
+                        .registerSubtype(Flag.class);
+        RuntimeTypeAdapterFactory<Buff> buffRuntimeTypeAdapterFactory =
+                RuntimeTypeAdapterFactory.of(Buff.class)
+                        .registerSubtype(AttackBuff.class)
+                        .registerSubtype(CellBuff.class)
+                        .registerSubtype(DisarmBuff.class)
+                        .registerSubtype(DispelBuff.class)
+                        .registerSubtype(HistoryBuff.class)
+                        .registerSubtype(HolyBuff.class)
+                        .registerSubtype(KingsGuardBuff.class)
+                        .registerSubtype(ManaBuff.class)
+                        .registerSubtype(PoisonBuff.class)
+                        .registerSubtype(PowerBuff.class)
+                        .registerSubtype(StunBuff.class)
+                        .registerSubtype(WeaknessBuff.class);
+        return new GsonBuilder()
+                .registerTypeAdapterFactory(cardRuntimeTypeAdapterFactory)
+                .registerTypeAdapterFactory(itemRuntimeTypeAdapterFactory)
+                .registerTypeAdapterFactory(buffRuntimeTypeAdapterFactory).create();
     }
 
     public static void add(Account account) {

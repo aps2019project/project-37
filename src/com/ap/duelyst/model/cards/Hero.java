@@ -11,7 +11,7 @@ public class Hero extends Card {
     private Spell specialPower;
     private AttackType attackType;
     private int range;
-    private String info;
+    String info;
     private InGame inGame;
     private int specialPowerMana;
     private boolean onAttack;
