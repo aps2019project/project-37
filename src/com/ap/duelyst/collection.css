@@ -1,30 +1,37 @@
-.table-view{
+.table-view {
     -fx-opacity: 0.8;
     -fx-min-height: 400;
 }
-.table-row-cell:odd{
+
+.table-row-cell:odd {
     -fx-background-color: #000526;
     -fx-min-height: 150;
 
 }
-.table-row-cell:even{
+
+.table-row-cell:even {
     -fx-background-color: darkblue;
     -fx-min-height: 150;
 }
-.table-column{
+
+.table-column {
     -fx-text-fill: white;
-    -fx-text-alignment: center center;
+    -fx-alignment: center;
+    -fx-text-alignment: center;
     -fx-font-size: 12pt;
     -fx-font-family: "Times New Roman";
 }
+
 .table-row-cell:selected {
     -fx-background-color: maroon;
 }
-#mainBox{
+
+#mainBox {
     -fx-background-size: stretch;
     -fx-background-position: center center;
     -fx-background-repeat: stretch;
 }
+
 .button {
     -fx-background-size: stretch;
     -fx-background-repeat: no-repeat;
@@ -35,4 +42,28 @@
     -fx-font-weight: bold;
     -fx-font-family: "Times New Roman";
     -fx-background-color: transparent;
+    -fx-cursor: hand;
 }
+
+.back {
+    -fx-background-size: cover;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: center;
+}
+
+.notification{
+    -fx-background-size: cover;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: center;
+    -fx-background-image: url("file:///home/amin/Desktop/projects/Duelyst/resources/ui/notification_quest_small@2x.png");
+}
+
+.button-accept {
+    -fx-background-image: url("file:///home/amin/Desktop/projects/Duelyst/resources/ui/button_confirm@2x.png");
+    -fx-padding: 16;
+}
+
+.button-accept:pressed {
+    -fx-background-image: url("file:///home/amin/Desktop/projects/Duelyst/resources/ui/button_confirm_glow@2x.png");
+}
+

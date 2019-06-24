@@ -869,7 +869,6 @@ public class Utils {
             accounts.addAll(accounts1);
             reader.close();
         } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 

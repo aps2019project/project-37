@@ -2,8 +2,15 @@ package com.ap.duelyst;
 
 import com.ap.duelyst.controller.Controller;
 import com.ap.duelyst.controller.menu.*;
+import com.ap.duelyst.controller.menu.ingame.InGameBattleMenu;
 import com.ap.duelyst.model.Utils;
+import com.ap.duelyst.view.battle.BattleController;
 import com.ap.duelyst.view.menus.*;
+import com.ap.duelyst.view.customize.CustomCardController;
+import com.ap.duelyst.view.menus.CollectionController;
+import com.ap.duelyst.view.menus.FirstMenuController;
+import com.ap.duelyst.view.menus.SecondMenuController;
+import com.ap.duelyst.view.menus.ShopController;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -15,17 +22,21 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
+@SuppressWarnings("Duplicates")
 public class Main_test extends Application {
     private FXMLLoader firstMenuLoader;
     private FXMLLoader secondMenuLoader;
     private FXMLLoader shopLoader;
     private FXMLLoader collectionLoader;
     private FXMLLoader battleMenuLoader;
+    private FXMLLoader customLoader;
+    private FXMLLoader battleLoader;
     private FirstMenuController firstMenuController;
     private SecondMenuController secondMenuController;
     private ShopController shopController;
     private CollectionController collectionController;
     private BattleMenuController battleMenuController;
+    private BattleController battleController;
     private static Menu currentMenu;
     private static MenuManager menuManager;
     private static Controller controller;
@@ -33,6 +44,9 @@ public class Main_test extends Application {
     private Scene mainMenuScene;
     private Scene shopScene;
     private Scene collectionScene;
+    private Scene customScene;
+    private Scene inGameBattleScene;
+    boolean custom = false;
     private Scene battleScene;
 
     @Override
@@ -47,24 +61,26 @@ public class Main_test extends Application {
                 new FXMLLoader(getClass().getResource("view/menus/collection.fxml"));
         battleMenuLoader =
                 new FXMLLoader(getClass().getResource("view/menus/battleMenu.fxml"));
+        battleLoader =
+                new FXMLLoader(getClass().getResource("view/battle/battle.fxml"));
 
+        customLoader = new FXMLLoader(getClass().getResource("view/customize" +
+                "/customCard.fxml"));
         loginPageScene = makeLogInPageScene();
-        mainMenuScene = makeMainMenuScene();
+        mainMenuScene = makeMainMenuScene(primaryStage);
         shopScene = makeShopScene();
         collectionScene = makeCollectionScene();
         battleScene = makeBattleMenuScene();
+        customScene = makeCustomScene(primaryStage);
+        inGameBattleScene = makeBattleScene();
 
         updateMenu(primaryStage);
         new AnimationTimer() {
             @Override
-            public void handle(long now){
-                if (menuManager.getCurrentMenu() != null) {
-                    if(!currentMenu.equals(menuManager.getCurrentMenu()) ){
-                        try {
-                            updateMenu(primaryStage);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+            public void handle(long now) {
+                if (!custom && menuManager.getCurrentMenu() != null) {
+                    if (!currentMenu.equals(menuManager.getCurrentMenu())) {
+                        updateMenu(primaryStage);
                     }
                 }
             }
@@ -72,7 +88,21 @@ public class Main_test extends Application {
         primaryStage.show();
     }
 
-    private void updateMenu(Stage stage) throws IOException {
+    private Scene makeCustomScene(Stage stage) throws IOException {
+        Parent root = customLoader.load();
+        ((CustomCardController) customLoader.getController()).setController(controller);
+        ((CustomCardController) customLoader.getController()).setEventHandler(event -> {
+            custom = false;
+            stage.setScene(mainMenuScene);
+        });
+        Scene scene = new Scene(root, 1830, 1000);
+        scene.setCursor(new ImageCursor(new Image(Utils.getPath(
+                "mouse_auto.png"))));
+        scene.getStylesheets().add("com/ap/duelyst/Bugatti.css");
+        return scene;
+    }
+
+    private void updateMenu(Stage stage) {
         currentMenu = menuManager.getCurrentMenu();
         if(currentMenu instanceof LoginPage){
             firstMenuController.setLoginPage((LoginPage) currentMenu);
@@ -98,7 +128,11 @@ public class Main_test extends Application {
             battleMenuController.setBattleMenu((BattleMenu) currentMenu);
             battleMenuController.update();
             stage.setScene(battleScene);
-            stage.setTitle("Game Of Cars: Battle Menu");
+            stage.setTitle("Game Of Cards : Battle Menu");
+        }else if(currentMenu instanceof InGameBattleMenu){
+            battleController.setGame(controller);
+            stage.setScene(inGameBattleScene);
+            stage.setTitle("Game Of Cards : Battle");
         }
         stage.getScene().setCursor(new ImageCursor(new Image(Utils.getPath("mouse_auto.png"))));
     }
@@ -108,17 +142,22 @@ public class Main_test extends Application {
         firstMenuController.setMenuManager(menuManager);
         firstMenuController.setLoginPage((LoginPage) currentMenu);
         firstMenuController.setController(controller);
-        Scene scene = new Scene(root, 800, 600);
+        Scene scene = new Scene(root, 1830, 1000);
         scene.getStylesheets().add("com/ap/duelyst/FirstMenu.css");
         return scene;
     }
-    private Scene makeMainMenuScene() throws IOException{
+    private Scene makeMainMenuScene(Stage stage) throws IOException{
         Parent root = secondMenuLoader.load();
         secondMenuController = secondMenuLoader.getController();
         secondMenuController.setMenuManager(menuManager);
         secondMenuController.setController(controller);
-        Scene scene = new Scene(root, 800, 600);
+        secondMenuController.setEvent(event -> {
+            custom = true;
+            stage.setScene(customScene);
+        });
+        Scene scene = new Scene(root, 1830, 1000);
         scene.getStylesheets().add("com/ap/duelyst/SecondMenu.css");
+        scene.setCursor(new ImageCursor(new Image(Utils.getPath("mouse_auto.png"))));
         return scene;
     }
     private Scene makeShopScene() throws IOException{
@@ -126,7 +165,7 @@ public class Main_test extends Application {
         shopController = shopLoader.getController();
         shopController.setMenuManager(menuManager);
         shopController.setController(controller);
-        Scene scene = new Scene(root, 800, 600);
+        Scene scene = new Scene(root, 1830, 1000);
         scene.getStylesheets().add("com/ap/duelyst/shop.css");
         return scene;
     }
@@ -135,17 +174,25 @@ public class Main_test extends Application {
         collectionController = collectionLoader.getController();
         collectionController.setMenuManager(menuManager);
         collectionController.setController(controller);
-        Scene scene = new Scene(root, 800, 600);
+        Scene scene = new Scene(root, 1830, 1000);
         scene.getStylesheets().add("com/ap/duelyst/collection.css");
         return scene;
     }
     private Scene makeBattleMenuScene() throws IOException{
         Parent root = battleMenuLoader.load();
-        battleMenuController = battleMenuLoader.getController();
+        battleMenuController= battleMenuLoader.getController();
         battleMenuController.setMenuManager(menuManager);
         battleMenuController.setController(controller);
-        Scene scene = new Scene(root, 800, 600);
+        Scene scene = new Scene(root, 1830, 1000);
         scene.getStylesheets().add("com/ap/duelyst/BattleMenu.css");
+        return scene;
+    }
+    private Scene makeBattleScene() throws IOException{
+        Parent root = battleLoader.load();
+        battleController= battleLoader.getController();
+        //battleController.setMenuManager(menuManager);
+        Scene scene = new Scene(root, 1830, 1000);
+        scene.getStylesheets().add("com/ap/duelyst/Bugatti.css");
         return scene;
     }
     public static void main(String[] args) {

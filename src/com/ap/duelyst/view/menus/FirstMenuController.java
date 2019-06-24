@@ -6,6 +6,7 @@ import com.ap.duelyst.controller.menu.LoginPage;
 import com.ap.duelyst.controller.menu.MenuManager;
 import com.ap.duelyst.model.Account;
 import com.ap.duelyst.model.Utils;
+import com.ap.duelyst.view.DialogController;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.Initializable;
@@ -21,6 +22,9 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 public class FirstMenuController implements Initializable {
+    public VBox dialogContainer;
+    public HBox dialog;
+    public Label dialogText;
     private Controller controller;
     private MenuManager menuManager;
     private LoginPage loginPage;
@@ -32,7 +36,7 @@ public class FirstMenuController implements Initializable {
     public Button accountButton;
     public Button saveButton;
     public Button mainMenuButton;
-    public TableView leaderBoardTable;
+    public TableView<Account> leaderBoardTable;
     public ImageView gameLogo;
     public TextField userNameText;
     public TextField passwordText;
@@ -44,13 +48,18 @@ public class FirstMenuController implements Initializable {
     private String greenButtonGlowPath;
     private String blueButtonNormalPath;
     private String blueButtonGlowPath;
+    private DialogController dialogController;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         setAllBackgrounds();
         setAllActions();
+        dialogController = new DialogController(stackPane, dialog, dialogText,
+                dialogContainer);
 
     }
-    private void setAllBackgrounds(){
+
+    private void setAllBackgrounds() {
         this.greenButtonNormalPath = Utils.getPath("button_confirm.png");
         this.greenButtonNormalPath = Utils.getPath("button_confirm.png");
         this.greenButtonGlowPath = Utils.getPath("button_confirm_glow.png");
@@ -62,76 +71,95 @@ public class FirstMenuController implements Initializable {
         stackPane.setStyle("-fx-background-image: url(' " + back + "')");
         stackPane.setId("stackPane");
 
+        setStyle(gameLogo, leaderBoardButton, blueButtonNormalPath, logOutButton,
+                exitButton, saveButton, null);
+        mainMenuButton.setStyle("-fx-background-image: url(' " + blueButtonNormalPath + "')");
+
+        accountButton.setStyle("-fx-background-image: url(' " + greenButtonNormalPath + "')");
+        logInButton.setStyle("-fx-background-image: url(' " + greenButtonNormalPath +
+                "')");
+
+        String leaderBoardBack = Utils.getPath("chapter17_preview@2x.jpg");
+        leaderBoardTable.setStyle("-fx-background-image: url(' " + leaderBoardBack +
+                "')");
+    }
+
+    static void setStyle(ImageView gameLogo, Button leaderBoardButton,
+                         String blueButtonNormalPath, Button logOutButton,
+                         Button exitButton, Button saveButton, Button shopButton) {
         String titleOfGame = Utils.getPath("game_logo.png");
         gameLogo.setImage(new Image(titleOfGame));
 
         leaderBoardButton.setStyle("-fx-background-image: url(' " + blueButtonNormalPath + "')");
-        logOutButton.setStyle("-fx-background-image: url(' " + blueButtonNormalPath + "')");
+        logOutButton.setStyle("-fx-background-image: url(' " + blueButtonNormalPath +
+                "')");
         exitButton.setStyle("-fx-background-image: url(' " + blueButtonNormalPath + "')");
         saveButton.setStyle("-fx-background-image: url(' " + blueButtonNormalPath + "')");
-        mainMenuButton.setStyle("-fx-background-image: url(' " + blueButtonNormalPath + "')");
-
-        accountButton.setStyle("-fx-background-image: url(' " + greenButtonNormalPath + "')");
-        logInButton.setStyle("-fx-background-image: url(' " + greenButtonNormalPath + "')");
-
-        String leaderBoardBack = Utils.getPath("chapter17_preview@2x.jpg");
-        leaderBoardTable.setStyle("-fx-background-image: url(' " + leaderBoardBack + "')");
+        if (shopButton != null) {
+            shopButton.setStyle("-fx-background-image: url(' " + blueButtonNormalPath + "')");
+        }
     }
-    private void setAllActions(){
+
+    private void setAllActions() {
         logInButton.setOnAction(o -> {
-            if(!userNameText.getText().isEmpty() && !passwordText.getText().isEmpty()) {
+            if (!userNameText.getText().isEmpty() && !passwordText.getText().isEmpty()) {
                 try {
                     controller.loginGUI(userNameText.getText(), passwordText.getText());
                     userNameLabel.setText("username: " + controller.getCurrentAccount().getUserName());
                 } catch (GameException e) {
                     errorLabel.setText(e.getMessage());
-                    errorBox.setVisible(true);
+//                    errorBox.setVisible(true);
+                    dialogController.showDialog(e.getMessage());
                 }
             }
         });
-        accountButton.setOnAction(o->{
-            if(!userNameText.getText().isEmpty() && !passwordText.getText().isEmpty()) {
+        accountButton.setOnAction(o -> {
+            if (!userNameText.getText().isEmpty() && !passwordText.getText().isEmpty()) {
                 try {
-                    controller.createAccountGUI(userNameText.getText(), passwordText.getText());
-                }catch (GameException e){
+                    controller.createAccountGUI(userNameText.getText(),
+                            passwordText.getText());
+                } catch (GameException e) {
                     errorLabel.setText(e.getMessage());
-                    errorBox.setVisible(true);
+//                    errorBox.setVisible(true);
+                    dialogController.showDialog(e.getMessage());
                 }
             }
-                userNameText.setText("");
-                passwordText.setText("");
+            userNameText.setText("");
+            passwordText.setText("");
         });
-        exitErrorBox.setOnAction(e-> errorBox.setVisible(false));
-        exitButton.setOnAction(e->{
+        exitErrorBox.setOnAction(e -> errorBox.setVisible(false));
+        exitButton.setOnAction(e -> {
             Runtime.getRuntime().exit(0);
         });
-        logOutButton.setOnAction(o ->{
-            try{
+        logOutButton.setOnAction(o -> {
+            try {
                 controller.logout();
                 userNameLabel.setText("");
                 userNameText.setText("");
                 passwordText.setText("");
-            }catch (GameException e){
+            } catch (GameException e) {
                 errorLabel.setText(e.getMessage());
-                errorBox.setVisible(true);
+//                errorBox.setVisible(true);
+                dialogController.showDialog(e.getMessage());
             }
         });
         leaderBoardButton.setOnAction(e -> {
             updateLeaderBoard();
             leaderBoardTable.setVisible(true);
         });
-        leaderBoardTable.setOnKeyPressed(ke ->{
+        leaderBoardTable.setOnKeyPressed(ke -> {
             KeyCode keyCode = ke.getCode();
             if (keyCode.equals(KeyCode.ESCAPE)) {
                 leaderBoardTable.setVisible(false);
             }
         });
-        mainMenuButton.setOnAction(o ->{
-            if(controller.getCurrentAccount() != null) {
+        mainMenuButton.setOnAction(o -> {
+            if (controller.getCurrentAccount() != null) {
                 menuManager.setCurrentMenu(loginPage.getMainMenu());
-            }else{
+            } else {
                 errorLabel.setText("please log in!");
-                errorBox.setVisible(true);
+//                errorBox.setVisible(true);
+                dialogController.showDialog("please log in");
             }
             userNameText.setText("");
             passwordText.setText("");
@@ -140,9 +168,12 @@ public class FirstMenuController implements Initializable {
         saveButton.setOnAction(o -> {
             try {
                 controller.save();
-            }catch (GameException e){
+                dialogController.showDialog("accounts saved successfully");
+
+            } catch (GameException e) {
                 errorLabel.setText(e.getMessage());
-                errorBox.setVisible(true);
+//                errorBox.setVisible(true);
+                dialogController.showDialog(e.getMessage());
             }
         });
 
@@ -167,8 +198,10 @@ public class FirstMenuController implements Initializable {
     public void setController(Controller controller) {
         this.controller = controller;
     }
-    public void updateLeaderBoard(){
-        ObservableList<Account> accounts = FXCollections.observableArrayList(Utils.getAccounts());
+
+    public void updateLeaderBoard() {
+        ObservableList<Account> accounts =
+                FXCollections.observableArrayList(Utils.getAccounts());
 
         TableColumn<Account, String> usernameColumn = new TableColumn<>("User Name");
         usernameColumn.setCellValueFactory(new PropertyValueFactory<>("userName"));
@@ -176,29 +209,31 @@ public class FirstMenuController implements Initializable {
         TableColumn<Account, Integer> winsColumn = new TableColumn<>("Wins");
         winsColumn.setCellValueFactory(new PropertyValueFactory<>("wins"));
 
-        leaderBoardTable.getItems().clear();
         leaderBoardTable.getColumns().clear();
         leaderBoardTable.setItems(accounts);
-        leaderBoardTable.getColumns().addAll(usernameColumn, winsColumn);
+        leaderBoardTable.getColumns().add(usernameColumn);
+        leaderBoardTable.getColumns().add(winsColumn);
     }
-    private void setBlueButtonGlowOnMouseMoving(Button button){
+
+    private void setBlueButtonGlowOnMouseMoving(Button button) {
         button.setOnMouseEntered(e -> {
-            setButtonBackground(button,blueButtonGlowPath);
+            setButtonBackground(button, blueButtonGlowPath);
         });
         button.setOnMouseExited(e -> {
-            setButtonBackground(button,blueButtonNormalPath);
+            setButtonBackground(button, blueButtonNormalPath);
         });
     }
 
-    private void setGreenButtonGlowOnMouseMoving(Button button){
+    private void setGreenButtonGlowOnMouseMoving(Button button) {
         button.setOnMouseEntered(e -> {
-            setButtonBackground(button,greenButtonGlowPath);
+            setButtonBackground(button, greenButtonGlowPath);
         });
         button.setOnMouseExited(e -> {
-            setButtonBackground(button,greenButtonNormalPath);
+            setButtonBackground(button, greenButtonNormalPath);
         });
     }
-    private void setButtonBackground(Button button, String backgroundPath){
+
+    private void setButtonBackground(Button button, String backgroundPath) {
         button.setStyle("-fx-background-image: url(' " + backgroundPath + "')");
     }
 

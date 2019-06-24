@@ -12,6 +12,7 @@
     -fx-font-weight: bold;
     -fx-font-family: "Times New Roman";
     -fx-background-color: transparent;
+    -fx-cursor: hand;
 }
 .table-view{
     -fx-background-size: stretch;
@@ -25,4 +26,10 @@
     -fx-font-size: 14pt;
     -fx-font-weight: bold;
     -fx-font-family: "Times New Roman";
+}
+
+.back {
+    -fx-background-size: cover;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: center;
 }

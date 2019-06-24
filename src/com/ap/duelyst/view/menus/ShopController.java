@@ -7,6 +7,7 @@ import com.ap.duelyst.controller.menu.ShopMenu;
 import com.ap.duelyst.model.Account;
 import com.ap.duelyst.model.Utils;
 import com.ap.duelyst.model.cards.Card;
+import com.ap.duelyst.view.DialogController;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.Initializable;
@@ -17,19 +18,25 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 import java.net.URL;
 import java.util.ResourceBundle;
 
 public class ShopController implements Initializable {
+    public VBox dialogContainer;
+    public HBox dialog;
+    public Label dialogText;
+    public StackPane root;
     private Controller controller;
     private MenuManager menuManager;
     private ShopMenu shopMenu;
     public VBox mainBox;
     public ImageView gameLogo;
     public TableView shopTable;
-    public TableView collectionTable;
+    public TableView<Card> collectionTable;
     public Button buyButton;
     public Button sellButton;
     public Button exitButton;
@@ -39,13 +46,17 @@ public class ShopController implements Initializable {
     public Label errorLabel;
     public Button exitErrorBox;
     private Account account;
+    private DialogController dialogController;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         setAllBackgrounds();
         setAllActions();
+        dialogController = new DialogController(root, dialog, dialogText,
+                dialogContainer);
     }
-    private void setAllBackgrounds(){
+
+    private void setAllBackgrounds() {
         String greenButtonGlowPath = Utils.getPath("button_confirm.png");
         String greenButtonNormalPath = Utils.getPath("button_confirm_glow.png");
         String blueButtonNormalPath = Utils.getPath("button_primary_middle.png");
@@ -66,12 +77,13 @@ public class ShopController implements Initializable {
 
         setButtonGlowOnMouseMoving(sellButton, blueButtonNormalPath, blueButtonGlowPath);
         setButtonGlowOnMouseMoving(buyButton, blueButtonNormalPath, blueButtonGlowPath);
-        setButtonGlowOnMouseMoving(exitButton, greenButtonNormalPath, greenButtonNormalPath);
+        setButtonGlowOnMouseMoving(exitButton, greenButtonNormalPath,
+                greenButtonNormalPath);
 
     }
 
-    private void setAllActions(){
-        exitButton.setOnAction(e->{
+    private void setAllActions() {
+        exitButton.setOnAction(e -> {
             menuManager.setCurrentMenu(shopMenu.getParentMenu());
         });
         exitErrorBox.setOnAction(e -> {
@@ -80,36 +92,46 @@ public class ShopController implements Initializable {
         buyButton.setOnAction(o -> buyButtonClicked());
         sellButton.setOnAction(o -> sellButtonClicked());
     }
+
     public void setMenuManager(MenuManager menuManager) {
         this.menuManager = menuManager;
     }
+
     public void setShopMenu(ShopMenu shopMenu) {
         this.shopMenu = shopMenu;
     }
+
     public void setController(Controller controller) {
         this.controller = controller;
     }
-    public void update(){
+
+    public void update() {
         account = controller.getCurrentAccount();
         usernameLabel.setText("username : " + controller.getCurrentAccount().getUserName());
         updateShopTable();
         updateCollectionTable();
         updateRemainingMoney();
     }
-    public void updateShopTable(){
-        ObservableList<Card> shopCards = FXCollections.observableArrayList(Utils.getShop().getHeroMinions());
-        shopCards.remove(10,40);
-        makeTableView(shopCards,shopTable);
+
+    public void updateShopTable() {
+        ObservableList<Card> shopCards =
+                FXCollections.observableArrayList(Utils.getShop().getHeroMinions());
+        shopCards.remove(10, 40);
+        makeTableView(shopCards, shopTable);
 
     }
+
     public void updateCollectionTable() {
-        ObservableList<Card> collectionCards = FXCollections.observableArrayList(controller.getCurrentAccount().getCollection().getHeroMinions());
-        makeTableView(collectionCards,collectionTable);
+        ObservableList<Card> collectionCards =
+                FXCollections.observableArrayList(controller.getCurrentAccount().getCollection().getHeroMinions());
+        makeTableView(collectionCards, collectionTable);
     }
-    public void updateRemainingMoney(){
-         remainingMoney.setText("Remaining money: "+ account.getBudget());
+
+    public void updateRemainingMoney() {
+        remainingMoney.setText("Remaining money: " + account.getBudget());
     }
-    private void makeTableView(ObservableList<Card> cards, TableView tableView){
+
+    private void makeTableView(ObservableList<Card> cards, TableView tableView) {
         cards.forEach(card -> {
             if (card.getCardSprite() == null) {
                 card.makeCardSprite();
@@ -131,41 +153,47 @@ public class ShopController implements Initializable {
         tableView.setItems(cards);
         tableView.getColumns().addAll(imageColumn, nameColumn, priceColumn);
     }
+
     public void buyButtonClicked() {
         Card selectedCard = (Card) shopTable.getSelectionModel().getSelectedItem();
         Card newCard = null;
         try {
             newCard = (Card) controller.buyAndReturn(selectedCard.getName());
-        }
-        catch (GameException e){
+            newCard.makeCardSprite();
+            newCard.getCardSprite().play();
+        } catch (GameException e) {
             errorLabel.setText(e.getMessage());
-            errorBox.setVisible(true);
+//            errorBox.setVisible(true);
+            dialogController.showDialog(e.getMessage());
         }
         collectionTable.getItems().add(newCard);
         updateRemainingMoney();
     }
+
     public void sellButtonClicked() {
         Card selectedCard = (Card) collectionTable.getSelectionModel().getSelectedItem();
         try {
             controller.sell(selectedCard.getId());
-        }
-        catch (GameException e){
+        } catch (GameException e) {
             errorLabel.setText(e.getMessage());
-            errorBox.setVisible(true);
+//            errorBox.setVisible(true);
+            dialogController.showDialog(e.getMessage());
         }
         collectionTable.getItems().remove(selectedCard);
         updateRemainingMoney();
     }
 
-    private void setButtonGlowOnMouseMoving(Button button, String normalPath, String glowPath){
+    private void setButtonGlowOnMouseMoving(Button button, String normalPath,
+                                            String glowPath) {
         button.setOnMouseEntered(e -> {
-            setButtonBackground(button,glowPath);
+            setButtonBackground(button, glowPath);
         });
         button.setOnMouseExited(e -> {
-            setButtonBackground(button,normalPath);
+            setButtonBackground(button, normalPath);
         });
     }
-    private void setButtonBackground(Button button, String backgroundPath){
+
+    private void setButtonBackground(Button button, String backgroundPath) {
         button.setStyle("-fx-background-image: url(' " + backgroundPath + "')");
     }
 }

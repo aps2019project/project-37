@@ -5,18 +5,30 @@ import com.ap.duelyst.controller.menu.LoginPage;
 import com.ap.duelyst.controller.menu.MainMenu;
 import com.ap.duelyst.controller.menu.MenuManager;
 import com.ap.duelyst.model.Utils;
+import com.ap.duelyst.view.DialogController;
+import com.ap.duelyst.view.customize.CustomCardController;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.ImageCursor;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
 public class SecondMenuController implements Initializable {
+    public Button customButton;
     private Controller controller;
     private MenuManager menuManager;
     private MainMenu mainMenu;
@@ -29,38 +41,40 @@ public class SecondMenuController implements Initializable {
     public Label userNameLabel;
     private String buttonNormalPath;
     private String buttonGlowPath;
+    private DialogController dialogController;
+    private EventHandler<ActionEvent> event;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         setAllBackgrounds();
         setAllActions();
     }
-    private void setAllBackgrounds(){
+
+    private void setAllBackgrounds() {
         this.buttonNormalPath = Utils.getPath("button_primary.png");
         this.buttonGlowPath = Utils.getPath("button_primary_glow.png");
 
         String back = Utils.getPath("chapter9_background@2x.jpg");
         mainBox.setStyle("-fx-background-image: url(' " + back + "')");
         mainBox.setId("mainBox");
-        String titleOfGame = Utils.getPath("game_logo.png");
-        gameLogo.setImage(new Image(titleOfGame));
-
-        collectionButton.setStyle("-fx-background-image: url(' " + buttonNormalPath + "')");
-        shopButton.setStyle("-fx-background-image: url(' " + buttonNormalPath + "')");
-        battleButton.setStyle("-fx-background-image: url(' " + buttonNormalPath + "')");
-        exitButton.setStyle("-fx-background-image: url(' " + buttonNormalPath + "')");
+        FirstMenuController.setStyle(gameLogo, collectionButton, buttonNormalPath,
+                shopButton, battleButton, exitButton, customButton);
     }
-    private void setAllActions(){
-        exitButton.setOnAction(e->{
+
+    private void setAllActions() {
+        exitButton.setOnAction(e -> {
             menuManager.setCurrentMenu(mainMenu.getParentMenu());
         });
-        shopButton.setOnAction(e->{
+        shopButton.setOnAction(e -> {
             menuManager.setCurrentMenu(mainMenu.getShopMenu());
         });
         collectionButton.setOnAction(e -> {
             menuManager.setCurrentMenu(mainMenu.getCollectionMenu());
         });
         battleButton.setOnAction(e-> {
-            menuManager.setCurrentMenu(mainMenu.getBattleMenu());
+            if(controller.getCurrentAccount().getMainDeck().isValid()){
+                menuManager.setCurrentMenu(mainMenu.getBattleMenu());
+            }
         });
         setButtonGlowOnMouseMoving(exitButton);
         setButtonGlowOnMouseMoving(collectionButton);
@@ -80,18 +94,29 @@ public class SecondMenuController implements Initializable {
     public void setController(Controller controller) {
         this.controller = controller;
     }
-    public void update(){
+
+    public void update() {
         userNameLabel.setText("username : " + controller.getCurrentAccount().getUserName());
     }
-    private void setButtonGlowOnMouseMoving(Button button){
+
+    private void setButtonGlowOnMouseMoving(Button button) {
         button.setOnMouseEntered(e -> {
-            setButtonBackground(button,buttonGlowPath);
+            setButtonBackground(button, buttonGlowPath);
         });
         button.setOnMouseExited(e -> {
-            setButtonBackground(button,buttonNormalPath);
+            setButtonBackground(button, buttonNormalPath);
         });
     }
-    private void setButtonBackground(Button button, String backgroundPath){
+
+    private void setButtonBackground(Button button, String backgroundPath) {
         button.setStyle("-fx-background-image: url(' " + backgroundPath + "')");
+    }
+
+    public void showCustomCard(ActionEvent e) {
+        event.handle(e);
+    }
+
+    public void setEvent(EventHandler<ActionEvent> event) {
+        this.event = event;
     }
 }

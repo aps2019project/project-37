@@ -8,7 +8,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<StackPane fx:id="root" prefWidth="0.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.ap.duelyst.view.customize.CustomCard">
+<StackPane fx:id="root" prefWidth="0.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.ap.duelyst.view.customize.CustomCardController">
    <children>
       <VBox alignment="CENTER_LEFT" maxWidth="600.0" prefHeight="200.0" prefWidth="100.0" spacing="16.0" style="-fx-background-color: rgba(0,0,0,0.65);">
          <children>
@@ -211,10 +211,34 @@
                   <Insets top="8.0" />
                </VBox.margin>
             </StackPane>
+            <StackPane prefHeight="150.0" prefWidth="200.0">
+               <children>
+                  <Button minHeight="60.0" minWidth="200.0" mnemonicParsing="false" onAction="#close" styleClass="button-primary" text="exit" />
+               </children>
+            </StackPane>
          </children>
          <padding>
             <Insets bottom="16.0" left="16.0" right="16.0" top="16.0" />
          </padding>
+      </VBox>
+      <VBox fx:id="dialogContainer" alignment="CENTER" fillWidth="false" prefHeight="200.0" prefWidth="100.0" style="-fx-background-color: rgba(0,0,0,0.61);">
+         <children>
+            <HBox fx:id="dialog" alignment="CENTER_RIGHT">
+               <children>
+                  <Label fx:id="dialogText" textFill="#090222" wrapText="true">
+                     <font>
+                        <Font size="22.0" />
+                     </font>
+                     <opaqueInsets>
+                        <Insets />
+                     </opaqueInsets>
+                  </Label>
+               </children>
+               <padding>
+                  <Insets bottom="16.0" left="16.0" right="64.0" top="16.0" />
+               </padding>
+            </HBox>
+         </children>
       </VBox>
    </children>
 </StackPane>
