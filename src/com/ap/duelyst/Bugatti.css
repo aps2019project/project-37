@@ -98,3 +98,7 @@
 .button-primary:pressed {
     -fx-background-image: url("file:///home/amin/Desktop/projects/Duelyst/resources/ui/button_primary_glow@2x.png");
 }
+
+.button-back{
+    -fx-background-image: url("file:///home/amin/Desktop/projects/Duelyst/resources/ui/button_back_corner@2x.png");
+}

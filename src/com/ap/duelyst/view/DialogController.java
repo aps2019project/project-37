@@ -3,6 +3,9 @@ package com.ap.duelyst.view;
 import com.ap.duelyst.model.Utils;
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -14,6 +17,7 @@ public class DialogController {
     private HBox dialog;
     private Label dialogText;
     private VBox dialogContainer;
+    private EventHandler<ActionEvent> eventHandler;
 
     public DialogController(StackPane root, HBox dialog, Label dialogText,
                             VBox dialogContainer) {
@@ -36,7 +40,15 @@ public class DialogController {
     }
 
 
-    public void showDialog(String message) {
+    public void showDialog(String message, boolean hasButton) {
+        dialogContainer.getChildren().removeIf(node -> node instanceof Button);
+        if (hasButton) {
+            Button button = new Button("Yes");
+            button.getStyleClass().add("button-primary");
+            button.setPrefSize(161.1, 50);
+            button.setOnAction(eventHandler);
+            dialogContainer.getChildren().add(button);
+        }
         dialogText.setText(message);
         FadeTransition fade = new FadeTransition(Duration.millis(300),
                 dialogContainer);
@@ -50,6 +62,10 @@ public class DialogController {
         scale.setToY(1);
         scale.setToX(1);
         scale.play();
+    }
+
+    public void showDialog(String message) {
+        showDialog(message, false);
     }
 
     public void hideDialog() {
@@ -67,4 +83,7 @@ public class DialogController {
         scale.play();
     }
 
+    public void setEventHandler(EventHandler<ActionEvent> eventHandler) {
+        this.eventHandler = eventHandler;
+    }
 }

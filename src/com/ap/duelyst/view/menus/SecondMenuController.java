@@ -19,6 +19,7 @@ import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -29,6 +30,10 @@ import java.util.ResourceBundle;
 
 public class SecondMenuController implements Initializable {
     public Button customButton;
+    public VBox dialogContainer;
+    public HBox dialog;
+    public Label dialogText;
+    public StackPane root;
     private Controller controller;
     private MenuManager menuManager;
     private MainMenu mainMenu;
@@ -48,6 +53,8 @@ public class SecondMenuController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         setAllBackgrounds();
         setAllActions();
+        dialogController = new DialogController(root, dialog, dialogText,
+                dialogContainer);
     }
 
     private void setAllBackgrounds() {
@@ -71,15 +78,19 @@ public class SecondMenuController implements Initializable {
         collectionButton.setOnAction(e -> {
             menuManager.setCurrentMenu(mainMenu.getCollectionMenu());
         });
-        battleButton.setOnAction(e-> {
-            if(controller.getCurrentAccount().getMainDeck().isValid()){
+        battleButton.setOnAction(e -> {
+            if (controller.getCurrentAccount().getMainDeck() != null
+                    && controller.getCurrentAccount().getMainDeck().isValid()) {
                 menuManager.setCurrentMenu(mainMenu.getBattleMenu());
+            }else {
+                dialogController.showDialog("deck is not valid");
             }
         });
         setButtonGlowOnMouseMoving(exitButton);
         setButtonGlowOnMouseMoving(collectionButton);
         setButtonGlowOnMouseMoving(shopButton);
         setButtonGlowOnMouseMoving(battleButton);
+        setButtonGlowOnMouseMoving(customButton);
 
     }
 
