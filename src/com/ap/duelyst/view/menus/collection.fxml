@@ -90,5 +90,11 @@
             <Button fx:id="exitErrorBox" mnemonicParsing="false" prefHeight="40.0" prefWidth="200.0" text="Back" />
          </children>
       </VBox>
+      <VBox fx:id="importDeckBox" alignment="CENTER" maxHeight="80.0" maxWidth="300.0" spacing="10.0" style="-fx-background-color: blue;" visible="false">
+         <children>
+            <TextField fx:id="nameOfImportDeck" alignment="CENTER" maxHeight="25.0" maxWidth="200.0" promptText="Enter name of the new deck" />
+            <Button fx:id="importButton" mnemonicParsing="false" text="Import" />
+         </children>
+      </VBox>
    </children>
 </StackPane>

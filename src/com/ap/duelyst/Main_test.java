@@ -87,7 +87,7 @@ public class Main_test extends Application {
             stage.setTitle("Game Of Cards: Shop");
         }else if(currentMenu instanceof CollectionMenu){
             collectionController.setCollectionMenu((CollectionMenu) currentMenu);
-            collectionController.initializeCurrentDeck();
+            collectionController.loadMainDeckOnTable();
             collectionController.update();
             stage.setScene(collectionScene);
             stage.setTitle("Game Of Cards: Collection");

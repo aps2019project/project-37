@@ -39,6 +39,9 @@ public class CollectionController implements Initializable {
     public Button importDeckButton;
     public Button exportDeckButton;
     public Button exitErrorBox;
+    public VBox importDeckBox;
+    public Button importButton;
+    public TextField nameOfImportDeck;
     public Label errorLabel;
     public VBox errorBox;
     public VBox newDeckBox;
@@ -99,7 +102,7 @@ public class CollectionController implements Initializable {
             menuManager.setCurrentMenu(collectionMenu.getParentMenu());
         });
         changeDeckButton.setOnAction(e ->{
-            if(currentDeck == null){
+            if(controller.getCurrentAccount().getDecks().isEmpty()){
                 showNoDeck();
             }else{
                 DeckBox.setVisible(true);
@@ -148,7 +151,7 @@ public class CollectionController implements Initializable {
                 try {
                     controller.createDeck(nameOfNewDeck.getText());
                     currentDeck = controller.getCurrentAccount().getDeck(nameOfNewDeck.getText());
-                    update();
+                    updateListOfDecks();
                 }catch (GameException e){
                     errorLabel.setText(e.getMessage());
                     errorBox.setVisible(true);
@@ -176,6 +179,32 @@ public class CollectionController implements Initializable {
         exitErrorBox.setOnAction(o -> {
             errorBox.setVisible(false);
         });
+        exportDeckButton.setOnAction(o -> {
+            if(currentDeck != null) {
+                controller.exportDeck(currentDeck);
+            }else {
+                showError("Please select a deck to export!");
+            }
+        });
+        importDeckButton.setOnAction(o -> {
+            importDeckBox.setVisible(true);
+        });
+        importButton.setOnAction( o ->{
+            Deck deck = controller.importDeck(nameOfImportDeck.getText());
+            if(deck != null){
+                if (controller.getCurrentAccount().hasDeck(deck.getName())){
+                    showError("You already has that deck!");
+                }else{
+                    controller.getCurrentAccount().getDecks().add(deck);
+                    showError(deck.getName()+" is added successfully!");
+                }
+            }else{
+                showError("There is no deck with this name");
+            }
+            nameOfImportDeck.setText("");
+            importDeckBox.setVisible(false);
+            updateListOfDecks();
+        });
     }
     public void setMenuManager(MenuManager menuManager) {
         this.menuManager = menuManager;
@@ -186,15 +215,15 @@ public class CollectionController implements Initializable {
     public void setController(Controller controller) {
         this.controller = controller;
     }
-    public void initializeCurrentDeck(){
-        if(controller != null && controller.getCurrentAccount().getMainDeck()!=null){
-            currentDeck = controller.getCurrentAccount().getMainDeck();
-        }
-    }
     public void update(){
         updateListOfDecks();
         updateDeckTable();
         updateCollectionTable();
+    }
+    public void loadMainDeckOnTable(){
+        if(controller.getCurrentAccount().getMainDeck() != null){
+            currentDeck = controller.getCurrentAccount().getMainDeck();
+        }
     }
     public void updateListOfDecks(){
         ObservableList<Deck> decks = FXCollections.observableArrayList(controller.getCurrentAccount().getDecks());

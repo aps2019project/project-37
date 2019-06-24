@@ -195,7 +195,7 @@ public class Controller {
         }
     }
 
-    private Deck importDeck(String name) {
+    public Deck importDeck(String name) {
         try {
             Files.createDirectories(Paths.get("src/com/ap/duelyst/data"));
             FileReader reader =
@@ -215,7 +215,7 @@ public class Controller {
         return null;
     }
 
-    private void exportDeck(Deck deck) {
+    public void exportDeck(Deck deck) {
         try {
             Files.createDirectories(Paths.get("src/com/ap/duelyst/data"));
             FileWriter writer = new FileWriter(

@@ -98,7 +98,7 @@ public class ShopController implements Initializable {
     }
     public void updateShopTable(){
         ObservableList<Card> shopCards = FXCollections.observableArrayList(Utils.getShop().getHeroMinions());
-        //shopCards.remove(0,40);
+        shopCards.remove(10,40);
         makeTableView(shopCards,shopTable);
 
     }

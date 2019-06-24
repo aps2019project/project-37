@@ -5,7 +5,7 @@ import com.ap.duelyst.view.card.CardSprite;
 import javafx.scene.image.ImageView;
 
 public abstract class Card implements Cloneable {
-    private ImageView imageView;
+    transient ImageView imageView;
     private String fileName;
     transient CardSprite cardSprite;
     private String id;

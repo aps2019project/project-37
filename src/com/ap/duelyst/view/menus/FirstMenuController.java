@@ -52,6 +52,7 @@ public class FirstMenuController implements Initializable {
     }
     private void setAllBackgrounds(){
         this.greenButtonNormalPath = Utils.getPath("button_confirm.png");
+        this.greenButtonNormalPath = Utils.getPath("button_confirm.png");
         this.greenButtonGlowPath = Utils.getPath("button_confirm_glow.png");
 
         this.blueButtonNormalPath = Utils.getPath("button_secondary.png");
@@ -135,6 +136,16 @@ public class FirstMenuController implements Initializable {
             userNameText.setText("");
             passwordText.setText("");
         });
+
+        saveButton.setOnAction(o -> {
+            try {
+                controller.save();
+            }catch (GameException e){
+                errorLabel.setText(e.getMessage());
+                errorBox.setVisible(true);
+            }
+        });
+
         setBlueButtonGlowOnMouseMoving(exitButton);
         setBlueButtonGlowOnMouseMoving(saveButton);
         setBlueButtonGlowOnMouseMoving(leaderBoardButton);
