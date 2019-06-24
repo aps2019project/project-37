@@ -7,9 +7,14 @@ import com.ap.duelyst.model.buffs.traget.SideType;
 import com.ap.duelyst.model.buffs.traget.TargetType;
 import com.ap.duelyst.model.cards.*;
 import com.ap.duelyst.model.items.CollectableItem;
+import com.ap.duelyst.model.items.Flag;
 import com.ap.duelyst.model.items.Item;
 import com.ap.duelyst.model.items.UsableItem;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -57,31 +62,41 @@ public class Utils {
                 RangeType.ONE);
         Spell spell = new Spell("total-disarm", 1000, 0,
                 "disarms enemy minion till the end of the game", buff);
+        spell.setFileName("icon_f1_aegisbarrier");
+        spell.setEffectFileName("fx_f5_tremor");
         cards.add(spell);
 
 
         buff = new DispelBuff(1, false, TargetType.MINION, SideType.ALL,
                 RangeType.SQUARE2);
         spell = new Spell("aria-dispel", 1500, 2, "dispels buffs for all", buff);
+        spell.setFileName("icon_f1_aerial_rift");
+        spell.setEffectFileName("fx_shadowcreep");
         cards.add(spell);
 
 
         buff = new PowerBuff(-1, false, TargetType.MINION, SideType.ALLY, RangeType.ONE,
                 EffectType.ATTACK_POWER, 2);
         spell = new Spell("empower", 250, 1, "increases ap of ally minion by 2", buff);
+        spell.setFileName("icon_f1_afterglow");
+        spell.setEffectFileName("f3_fx_circleofdessication");
         cards.add(spell);
 
 
         buff = new AttackBuff(1, false, TargetType.MINION, SideType.ENEMY,
                 RangeType.ONE, 4);
         spell = new Spell("fireball", 400, 1, "damages enemy minion 4 points", buff);
+        spell.setFileName("icon_f1_aurynnexus");
+        spell.setEffectFileName("fx_f1_aperionssurge");
         cards.add(spell);
 
 
-        buff = new PowerBuff(Integer.MAX_VALUE, false, TargetType.HERO, SideType.ALLY,
+        buff = new PowerBuff(-1, false, TargetType.HERO, SideType.ALLY,
                 RangeType.ONE,
                 EffectType.ATTACK_POWER, 4);
         spell = new Spell("god-strength", 450, 2, "increases ap of ally hero by 4", buff);
+        spell.setFileName("icon_f1_beamshock");
+        spell.setEffectFileName("fx_f1_aurynnexus");
         cards.add(spell);
 
 
@@ -90,13 +105,18 @@ public class Utils {
                 EffectType.HEALTH, 2);
         buff = new CellBuff(2, false, TargetType.CELL, SideType.ALL, RangeType.SQUARE2,
                 buff1);
-        spell = new Spell("hellfire", 450, 2, "increases ap of ally hero by 4", buff);
+        spell = new Spell("hellfire", 450, 2, "adds fire effect to square2 for 2 " +
+                "rounds", buff);
+        spell.setFileName("icon_f1_blessing");
+        spell.setEffectFileName("fx_f1_bbs_kingsguard");
         cards.add(spell);
 
 
         buff = new AttackBuff(1, false, TargetType.HERO, SideType.ENEMY, RangeType.ONE,
                 8);
         spell = new Spell("lightning-bolt", 1250, 2, "damages enemy hero 4 points", buff);
+        spell.setFileName("icon_f1_breathoflife");
+        spell.setEffectFileName("fx_f1_lasting_judgment");
         cards.add(spell);
 
 
@@ -106,6 +126,8 @@ public class Utils {
                 , buff);
         spell = new Spell("poison-lake", 900, 5, "adds poison effect in a square size " +
                 "3", buff1);
+        spell.setFileName("icon_f1_buffbloom");
+        spell.setEffectFileName("fx_f1_warsurge");
         cards.add(spell);
 
 
@@ -115,23 +137,31 @@ public class Utils {
                 EffectType.ATTACK_POWER, 4);
         spell = new Spell("madness", 650, 0, "increases ally minion ap but disarms him"
                 , buff, buff1);
+        spell.setFileName("icon_f1_celestialconduit");
+        spell.setEffectFileName("fx_f2_bbs_spellsword");
         cards.add(spell);
 
 
         buff = new DisarmBuff(1, false, TargetType.MINION, SideType.ENEMY,
                 RangeType.ALL_BOARD);
         spell = new Spell("all-disarm", 2000, 9, "disarms all enemy minions", buff);
+        spell.setFileName("icon_f1_chargeintobattle");
+        spell.setEffectFileName("fx_f2_eightgates_bluelotus");
         cards.add(spell);
 
 
         buff = new PoisonBuff(4, false, TargetType.MINION, SideType.ENEMY,
                 RangeType.ALL_BOARD);
         spell = new Spell("all-poison", 1500, 8, "poisons all enemy minions", buff);
+        spell.setFileName("icon_f1_circleoflife");
+        spell.setEffectFileName("fx_f2_eightgates_teallotus");
         cards.add(spell);
 
 
         buff = new DispelBuff(1, false, TargetType.MINION, SideType.ALL, RangeType.ONE);
         spell = new Spell("dispel", 2100, 0, "dispels buffs for one enemy or ally", buff);
+        spell.setFileName("icon_f1_decimate");
+        spell.setEffectFileName("fx_f2_killingedge");
         cards.add(spell);
 
 
@@ -143,6 +173,8 @@ public class Utils {
         spell = new Spell("health-with-benefit", 2250, 0,
                 "adds holly buff to a minion for 3 rounds and 2 points but weakens him " +
                         "by 6 points", buff, buff1);
+        spell.setFileName("icon_f1_divinebond");
+        spell.setEffectFileName("fx_f2_mistdragonseal");
         cards.add(spell);
 
 
@@ -150,6 +182,8 @@ public class Utils {
                 EffectType.ATTACK_POWER, 6);
         spell = new Spell("power-up", 2500, 2, "increases ally minion ap by 6 points",
                 buff);
+        spell.setFileName("icon_f1_divinestbond");
+        spell.setEffectFileName("fx_f2_saberspineseal");
         cards.add(spell);
 
 
@@ -158,6 +192,8 @@ public class Utils {
                 EffectType.ATTACK_POWER, 2);
         spell = new Spell("all-power", 2000, 4, "increases all ally minions ap by 2 " +
                 "points", buff);
+        spell.setFileName("icon_f1_drainingwave");
+        spell.setEffectFileName("fx_f2_twilightreiki");
         cards.add(spell);
 
 
@@ -165,6 +201,8 @@ public class Utils {
                 RangeType.ALL_IN_ONE_COLUMN, 6);
         spell = new Spell("all-attack", 1500, 4, "damages all enemy minions in one " +
                 "column", buff);
+        spell.setFileName("icon_f1_enthrall");
+        spell.setEffectFileName("fx_f2_twinstrike");
         cards.add(spell);
 
 
@@ -173,6 +211,8 @@ public class Utils {
                 EffectType.ATTACK_POWER, 4);
         spell = new Spell("weakening", 1000, 1, "weakens enemy minion's ap by 4 points"
                 , buff);
+        spell.setFileName("icon_f1_fortifiedassault");
+        spell.setEffectFileName("fx_f3_rashascurse");
         cards.add(spell);
 
 
@@ -183,6 +223,8 @@ public class Utils {
                 EffectType.ATTACK_POWER, 8);
         spell = new Spell("sacrifice", 1600, 2,
                 "weakens ally minion hp by 6 but increases it's ap by 8", buff, buff1);
+        spell.setFileName("icon_f1_greatergood");
+        spell.setEffectFileName("fx_f4_bbs_husk");
         cards.add(spell);
 
 
@@ -191,11 +233,15 @@ public class Utils {
         buff.setRandom(true);
         spell = new Spell("kings-guard", 1750, 9, "kills one random enemy minion in " +
                 "radius 8 of ally hero", buff);
+        spell.setFileName("icon_f1_holyimmolation");
+        spell.setEffectFileName("fx_f4_nethersummoning");
         cards.add(spell);
 
 
         buff = new StunBuff(2, false, TargetType.MINION, SideType.ENEMY, RangeType.ONE);
         spell = new Spell("shock", 1200, 1, "stuns an enemy minion for 2 rounds", buff);
+        spell.setFileName("icon_f1_increasingdominance");
+        spell.setEffectFileName("fx_f4_shadownova");
         cards.add(spell);
 
 
@@ -519,6 +565,7 @@ public class Utils {
         buff = new PowerBuff(-1, true, TargetType.HERO, SideType.ALLY, RangeType.SELF,
                 EffectType.ATTACK_POWER, 4);
         spell = new Spell("sp", 0, 0, "increases his ap by 4", buff);
+        spell.setEffectFileName("fx_f2_eightgates_teallotus");
         Hero hero = new Hero("white-beast", 8000, 50, 4, AttackType.MELEE, 0, spell, 1,
                 2);
         hero.setFileName("f6_tier2general");
@@ -528,6 +575,7 @@ public class Utils {
         buff = new StunBuff(1, false, TargetType.MINION, SideType.ENEMY,
                 RangeType.ALL_BOARD);
         spell = new Spell("sp", 0, 0, "stuns all enemy minions for 1 round", buff);
+        spell.setEffectFileName("fx_f5_tremor");
         hero = new Hero("phoenix", 9000, 50, 4, AttackType.MELEE, 0, spell, 5, 8);
         hero.setFileName("boss_legion");
         cards.add(hero);
@@ -536,6 +584,7 @@ public class Utils {
         buff = new DisarmBuff(-1, false, TargetType.HERO_MINION, SideType.ENEMY,
                 RangeType.ONE);
         spell = new Spell("sp", 0, 0, "disarms 1 enemy", buff);
+        spell.setEffectFileName("fx_shadowcreep");
         hero = new Hero("seven-headed-dragon", 8000, 50, 4, AttackType.MELEE, 0, spell,
                 0, 1);
         hero.setFileName("neutral_boulderbreach");
@@ -544,6 +593,7 @@ public class Utils {
 
         buff = new StunBuff(1, false, TargetType.MINION, SideType.ENEMY, RangeType.ONE);
         spell = new Spell("sp", 0, 0, "stuns one enemy minion for 1 round", buff);
+        spell.setEffectFileName("f3_fx_circleofdessication");
         hero = new Hero("rakhsh", 8000, 50, 4, AttackType.MELEE, 0, spell, 0, 1);
         hero.setFileName("f5_ankylos");
         cards.add(hero);
@@ -552,6 +602,7 @@ public class Utils {
         buff = new PoisonBuff(3, false, TargetType.HERO_MINION, SideType.ENEMY,
                 RangeType.ONE);
         spell = new Spell("sp", 0, 0, "poisons enemy for 3 round on attack", buff);
+        spell.setEffectFileName("fx_f1_aperionssurge");
         hero = new Hero("zahhak", 10000, 50, 2, AttackType.MELEE, 0, spell, 0, 0);
         hero.setOnAttack(true);
         hero.setFileName("f3_allomancer");
@@ -562,6 +613,7 @@ public class Utils {
                 RangeType.ONE, 1);
         buff1 = new CellBuff(3, false, TargetType.CELL, SideType.ALLY,
                 RangeType.SQUARE1, buff);
+        spell.setEffectFileName("fx_f1_aurynnexus");
         spell = new Spell("sp", 0, 0, "makes a cell holy for 3 rounds", buff1);
         hero = new Hero("kaveh", 8000, 50, 4, AttackType.MELEE, 0, spell, 1, 3);
         hero.setFileName("f4_phantasm");
@@ -570,6 +622,7 @@ public class Utils {
 
         buff = new AttackBuff(1, false, TargetType.MINION, SideType.ENEMY,
                 RangeType.ALL_IN_ONE_ROW, 4);
+        spell.setEffectFileName("fx_f1_bbs_kingsguard");
         spell = new Spell("sp", 0, 0, "attacks all enemy minions in 1 row for 4 hp",
                 buff);
         hero = new Hero("arash", 10000, 30, 2, AttackType.RANGED, 6, spell, 2, 2);
@@ -579,6 +632,7 @@ public class Utils {
 
         buff = new DispelBuff(1, false, TargetType.MINION, SideType.ENEMY, RangeType.ONE);
         spell = new Spell("sp", 0, 0, "dispels one enemy minion", buff);
+        spell.setEffectFileName("fx_f1_lasting_judgment");
         hero = new Hero("afsaneh", 11000, 40, 3, AttackType.RANGED, 3, spell, 1, 2);
         hero.setFileName("f5_upgradizon");
         cards.add(hero);
@@ -587,6 +641,7 @@ public class Utils {
         buff = new HolyBuff(-1, true, TargetType.HERO, SideType.ALLY, RangeType.SELF, 3);
         spell = new Spell("sp", 0, 0, "adds a number 3 holy buff to himself continues",
                 buff);
+        spell.setEffectFileName("fx_f1_warsurge");
         hero = new Hero("esfandiar", 12000, 35, 3, AttackType.HYBRID, 3, spell, 0, 0);
         hero.setPassive(true);
         hero.setFileName("neutral_pennyarcade03");
@@ -603,12 +658,14 @@ public class Utils {
         Item item = new UsableItem("wisdom-throne", 300, "increases mana by 1 for 3 " +
                 "rounds",
                 ActivationTime.ON_TURN, buff);
+        item.setFileName("artifact_boss_frostarmor");
         items.add(item);
 
 
         buff = new HolyBuff(-1, false, TargetType.HERO, SideType.ALLY, RangeType.ONE, 12);
         item = new UsableItem("super-shield", 4000, "activates 12 holy buff in hero",
                 ActivationTime.PASSIVE, buff);
+        item.setFileName("artifact_f5_morinkhur");
         items.add(item);
 
 
@@ -619,6 +676,7 @@ public class Utils {
         item = new UsableItem("damol-bow", 30000, "disarms enemy minion on hero range " +
                 "or hybrid attack",
                 ActivationTime.ON_ATTACK, buff);
+        item.setFileName("artifact_f1_ironbanner");
         items.add(item);
 
 
@@ -627,6 +685,7 @@ public class Utils {
         buff.setCancelable(false);
         item = new CollectableItem("potion", "increases minion hp by 6",
                 ActivationTime.PASSIVE, buff);
+        item.setFileName("artifact_f6_frostplate");
         items.add(item);
 
 
@@ -637,6 +696,7 @@ public class Utils {
         item = new CollectableItem("2-headed-arrow", "increases minion with " +
                 "range/hybrid attack type ap by 2",
                 ActivationTime.PASSIVE, buff);
+        item.setFileName("artifact_f5_godhammer");
         items.add(item);
 
 
@@ -647,6 +707,7 @@ public class Utils {
         item = new UsableItem("phoenix-feather", 3500, "weakens enemy hero with " +
                 "range/hybrid attack type ap by 2 ",
                 ActivationTime.PASSIVE, buff);
+        item.setFileName("artifact_f4_thereleaser");
         items.add(item);
 
 
@@ -657,6 +718,7 @@ public class Utils {
                 RangeType.ONE, EffectType.ATTACK_POWER, 3);
         item = new CollectableItem("elixir", "increases ap and hp of minion by 3",
                 ActivationTime.PASSIVE, buff, buff1);
+        item.setFileName("artifact_f1_bigshield");
         items.add(item);
 
 
@@ -664,6 +726,7 @@ public class Utils {
         buff.setCancelable(false);
         item = new CollectableItem("mana-potion", "increases mana by 3 in next round",
                 ActivationTime.ON_TURN, buff);
+        item.setFileName("artifact_f6_iceshatter");
         items.add(item);
 
 
@@ -672,6 +735,7 @@ public class Utils {
         item = new CollectableItem("invincible-potion", "adds 10 holy buff to minion " +
                 "for 2 rounds",
                 ActivationTime.PASSIVE, buff);
+        item.setFileName("artifact_f6_snowshovel");
         items.add(item);
 
 
@@ -682,6 +746,7 @@ public class Utils {
         item = new CollectableItem("death-curse", "minion will get an attack buff 8 on " +
                 "death",
                 ActivationTime.ON_DEATH, buff);
+        item.setFileName("artifact_f4_heartborrower");
         items.add(item);
 
 
@@ -690,6 +755,7 @@ public class Utils {
         buff.setCancelable(false);
         item = new CollectableItem("random-damage", "gives minion 2 ap boost",
                 ActivationTime.PASSIVE, buff);
+        item.setFileName("artifact_f1_shieldofphalanx");
         items.add(item);
 
 
@@ -699,6 +765,7 @@ public class Utils {
         item = new UsableItem("terror-hood", 5000, "weakens enemy ap by 2 for 1 round " +
                 "on attack",
                 ActivationTime.ON_ATTACK, buff);
+        item.setFileName("artifact_f3_sajjreredemption");
         items.add(item);
 
 
@@ -707,6 +774,7 @@ public class Utils {
         buff.setCancelable(false);
         item = new CollectableItem("blades-of-agility", "boosts minion ap by 6",
                 ActivationTime.PASSIVE, buff);
+        item.setFileName("artifact_f3_thunderclap");
         items.add(item);
 
 
@@ -714,6 +782,7 @@ public class Utils {
                 RangeType.ALL_BOARD, 1);
         item = new UsableItem("king-wisdom", 9000, "increases mana 1 point every round",
                 ActivationTime.PASSIVE, buff);
+        item.setFileName("artifact_f1_dawnseye");
         items.add(item);
 
 
@@ -724,6 +793,7 @@ public class Utils {
         item = new UsableItem("assassination-dagger", 15000, "damages enemy hero on " +
                 "minion spawn",
                 ActivationTime.ON_SPAWN, buff);
+        item.setFileName("artifact_f5_eggsoul");
         items.add(item);
 
 
@@ -733,6 +803,7 @@ public class Utils {
         item = new UsableItem("poisonous-dagger", 7000, "poisons one random enemy " +
                 "minion on attack",
                 ActivationTime.ON_ATTACK, buff);
+        item.setFileName("artifact_f2_braceletofblinding");
         items.add(item);
 
 
@@ -742,6 +813,7 @@ public class Utils {
         item = new UsableItem("shock-hammer", 15000, "hero disarms enemy minion for 1 " +
                 "round on attack",
                 ActivationTime.ON_ATTACK, buff);
+        item.setFileName("artifact_f4_darkstonering");
         items.add(item);
 
 
@@ -752,6 +824,7 @@ public class Utils {
         item = new UsableItem("soul-eater", 25000, "all minions boost 1 random minion " +
                 "ap on death",
                 ActivationTime.ON_DEATH, buff);
+        item.setFileName("artifact_f3_repairstaff");
         items.add(item);
 
 
@@ -761,6 +834,7 @@ public class Utils {
         item = new UsableItem("baptise", 20000, "every minion will get a holy buff for " +
                 "2 rounds on spawn",
                 ActivationTime.ON_SPAWN, buff);
+        item.setFileName("icon_f3_grabartifact");
         items.add(item);
 
 
@@ -772,10 +846,62 @@ public class Utils {
         item = new CollectableItem("chinese-swordsman", "boosts ally minions with melee" +
                 " attack by 5",
                 ActivationTime.PASSIVE, buff);
+        item.setFileName("artifact_f6_whiteasp");
         items.add(item);
 
 
         shop = new Shop(cards, items);
+    }
+
+    static {
+        try {
+            FileReader reader = new FileReader(
+                    "src/com/ap/duelyst/data/accounts.txt");
+            int c = reader.read();
+            StringBuilder accountsString = new StringBuilder();
+            while (c != -1) {
+                accountsString.append((char) c);
+                c = reader.read();
+            }
+            List<Account> accounts1 = getGson().fromJson(accountsString.toString(),
+                    new TypeToken<List<Account>>() {
+                    }.getType());
+            accounts.addAll(accounts1);
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static Gson getGson() {
+        RuntimeTypeAdapterFactory<Card> cardRuntimeTypeAdapterFactory =
+                RuntimeTypeAdapterFactory.of(Card.class)
+                        .registerSubtype(Spell.class)
+                        .registerSubtype(Hero.class)
+                        .registerSubtype(Minion.class);
+        RuntimeTypeAdapterFactory<Item> itemRuntimeTypeAdapterFactory =
+                RuntimeTypeAdapterFactory.of(Item.class)
+                        .registerSubtype(CollectableItem.class)
+                        .registerSubtype(UsableItem.class)
+                        .registerSubtype(Flag.class);
+        RuntimeTypeAdapterFactory<Buff> buffRuntimeTypeAdapterFactory =
+                RuntimeTypeAdapterFactory.of(Buff.class)
+                        .registerSubtype(AttackBuff.class)
+                        .registerSubtype(CellBuff.class)
+                        .registerSubtype(DisarmBuff.class)
+                        .registerSubtype(DispelBuff.class)
+                        .registerSubtype(HistoryBuff.class)
+                        .registerSubtype(HolyBuff.class)
+                        .registerSubtype(KingsGuardBuff.class)
+                        .registerSubtype(ManaBuff.class)
+                        .registerSubtype(PoisonBuff.class)
+                        .registerSubtype(PowerBuff.class)
+                        .registerSubtype(StunBuff.class)
+                        .registerSubtype(WeaknessBuff.class);
+        return new GsonBuilder()
+                .registerTypeAdapterFactory(cardRuntimeTypeAdapterFactory)
+                .registerTypeAdapterFactory(itemRuntimeTypeAdapterFactory)
+                .registerTypeAdapterFactory(buffRuntimeTypeAdapterFactory).create();
     }
 
     public static void add(Account account) {

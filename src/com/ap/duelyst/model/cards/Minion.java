@@ -8,7 +8,6 @@ import java.util.Map;
 
 public class Minion extends Hero {
     private int mana;
-    private String info;
     private ActivationTime activationTime;
     private boolean disableEnemyHolyBuff;
     private Map<String, Integer> attackedTimes = new HashMap<>();

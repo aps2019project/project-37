@@ -17,10 +17,14 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        FXMLLoader loader =
+        /*FXMLLoader loader =
                 new FXMLLoader(getClass().getResource("view/battle/battle.fxml"));
+        Parent root = loader.load();*/
+        FXMLLoader loader =
+                new FXMLLoader(getClass().getResource("view/customize" +
+                        "/customCard.fxml"));
         Parent root = loader.load();
-        BattleController battleController = loader.getController();
+//        BattleController battleController = loader.getController();
         primaryStage.setTitle("Hello World");
         primaryStage.setScene(new Scene(root, 600, 300));
         primaryStage.getScene().getStylesheets().add("com/ap/duelyst/Bugatti.css");
@@ -28,7 +32,7 @@ public class Main extends Application {
             @Override
             public void handle(long now) {
                 if (controller != null && controller.getGame() != null) {
-                    battleController.setGame(controller);
+//                    battleController.setGame(controller);
                 }
             }
         }.start();

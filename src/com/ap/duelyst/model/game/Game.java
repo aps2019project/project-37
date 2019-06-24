@@ -74,7 +74,6 @@ public class Game {
             case COLLECT_HALF_FLAGS:
                 addFlags(flagNumber);
                 break;
-
         }
 
     }
@@ -89,7 +88,7 @@ public class Game {
     }
 
     private void addFlags(int flagNumber) {
-        for (int[] xy : Utils.getRandomCoordinates(flagNumber)) {
+        for (int[] xy : Utils.getRandomCoordinates(flagNumber / 2)) {
             board.get(xy[0]).get(xy[1]).setHasFlag(true);
             board.get(xy[0]).get(8 - xy[1]).setHasFlag(true);
         }
@@ -153,6 +152,7 @@ public class Game {
         currentPlayer = getOpponent();
         String result = checkEndGame();
         if (result != null) {
+            events.gameEnded(result);
             return result;
         }
         nextRound();
@@ -440,6 +440,8 @@ public class Game {
             throw new GameException("card is not movable");
         } else {
             Hero hero = (Hero) card;
+            int oldX = hero.getX();
+            int oldY = hero.getY();
             if (hero.getX() < 0) {
                 throw new GameException("card is not in board");
             }
@@ -450,12 +452,15 @@ public class Game {
                 if (hero.getInGame().isMoved()) {
                     throw new GameException("card has moved before");
                 }
-                board.get(hero.getX()).get(hero.getY()).removeCard();
+                board.get(hero.getX()).get(hero.getY()).removeCard(false);
                 CollectableItem item = board.get(x).get(y).addCard(card);
                 if (item != null) {
                     currentPlayer.addCollectableItem(item);
                 }
                 hero.getInGame().setMoved(true);
+                if (currentPlayer.isAI()) {
+                    Platform.runLater(() -> events.AIMove(hero, oldX, oldY, x, y));
+                }
                 return true;
             } else {
                 throw new GameException("invalid target");
@@ -678,6 +683,7 @@ public class Game {
 
     public void useCollectable(CollectableItem collectableItem) {
         addItemBuff(collectableItem);
+        currentPlayer.removeCollectableItem(collectableItem);
     }
 
     private CardSprite checkDead(Hero card) {
@@ -695,7 +701,7 @@ public class Game {
                 }
             }
             graveYard.add(card);
-            board.get(card.getX()).get(card.getY()).removeCard();
+            board.get(card.getX()).get(card.getY()).removeCard(true);
             return card.getCardSprite();
         }
         return null;
@@ -831,7 +837,8 @@ public class Game {
     private void addSpell(List<Buff> buffs, int x, int y) {
         for (Buff buff : buffs) {
             if (buff.getTarget() == TargetType.CELL) {
-                int range = Integer.valueOf(buff.getRange().name().split("_")[1]);
+                int range = Integer.valueOf(buff.getRange().name()
+                        .replaceAll("\\D+", ""));
                 for (int i = 0; i < range; i++) {
                     for (int j = 0; j < range; j++) {
                         if (checkOutOfBounds(x + i, y + j)) {
@@ -1299,38 +1306,47 @@ public class Game {
     }
 
     private void playAI() {
-        try {
-            switch (new Random().nextInt(5)) {
-                case 0:
-                    insert(currentPlayer.getHand().get(0), currentPlayer.getHero().getX(),
-                            currentPlayer.getHero().getY() + 1);
-                    break;
-                case 1:
-                    move(currentPlayer.getHero(),
-                            currentPlayer.getHero().getX() + 1,
-                            currentPlayer.getHero().getY() + 1);
-                    break;
-                case 2:
-                    attack(currentPlayer.getHero(), getOpponent().getHero().getId(),
-                            true);
-                    break;
-                case 3:
-                    useSpecialPower(currentPlayer.getHero(), 0, 0);
-                    break;
-                case 4:
-                    if (!currentPlayer.getCollectableItems().isEmpty()) {
-                        addItemBuff(currentPlayer.getCollectableItems().get(0));
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                try {
+                    int x = new Random().nextInt(3) - 1;
+                    int y = new Random().nextInt(3) - 1;
+                    switch (new Random().nextInt(5)) {
+                        case 0:
+                            insert(currentPlayer.getHand().get(0),
+                                    currentPlayer.getHero().getX() + x,
+                                    currentPlayer.getHero().getY() + y);
+                            break;
+                        case 1:
+                            move(currentPlayer.getHero(),
+                                    currentPlayer.getHero().getX() + x,
+                                    currentPlayer.getHero().getY() + y);
+                            break;
+                        case 2:
+                            attack(currentPlayer.getHero(),
+                                    getOpponent().getHero().getId(),
+                                    true);
+                            break;
+                        case 3:
+                            useSpecialPower(currentPlayer.getHero(), 0, 0);
+                            break;
+                        case 4:
+                            if (!currentPlayer.getCollectableItems().isEmpty()) {
+                                addItemBuff(currentPlayer.getCollectableItems().get(0));
+                            }
                     }
-            }
 
-        } catch (GameException ignored) {
-        }
+                } catch (GameException ignored) {
+                }
+            }
+        }, 600);
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
                 Platform.runLater(() -> endTurn());
             }
-        }, 5000);
+        }, 1800);
     }
 
     public void setEvents(GameEvents events) {

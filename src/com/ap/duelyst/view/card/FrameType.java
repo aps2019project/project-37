@@ -4,5 +4,8 @@ public enum FrameType {
         ATTACK,
         BREATHING,
         RUN,
-        DEATH
+        DEATH,
+        SPELL_INACTIVE,
+        SPELL_ACTIVE,
+        SPELL_EFFECT
 }

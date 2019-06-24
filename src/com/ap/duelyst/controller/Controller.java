@@ -9,12 +9,16 @@ import com.ap.duelyst.model.Utils;
 import com.ap.duelyst.model.cards.Card;
 import com.ap.duelyst.model.cards.Hero;
 import com.ap.duelyst.model.cards.Minion;
+import com.ap.duelyst.model.cards.Spell;
 import com.ap.duelyst.model.game.Game;
 import com.ap.duelyst.model.items.CollectableItem;
 import com.ap.duelyst.model.items.Item;
 import com.ap.duelyst.model.items.UsableItem;
 import com.ap.duelyst.view.View;
-
+import com.google.gson.reflect.TypeToken;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -24,7 +28,7 @@ import java.util.stream.Collectors;
 public class Controller {
     private View view;
     private Account currentAccount;
-    private final MenuManager menuManager;
+    private MenuManager menuManager;
     private Game game;
     private Card selectedCard;
     private CollectableItem selectedItem;
@@ -34,7 +38,7 @@ public class Controller {
         menuManager = new MenuManager(this);
     }
 
-    public void start(){
+    public void start() {
         do {
             runCommand(view.getInputAsString());
         } while (menuManager.getCurrentMenu() != null);
@@ -105,7 +109,6 @@ public class Controller {
         showMessage("tip: select user [user name]\n");
     }
 
-
     public void login(String userName) {
         if (!Utils.hasAccount(userName)) {
             throw new GameException("There is no such account");
@@ -126,18 +129,21 @@ public class Controller {
                 Utils.getShop().getCards().stream().filter(card -> card instanceof Minion)
                         .collect(Collectors.toList());
         Collections.shuffle(cards);
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 10; i++) {
             account.getCollection().add(copyWithNewId(cards.get(i)));
         }
-
-        //account.getCollection().add(copyWithNewId(Utils.getShop().getHeroes().get(0)));
-        //account.getCollection().add(copyWithNewId((UsableItem) Utils.getShop().getObjectByName("king-wisdom")));
-        //for (int i = 0; i < 10; i++) {
-        //    account.getCollection().add(copyWithNewId((Card) Utils.getShop().getObjectByName("persian-commander")));
-        //    account.getCollection().add(copyWithNewId((Card) Utils.getShop().getObjectByName("all-power")));
-        //}
-
-
+        cards =
+                Utils.getShop().getCards().stream().filter(card -> card instanceof Spell)
+                        .collect(Collectors.toList());
+        Collections.shuffle(cards);
+        for (int i = 0; i < 10; i++) {
+            account.getCollection().add(copyWithNewId(cards.get(i)));
+        }
+        /*for (int i = 0; i < 20; i++) {
+            Spell spell=((Spell) Utils.getShop().getObjectByName("hellfire"));
+            account.getCollection().add(copyWithNewId(spell));
+        }
+*/
         createDeck("amin");
         for (Card card : account.getCollection().getCards()) {
             addToDeck(card.getId(), "amin");
@@ -178,6 +184,48 @@ public class Controller {
     }
 
     public void save() {
+        try {
+            Files.createDirectories(Paths.get("src/com/ap/duelyst/data"));
+            FileWriter writer = new FileWriter("src/com/ap/duelyst/data/accounts.txt",
+                    false);
+            writer.write(Utils.getGson().toJson(Utils.getAccounts()));
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private Deck importDeck(String name) {
+        try {
+            Files.createDirectories(Paths.get("src/com/ap/duelyst/data"));
+            FileReader reader =
+                    new FileReader("src/com/ap/duelyst/data/" + name + ".txt");
+            int c = reader.read();
+            StringBuilder deckString = new StringBuilder();
+            while (c != -1) {
+                deckString.append((char) c);
+                c = reader.read();
+            }
+            return Utils.getGson().fromJson(deckString.toString(),
+                    new TypeToken<Deck>() {
+            }.getType());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private void exportDeck(Deck deck) {
+        try {
+            Files.createDirectories(Paths.get("src/com/ap/duelyst/data"));
+            FileWriter writer = new FileWriter(
+                    "src/com/ap/duelyst/data/" + deck.getName() + ".txt",
+                    false);
+            writer.write(Utils.getGson().toJson(deck));
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void logout() {

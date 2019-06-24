@@ -7,27 +7,27 @@ import com.ap.duelyst.model.buffs.traget.TargetType;
 import com.ap.duelyst.model.cards.Hero;
 
 public class WeaknessBuff extends Buff {
-    private EffectType type;
+    private EffectType effectType1;
     private int damage;
     boolean isPoison;
 
     public WeaknessBuff(int duration, boolean continuous, TargetType target, SideType side, RangeType range,
-                        EffectType type, int damage) {
+                        EffectType effectType1, int damage) {
         super(duration, continuous, target, side, range);
-        this.type = type;
+        this.effectType1 = effectType1;
         this.damage = damage;
     }
 
     public EffectType getDamageType() {
-        return type;
+        return effectType1;
     }
 
     public int getDamage() {
         return damage;
     }
 
-    public void setType(EffectType type) {
-        this.type = type;
+    public void setEffectType1(EffectType effectType1) {
+        this.effectType1 = effectType1;
     }
 
     public void setDamage(int damage) {

@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane fx:id="root" prefWidth="0.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.ap.duelyst.view.customize.CustomCard">
+   <children>
+      <VBox alignment="CENTER_LEFT" maxWidth="600.0" prefHeight="200.0" prefWidth="100.0" spacing="16.0" style="-fx-background-color: rgba(0,0,0,0.65);">
+         <children>
+            <Label text="name" textFill="white">
+               <font>
+                  <Font size="20.0" />
+               </font>
+            </Label>
+            <TextField fx:id="name" maxWidth="300.0" />
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="16.0">
+               <children>
+                  <VBox spacing="16.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="card type" textFill="white">
+                           <font>
+                              <Font size="20.0" />
+                           </font>
+                        </Label>
+                        <ChoiceBox fx:id="cardType" prefWidth="150.0" />
+                     </children>
+                  </VBox>
+                  <VBox spacing="16.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="cost" textFill="white">
+                           <font>
+                              <Font size="20.0" />
+                           </font>
+                        </Label>
+                        <TextField fx:id="cost" />
+                     </children>
+                  </VBox>
+               </children>
+            </HBox>
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="16.0">
+               <children>
+                  <VBox spacing="16.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="target type" textFill="white">
+                           <font>
+                              <Font size="20.0" />
+                           </font>
+                        </Label>
+                        <ChoiceBox fx:id="targetType" prefWidth="150.0" />
+                     </children>
+                  </VBox>
+                  <VBox spacing="16.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="range type" textFill="white">
+                           <font>
+                              <Font size="20.0" />
+                           </font>
+                        </Label>
+                        <ChoiceBox fx:id="rangeType" prefWidth="150.0" />
+                     </children>
+                  </VBox>
+                  <VBox spacing="16.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="side type" textFill="white">
+                           <font>
+                              <Font size="20.0" />
+                           </font>
+                        </Label>
+                        <ChoiceBox fx:id="sideType" prefWidth="150.0" />
+                     </children>
+                  </VBox>
+               </children>
+               <VBox.margin>
+                  <Insets top="8.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="16.0">
+               <children>
+                  <VBox spacing="16.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="buff type" textFill="white">
+                           <font>
+                              <Font size="20.0" />
+                           </font>
+                        </Label>
+                        <ChoiceBox fx:id="buffType" prefWidth="150.0" />
+                     </children>
+                  </VBox>
+                  <VBox spacing="16.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="value" textFill="white">
+                           <font>
+                              <Font size="20.0" />
+                           </font>
+                        </Label>
+                        <ChoiceBox fx:id="buffValue" prefWidth="150.0" />
+                     </children>
+                  </VBox>
+                  <VBox spacing="16.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="duration" textFill="white">
+                           <font>
+                              <Font size="20.0" />
+                           </font>
+                        </Label>
+                        <ChoiceBox fx:id="buffDuration" prefWidth="150.0" />
+                     </children>
+                  </VBox>
+               </children>
+            </HBox>
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="16.0">
+               <children>
+                  <VBox spacing="16.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="AP" textFill="white">
+                           <font>
+                              <Font size="20.0" />
+                           </font>
+                        </Label>
+                        <TextField fx:id="ap" />
+                     </children>
+                  </VBox>
+                  <VBox spacing="16.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="HP" textFill="white">
+                           <font>
+                              <Font size="20.0" />
+                           </font>
+                        </Label>
+                        <TextField fx:id="hp" />
+                     </children>
+                  </VBox>
+                  <VBox spacing="16.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label prefWidth="200.0" text="attack type" textFill="white">
+                           <font>
+                              <Font size="20.0" />
+                           </font>
+                        </Label>
+                        <ChoiceBox fx:id="attackType" />
+                     </children>
+                  </VBox>
+                  <VBox spacing="16.0">
+                     <children>
+                        <Label text="range" textFill="white">
+                           <font>
+                              <Font size="20.0" />
+                           </font>
+                        </Label>
+                        <TextField fx:id="range" />
+                     </children>
+                  </VBox>
+               </children>
+               <VBox.margin>
+                  <Insets top="8.0" />
+               </VBox.margin>
+            </HBox>
+            <Label text="special power" textFill="white">
+               <font>
+                  <Font size="20.0" />
+               </font>
+            </Label>
+            <ChoiceBox fx:id="specialPower" prefWidth="150.0" />
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="16.0">
+               <children>
+                  <VBox spacing="16.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="mana" textFill="white">
+                           <font>
+                              <Font size="20.0" />
+                           </font>
+                        </Label>
+                        <TextField fx:id="mana" />
+                     </children>
+                  </VBox>
+                  <VBox spacing="16.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="special power activation time" textFill="white">
+                           <font>
+                              <Font size="20.0" />
+                           </font>
+                        </Label>
+                        <ChoiceBox fx:id="activationTime" prefWidth="200.0" />
+                     </children>
+                  </VBox>
+               </children>
+               <VBox.margin>
+                  <Insets top="8.0" />
+               </VBox.margin>
+            </HBox>
+            <Label text="special power cool down" textFill="white">
+               <font>
+                  <Font size="20.0" />
+               </font>
+               <VBox.margin>
+                  <Insets top="8.0" />
+               </VBox.margin>
+            </Label>
+            <TextField fx:id="coolDown" maxWidth="300.0" />
+            <Button minHeight="60.0" minWidth="200.0" mnemonicParsing="false" onAction="#showSprites" styleClass="button-primary" text="select sprite" />
+            <StackPane prefHeight="150.0" prefWidth="200.0">
+               <children>
+                  <Button minHeight="66.66" minWidth="200.0" mnemonicParsing="false" onAction="#save" styleClass="button-accept" text="save" />
+               </children>
+               <VBox.margin>
+                  <Insets top="8.0" />
+               </VBox.margin>
+            </StackPane>
+         </children>
+         <padding>
+            <Insets bottom="16.0" left="16.0" right="16.0" top="16.0" />
+         </padding>
+      </VBox>
+   </children>
+</StackPane>

@@ -7,7 +7,7 @@ import javafx.scene.image.ImageView;
 public abstract class Card implements Cloneable {
     private ImageView imageView;
     private String fileName;
-    private CardSprite cardSprite;
+    transient CardSprite cardSprite;
     private String id;
     private String name;
     private long price;
@@ -26,10 +26,7 @@ public abstract class Card implements Cloneable {
 
     public Card clone() throws CloneNotSupportedException {
         Card card = (Card) super.clone();
-        if(this.cardSprite != null){
-            card.cardSprite = this.getCardSprite().clone();
-            card.getCardSprite().play();
-        }
+        card.cardSprite = null;
         return card;
     }
 

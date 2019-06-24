@@ -4,6 +4,37 @@
     -fx-background-position: center;
 }
 
+.list-cell {
+    -fx-background-color: transparent;
+    -fx-cursor: hand;
+}
+
+.list-view {
+    -fx-background-color: transparent;
+}
+
+.list-view .scroll-bar:vertical .increment-arrow,
+.list-view .scroll-bar:vertical .decrement-arrow,
+.list-view .scroll-bar:vertical .increment-button,
+.list-view .scroll-bar:vertical .decrement-button {
+    -fx-padding: 0px;
+}
+
+.list-view .scroll-bar:vertical {
+    -fx-padding: 0px;
+}
+
+.back {
+    -fx-background-size: cover;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: center;
+}
+
+.shadow {
+    -fx-stroke-width: 1;
+    -fx-stroke: black;
+}
+
 .board-cell {
     -fx-background-color: rgba(0, 0, 0, 0.27);
     -fx-background-radius: 10;
@@ -48,4 +79,22 @@
     -fx-background-size: cover;
     -fx-background-repeat: no-repeat;
     -fx-background-position: top;
+}
+
+.button-accept {
+    -fx-background-image: url("file:///home/amin/Desktop/projects/Duelyst/resources/ui/button_confirm@2x.png");
+    -fx-padding: 16;
+}
+
+.button-accept:pressed {
+    -fx-background-image: url("file:///home/amin/Desktop/projects/Duelyst/resources/ui/button_confirm_glow@2x.png");
+}
+
+.button-primary {
+    -fx-background-image: url("file:///home/amin/Desktop/projects/Duelyst/resources/ui/button_primary@2x.png");
+    -fx-padding: 16;
+}
+
+.button-primary:pressed {
+    -fx-background-image: url("file:///home/amin/Desktop/projects/Duelyst/resources/ui/button_primary_glow@2x.png");
 }

@@ -1,6 +1,7 @@
 package com.ap.duelyst.model.cards;
 
 import com.ap.duelyst.model.buffs.Buff;
+import com.ap.duelyst.view.card.CardSprite;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,6 +12,7 @@ public class Spell extends Card {
     private int mana;
     private String desc;
     private String info;
+    private String effectFileName;
 
     public Spell(String name, long price,
                  int mana, String desc, Buff... effects) {
@@ -29,6 +31,11 @@ public class Spell extends Card {
             spell.addBuff(effect.clone());
         }
         return spell;
+    }
+
+    @Override
+    public void makeCardSprite() {
+        cardSprite = new CardSprite(getFileName(), effectFileName);
     }
 
     public void setEffects(List<Buff> effects) {
@@ -82,5 +89,13 @@ public class Spell extends Card {
     public String getInfoWithoutPrice() {
 
         return info + " - Sell Cost : " + getPrice();
+    }
+
+    public String getEffectFileName() {
+        return effectFileName;
+    }
+
+    public void setEffectFileName(String effectFileName) {
+        this.effectFileName = effectFileName;
     }
 }
