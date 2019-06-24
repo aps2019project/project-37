@@ -2,6 +2,9 @@ package com.ap.duelyst.view.battle;
 
 import com.ap.duelyst.controller.Controller;
 import com.ap.duelyst.controller.GameException;
+import com.ap.duelyst.controller.menu.BattleMenu;
+import com.ap.duelyst.controller.menu.MenuManager;
+import com.ap.duelyst.controller.menu.ingame.InGameBattleMenu;
 import com.ap.duelyst.model.Account;
 import com.ap.duelyst.model.Utils;
 import com.ap.duelyst.model.buffs.*;
@@ -103,10 +106,11 @@ public class BattleController implements Initializable {
     private CollectableItem selectedItem;
     private Card hoveredCard;
     private Item hoveredItem;
-    private boolean gameEnded;
     private List<CardSprite> fire = new ArrayList<>();
     private List<CardSprite> poison = new ArrayList<>();
     private List<CardSprite> holy = new ArrayList<>();
+    private InGameBattleMenu menu;
+    private MenuManager manager;
 
     {
         new Thread(() -> {
@@ -223,7 +227,7 @@ public class BattleController implements Initializable {
         });
         root.setOnMouseMoved(event -> {
             if (dialogContainer.isVisible() || notificationContainer.isVisible()
-                    || root.getChildren().size() > 5) {
+                    || root.getChildren().size() > 6) {
                 return;
             }
             boolean shouldHide = true;
@@ -338,7 +342,7 @@ public class BattleController implements Initializable {
                         "')")
         );
     }
-    
+
     private void showNotification(boolean mine) {
         if (mine) {
             notification.setStyle("-fx-background-image: url('" + mineNotifBack + "')");
@@ -382,7 +386,7 @@ public class BattleController implements Initializable {
         transition.play();
         transition.setOnFinished(event -> notificationContainer.setVisible(false));
     }
-    
+
     private void showHeroDialog(boolean showTop) {
         if (showTop) {
             VBox box = p2Box;
@@ -578,7 +582,8 @@ public class BattleController implements Initializable {
                                 }
                             }
                             if (first) {
-                                dialogController.showDialog("card cant attack or no target is detected");
+                                dialogController.showDialog("card cant attack or no " +
+                                        "target is detected");
                                 updateBoard(game.getInBoardCards(), true);
                             }
                         }
@@ -589,7 +594,8 @@ public class BattleController implements Initializable {
                                 return;
                             }
                             if (spell == null) {
-                                dialogController.showDialog("card doesnt have special power");
+                                dialogController.showDialog("card doesnt have special " +
+                                        "power");
                                 return;
                             }
                             if (selectedCard.isOnAttack()
@@ -604,7 +610,8 @@ public class BattleController implements Initializable {
                                 return;
                             }
                             if (selectedCard.getInGame().getCoolDown() > 0) {
-                                dialogController.showDialog("cool down time is not over yet");
+                                dialogController.showDialog("cool down time is not over" +
+                                        " yet");
                                 return;
                             }
                             first = false;
@@ -823,6 +830,7 @@ public class BattleController implements Initializable {
 
     public void setGame(Controller controller) {
         if (this.game == null) {
+            manager = controller.getMenuManager();
             this.game = controller.getGame();
             p1Name.setText(game.getPlayers().get(0).getAccountName());
             p2Name.setText(game.getPlayers().get(1).getAccountName());
@@ -863,8 +871,14 @@ public class BattleController implements Initializable {
 
                 @Override
                 public void gameEnded(String result) {
-                    gameEnded = true;
                     dialogController.showDialog(result);
+                    new Timer().schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            Platform.runLater(() ->
+                                    manager.setCurrentMenu(menu.getParentMenu().getParentMenu()));
+                        }
+                    }, 2000);
                 }
             });
             this.game.startGame();
@@ -1299,5 +1313,15 @@ public class BattleController implements Initializable {
                 }).collect(Collectors.toList());
         p1.getItems().addAll(p1List);
         return p1;
+    }
+
+    public void setMenu(InGameBattleMenu menu) {
+        this.menu = menu;
+    }
+
+    public void close() {
+        dialogController.setEventHandler(event ->
+                manager.setCurrentMenu(menu.getParentMenu().getParentMenu()));
+        dialogController.showDialog("Are you sure ?", true);
     }
 }

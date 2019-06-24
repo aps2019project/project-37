@@ -118,6 +118,7 @@ public class FirstMenuController implements Initializable {
                 try {
                     controller.createAccountGUI(userNameText.getText(),
                             passwordText.getText());
+                    dialogController.showDialog("account created successfully");
                 } catch (GameException e) {
                     errorLabel.setText(e.getMessage());
 //                    errorBox.setVisible(true);

@@ -12,33 +12,61 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.geometry.Insets?>
 
-<VBox fx:id="mainBox" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
-      prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.ap.duelyst.view.menus.SecondMenuController">
+
+<StackPane fx:id="root" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.ap.duelyst.view.menus.SecondMenuController">
     <children>
-        <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+        <VBox fx:id="mainBox">
             <children>
-                <ImageView fx:id="gameLogo" fitHeight="100.0" fitWidth="600.0" pickOnBounds="true"
-                           preserveRatio="true"/>
-            </children>
-        </HBox>
-        <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
-            <children>
-                <Label fx:id="userNameLabel" alignment="CENTER_RIGHT"
-                       style="-fx-font-size: 14pt; -fx-font-weight: bold; -fx-font-family: &quot;Times New Roman&quot;;"
-                       text="username : " textFill="#2b0e72"/>
-            </children>
-        </HBox>
-        <VBox alignment="CENTER" spacing="16.0">
-            <children>
-                <Button fx:id="battleButton" mnemonicParsing="false" prefHeight="60.0" prefWidth="200.0" text="Battle"/>
-                <Button fx:id="collectionButton" mnemonicParsing="false" prefHeight="60.0" prefWidth="200.0"
-                        text="Collection"/>
-                <Button fx:id="shopButton" mnemonicParsing="false" prefHeight="60.0" prefWidth="200.0" text="Shop"/>
-                <Button fx:id="customButton" mnemonicParsing="false" onAction="#showCustomCard" prefHeight="60.0" prefWidth="200.0"
-                        text="Custom Card"/>
-                <Button fx:id="exitButton" mnemonicParsing="false" prefHeight="60.0" prefWidth="200.0" text="Exit"/>
+                <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+                    <children>
+                        <ImageView fx:id="gameLogo" fitHeight="100.0" fitWidth="600.0" pickOnBounds="true"
+                                   preserveRatio="true"/>
+                    </children>
+                </HBox>
+                <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+                    <children>
+                        <Label fx:id="userNameLabel" alignment="CENTER_RIGHT"
+                               style="-fx-font-size: 14pt; -fx-font-weight: bold; -fx-font-family: &quot;Times New Roman&quot;;"
+                               text="username : " textFill="#2b0e72"/>
+                    </children>
+                </HBox>
+                <VBox alignment="CENTER" spacing="16.0">
+                    <children>
+                        <Button fx:id="battleButton" mnemonicParsing="false" prefHeight="60.0" prefWidth="200.0"
+                                text="Battle"/>
+                        <Button fx:id="collectionButton" mnemonicParsing="false" prefHeight="60.0" prefWidth="200.0"
+                                text="Collection"/>
+                        <Button fx:id="shopButton" mnemonicParsing="false" prefHeight="60.0" prefWidth="200.0"
+                                text="Shop"/>
+                        <Button fx:id="customButton" mnemonicParsing="false" onAction="#showCustomCard"
+                                prefHeight="60.0" prefWidth="200.0" text="Custom Card"/>
+                        <Button fx:id="exitButton" mnemonicParsing="false" prefHeight="60.0" prefWidth="200.0"
+                                text="Exit"/>
+                    </children>
+                </VBox>
             </children>
         </VBox>
+        <VBox fx:id="dialogContainer" alignment="CENTER" fillWidth="false" prefHeight="200.0" prefWidth="100.0"
+              style="-fx-background-color: rgba(0,0,0,0.61);">
+            <children>
+                <HBox fx:id="dialog" alignment="CENTER_RIGHT">
+                    <children>
+                        <Label fx:id="dialogText" textFill="#090222" wrapText="true">
+                            <font>
+                                <Font size="22.0"/>
+                            </font>
+                            <opaqueInsets>
+                                <Insets/>
+                            </opaqueInsets>
+                        </Label>
+                    </children>
+                    <padding>
+                        <Insets bottom="16.0" left="16.0" right="64.0" top="16.0"/>
+                    </padding>
+                </HBox>
+            </children>
+        </VBox>
+
     </children>
-</VBox>
+</StackPane>
