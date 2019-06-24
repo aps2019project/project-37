@@ -3,10 +3,7 @@ package com.ap.duelyst;
 import com.ap.duelyst.controller.Controller;
 import com.ap.duelyst.controller.menu.*;
 import com.ap.duelyst.model.Utils;
-import com.ap.duelyst.view.menus.CollectionController;
-import com.ap.duelyst.view.menus.FirstMenuController;
-import com.ap.duelyst.view.menus.SecondMenuController;
-import com.ap.duelyst.view.menus.ShopController;
+import com.ap.duelyst.view.menus.*;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -23,10 +20,12 @@ public class Main_test extends Application {
     private FXMLLoader secondMenuLoader;
     private FXMLLoader shopLoader;
     private FXMLLoader collectionLoader;
+    private FXMLLoader battleMenuLoader;
     private FirstMenuController firstMenuController;
     private SecondMenuController secondMenuController;
     private ShopController shopController;
     private CollectionController collectionController;
+    private BattleMenuController battleMenuController;
     private static Menu currentMenu;
     private static MenuManager menuManager;
     private static Controller controller;
@@ -34,6 +33,7 @@ public class Main_test extends Application {
     private Scene mainMenuScene;
     private Scene shopScene;
     private Scene collectionScene;
+    private Scene battleScene;
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -45,11 +45,14 @@ public class Main_test extends Application {
                 new FXMLLoader(getClass().getResource("view/menus/shop.fxml"));
         collectionLoader =
                 new FXMLLoader(getClass().getResource("view/menus/collection.fxml"));
+        battleMenuLoader =
+                new FXMLLoader(getClass().getResource("view/menus/battleMenu.fxml"));
 
         loginPageScene = makeLogInPageScene();
         mainMenuScene = makeMainMenuScene();
         shopScene = makeShopScene();
         collectionScene = makeCollectionScene();
+        battleScene = makeBattleMenuScene();
 
         updateMenu(primaryStage);
         new AnimationTimer() {
@@ -91,6 +94,11 @@ public class Main_test extends Application {
             collectionController.update();
             stage.setScene(collectionScene);
             stage.setTitle("Game Of Cards: Collection");
+        }else if(currentMenu instanceof BattleMenu){
+            battleMenuController.setBattleMenu((BattleMenu) currentMenu);
+            battleMenuController.update();
+            stage.setScene(battleScene);
+            stage.setTitle("Game Of Cars: Battle Menu");
         }
         stage.getScene().setCursor(new ImageCursor(new Image(Utils.getPath("mouse_auto.png"))));
     }
@@ -110,7 +118,7 @@ public class Main_test extends Application {
         secondMenuController.setMenuManager(menuManager);
         secondMenuController.setController(controller);
         Scene scene = new Scene(root, 800, 600);
-        scene.getStylesheets().add("com/ap/duelyst/secondMenu.css");
+        scene.getStylesheets().add("com/ap/duelyst/SecondMenu.css");
         return scene;
     }
     private Scene makeShopScene() throws IOException{
@@ -129,6 +137,15 @@ public class Main_test extends Application {
         collectionController.setController(controller);
         Scene scene = new Scene(root, 800, 600);
         scene.getStylesheets().add("com/ap/duelyst/collection.css");
+        return scene;
+    }
+    private Scene makeBattleMenuScene() throws IOException{
+        Parent root = battleMenuLoader.load();
+        battleMenuController = battleMenuLoader.getController();
+        battleMenuController.setMenuManager(menuManager);
+        battleMenuController.setController(controller);
+        Scene scene = new Scene(root, 800, 600);
+        scene.getStylesheets().add("com/ap/duelyst/BattleMenu.css");
         return scene;
     }
     public static void main(String[] args) {

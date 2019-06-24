@@ -8,7 +8,7 @@ import com.ap.duelyst.model.Utils;
 
 public class BattleMenu extends Menu {
 
-    enum PlayMode {
+    public enum PlayMode {
         SINGLE_PLAYER("1"),
         MULTI_PLAYER("2"),
         UNKNOWN("-1");
@@ -320,14 +320,14 @@ public class BattleMenu extends Menu {
         }
     }
 
-    private String storyString() {
+    public String storyString() {
         return "choose one\n1.  Hero: white-beast   mode: kill-enemy-hero  reward: " +
                 "500\n" +
                 "2.  Hero: zahhak   mode: keep-flags-8-rounds  reward: 1000\n" +
                 "3.  Hero: arash   mode: collect-half-flags  reward: 1500\n";
     }
 
-    private String customGameString() {
+    public String customGameString() {
         StringBuilder builder = new StringBuilder();
         for (int i = 1; i <= 3; i++) {
             try {
@@ -345,5 +345,21 @@ public class BattleMenu extends Menu {
                 "\t3. collect-half-flags\n" +
                 "reward: 1000\n" +
                 "tip: start game [deck name] [mode] [flag numbers]\n";
+    }
+
+    public void setStoryLevel(StoryLevel storyLevel) {
+        this.storyLevel = storyLevel;
+    }
+
+    public void setPlayMode(PlayMode playMode) {
+        this.playMode = playMode;
+    }
+
+    public void setCustomGameMode(CustomGameMode customGameMode) {
+        this.customGameMode = customGameMode;
+    }
+
+    public InGameBattleMenu getInGameBattleMenu() {
+        return inGameBattleMenu;
     }
 }

@@ -59,6 +59,9 @@ public class SecondMenuController implements Initializable {
         collectionButton.setOnAction(e -> {
             menuManager.setCurrentMenu(mainMenu.getCollectionMenu());
         });
+        battleButton.setOnAction(e-> {
+            menuManager.setCurrentMenu(mainMenu.getBattleMenu());
+        });
         setButtonGlowOnMouseMoving(exitButton);
         setButtonGlowOnMouseMoving(collectionButton);
         setButtonGlowOnMouseMoving(shopButton);

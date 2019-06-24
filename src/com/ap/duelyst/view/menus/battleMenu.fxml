@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+
+<StackPane fx:id="mainPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.ap.duelyst.view.menus.BattleMenuController">
+   <children>
+      <VBox fx:id="playerModeBox" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" spacing="20.0">
+         <children>
+            <Label style="-fx-font-size: 16;" text="Select Player Mode" />
+            <Button fx:id="singlePlayerButton" mnemonicParsing="false" prefHeight="60.0" prefWidth="200.0" text="Single Player" />
+            <Button fx:id="multiPlayerButton" mnemonicParsing="false" prefHeight="60.0" prefWidth="200.0" text="Multi Player" />
+         </children>
+      </VBox>
+      <VBox fx:id="singlePlayerBox" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="20.0" visible="false">
+         <children>
+            <Label style="-fx-font-size: 16;" text="Select Game Mode" />
+            <Button fx:id="storyButton" mnemonicParsing="false" prefHeight="60.0" prefWidth="200.0" text="Story" />
+            <Button fx:id="customButton" mnemonicParsing="false" prefHeight="60.0" prefWidth="200.0" text="Custom" />
+         </children>
+      </VBox>
+      <VBox fx:id="storyBox" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="20.0" visible="false">
+         <children>
+            <Label style="-fx-font-size: 16;" text="Select Story" />
+            <Label fx:id="storyDescription" text="StoryDescription" />
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+               <children>
+                  <Button fx:id="story1" mnemonicParsing="false" text="Story 1" />
+                  <Button fx:id="story2" mnemonicParsing="false" text="Story 2" />
+                  <Button fx:id="story3" mnemonicParsing="false" text="Story 3" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+      <VBox fx:id="customBox" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="20.0" visible="false">
+         <children>
+            <Label style="-fx-font-size: 16;" text="Select Custom Mode" />
+            <Label fx:id="customDescription" text="customDescp" />
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+               <children>
+                  <Button fx:id="custom1" mnemonicParsing="false" text="Custom 1" />
+                  <Button fx:id="custom2" mnemonicParsing="false" text="Custom 2" />
+                  <Button fx:id="custom3" mnemonicParsing="false" text="Story 3" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+   </children>
+</StackPane>
