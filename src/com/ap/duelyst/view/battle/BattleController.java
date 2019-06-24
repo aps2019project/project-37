@@ -4,38 +4,41 @@ import com.ap.duelyst.controller.Controller;
 import com.ap.duelyst.controller.GameException;
 import com.ap.duelyst.model.Account;
 import com.ap.duelyst.model.Utils;
+import com.ap.duelyst.model.buffs.*;
 import com.ap.duelyst.model.cards.Card;
 import com.ap.duelyst.model.cards.Hero;
 import com.ap.duelyst.model.cards.Minion;
 import com.ap.duelyst.model.cards.Spell;
 import com.ap.duelyst.model.game.Game;
 import com.ap.duelyst.model.game.Player;
+import com.ap.duelyst.model.items.CollectableItem;
+import com.ap.duelyst.model.items.Item;
 import com.ap.duelyst.view.GameEvents;
 import com.ap.duelyst.view.card.CardSprite;
-import javafx.animation.FadeTransition;
-import javafx.animation.ParallelTransition;
-import javafx.animation.ScaleTransition;
-import javafx.animation.TranslateTransition;
+import javafx.animation.*;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.Initializable;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
 import javafx.scene.transform.Rotate;
 import javafx.util.Duration;
 
 import java.net.URL;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class BattleController implements Initializable {
     public HBox manaBox;
@@ -57,6 +60,9 @@ public class BattleController implements Initializable {
     public VBox dialogContainer;
     public VBox notificationContainer;
     public Label notification;
+    public VBox rightButtonContainer;
+    public Button collectibleButton;
+    public Button graveYardButton;
     private Game game;
     public StackPane root;
     public HBox handContainer;
@@ -89,9 +95,43 @@ public class BattleController implements Initializable {
     private StackPane container;
     private Account account;
     private boolean first = true;
+    private MouseButton firstClickType = MouseButton.PRIMARY;
     private Hero selectedCard;
+    private CollectableItem selectedItem;
     private Card hoveredCard;
+    private Item hoveredItem;
     private boolean gameEnded;
+    private List<CardSprite> fire = new ArrayList<>();
+    private List<CardSprite> poison = new ArrayList<>();
+    private List<CardSprite> holy = new ArrayList<>();
+
+    {
+        new Thread(() -> {
+            addToList("hellfire", fire);
+            addToList("poison-lake", poison);
+            addToList("health-with-benefit", holy);
+        }).start();
+    }
+
+    private void addToList(String name, List<CardSprite> list) {
+        Spell spell = (Spell) Utils.getShop().getObjectByName(name);
+        for (int i = 0; i < 9; i++) {
+            try {
+                spell = spell.clone();
+            } catch (CloneNotSupportedException e) {
+                e.printStackTrace();
+            }
+            CardSprite sp = spell.getCardSprite();
+            if (sp == null) {
+                spell.makeCardSprite();
+            }
+            sp = spell.getCardSprite().clone();
+            sp.showEffect();
+            sp.setCycleCount(Animation.INDEFINITE);
+            sp.playFromStart();
+            list.add(sp);
+        }
+    }
 
 
     @Override
@@ -142,13 +182,15 @@ public class BattleController implements Initializable {
                                 CardSprite sprite =
                                         insertableCard.getCardSprite().clone();
                                 sprite.showEffect();
-                                root.getChildren().add(sprite.getImageView());
+                                VBox vBox = new VBox(sprite.getImageView());
+                                vBox.setStyle("-fx-background-color: rgba(0,0,0,0.51)");
+                                root.getChildren().add(vBox);
                                 Bounds bounds =
                                         child.localToScene(child.getBoundsInLocal());
                                 sprite.getImageView().setTranslateX(bounds.getMinX());
                                 sprite.getImageView().setTranslateY(bounds.getMinY());
                                 sprite.setOnFinished(e ->
-                                        root.getChildren().remove(sprite.getImageView()));
+                                        root.getChildren().remove(vBox));
                             }
                             insertableCard = null;
                         } catch (GameException e) {
@@ -177,7 +219,8 @@ public class BattleController implements Initializable {
             }
         });
         root.setOnMouseMoved(event -> {
-            if (dialogContainer.isVisible() || notificationContainer.isVisible()) {
+            if (dialogContainer.isVisible() || notificationContainer.isVisible()
+                    || root.getChildren().size() > 4) {
                 return;
             }
             boolean shouldHide = true;
@@ -191,6 +234,24 @@ public class BattleController implements Initializable {
                         if (card != hoveredCard) {
                             hoveredCard = card;
                             showHeroDialog(true);
+                        }
+                        break;
+                    }
+                    Item item = game.getBoard().get(GridPane.getRowIndex(child))
+                            .get(GridPane.getColumnIndex(child)).getCollectableItem();
+                    if (item != null) {
+                        shouldHide = false;
+                        if (item != hoveredItem) {
+                            hoveredItem = item;
+                            Bounds bounds = child.localToScene(child.getBoundsInLocal());
+                            heroDialogCard.setTranslateX(bounds.getMinX() +
+                                    bounds.getWidth() / 2 - heroDialogCard.getWidth() / 2);
+                            double h = bounds.getMinY() - heroDialogCard.getHeight();
+                            if (h < 0) {
+                                h += heroDialogCard.getHeight() + bounds.getHeight();
+                            }
+                            heroDialogCard.setTranslateY(h);
+                            showHeroDialog(false);
                         }
                         break;
                     }
@@ -230,17 +291,48 @@ public class BattleController implements Initializable {
         prepareBoard();
         prepareMana();
         prepareDialog();
-        turnButton.setText("     End Turn     ");
-        turnButton.prefHeightProperty().bind(turnButton.widthProperty().divide(3.07));
-        turnButton.setPadding(new Insets(16));
-        turnButton.getStyleClass().add("hand-container");
-        turnButton.setStyle("-fx-background-image: url('" + turn + "')");
+        prepareRightButtons();
         notification.setStyle("-fx-background-image: url('" + mineNotifBack + "')");
         notification.getStyleClass().addAll("back", "shadow");
         notification.prefWidthProperty().bind(root.widthProperty().multiply(.5));
         notification.prefHeightProperty()
                 .bind(notification.prefWidthProperty().divide(4.571));
         notification.setText("your turn");
+    }
+
+    private void prepareRightButtons() {
+        turnButton.setText("     End Turn     ");
+        turnButton.prefWidthProperty().bind(rightButtonContainer.prefWidthProperty().multiply(.8));
+        turnButton.prefHeightProperty().bind(turnButton.prefWidthProperty().divide(3.07));
+        turnButton.setPadding(new Insets(16));
+        turnButton.getStyleClass().add("hand-container");
+        turnButton.setStyle("-fx-background-image: url('" + turn + "')");
+        collectibleButton.prefWidthProperty()
+                .bind(rightButtonContainer.prefWidthProperty().divide(2));
+        graveYardButton.prefWidthProperty()
+                .bind(rightButtonContainer.prefWidthProperty().divide(2));
+        String rightBack = Utils.getPath("button_primary_right@2x.png");
+        String rightBackGlow = Utils.getPath("button_primary_right_glow@2x.png");
+        String leftBack = Utils.getPath("button_primary_left@2x.png");
+        String leftBackGlow = Utils.getPath("button_primary_left_glow@2x.png");
+        collectibleButton.setStyle("-fx-background-image: url('" + leftBack + "')");
+        graveYardButton.setStyle("-fx-background-image: url('" + rightBack + "')");
+        collectibleButton.setPadding(new Insets(16));
+        graveYardButton.setPadding(new Insets(16));
+        collectibleButton.setOnMousePressed(event ->
+                collectibleButton.setStyle("-fx-background-image: url('" + leftBackGlow + "')")
+        );
+        collectibleButton.setOnMouseReleased(event ->
+                collectibleButton.setStyle("-fx-background-image: url('" + leftBack +
+                        "')")
+        );
+        graveYardButton.setOnMousePressed(event ->
+                graveYardButton.setStyle("-fx-background-image: url('" + rightBackGlow + "')")
+        );
+        graveYardButton.setOnMouseReleased(event ->
+                graveYardButton.setStyle("-fx-background-image: url('" + rightBack +
+                        "')")
+        );
     }
 
     private void prepareDialog() {
@@ -348,9 +440,14 @@ public class BattleController implements Initializable {
         fadeTransition.setFromValue(0);
         fadeTransition.setToValue(1);
         fadeTransition.play();
-        CardSprite sprite = hoveredCard.getCardSprite().clone();
+        CardSprite sprite;
+        if (hoveredCard != null) {
+            sprite = hoveredCard.getCardSprite().clone();
+        } else {
+            sprite = hoveredItem.getCardSprite().clone();
+        }
         sprite.play();
-        if (hoveredCard instanceof Spell) {
+        if (hoveredCard instanceof Spell || hoveredItem != null) {
             sprite.showActive();
             sprite.getImageView().setScaleX(2);
             sprite.getImageView().setScaleY(2);
@@ -361,39 +458,48 @@ public class BattleController implements Initializable {
                 Platform.runLater(() -> {
                     VBox vBox = (VBox) heroDialogCard.getChildren().get(0);
                     vBox.getChildren().set(0, sprite.getImageView());
-                    if (hoveredCard instanceof Spell) {
+                    if (hoveredCard instanceof Spell || hoveredItem != null) {
                         VBox.setMargin(sprite.getImageView(),
                                 new Insets(48, 0, 32, 0));
                     }
                 });
             }
         }, 100);
-        heroName.setText(hoveredCard.getName().replaceAll("-", " "));
-        heroType.setText(hoveredCard.getClass().getSimpleName().toLowerCase());
-        if (hoveredCard instanceof Hero) {
-            String back = Utils.getPath("neutral_unit@2x.png");
-            heroDialogCard.setStyle("-fx-background-image: url('" + back + "')");
-            heroAP.getParent().setVisible(true);
-            Hero hero = (Hero) hoveredCard;
-            heroAP.setText(String.valueOf(hero.getAttackPowerInGame()));
-            heroHP.setText(String.valueOf(hero.getHealthPointInGame()));
-            if (hero.getSpecialPower() != null) {
-                heroDesc.setText(hero.getSpecialPower().getDesc());
+        if (hoveredCard != null) {
+            heroName.setText(hoveredCard.getName().replaceAll("-", " "));
+            heroType.setText(hoveredCard.getClass().getSimpleName().toLowerCase());
+            if (hoveredCard instanceof Hero) {
+                String back = Utils.getPath("neutral_unit@2x.png");
+                heroDialogCard.setStyle("-fx-background-image: url('" + back + "')");
+                heroAP.getParent().setVisible(true);
+                Hero hero = (Hero) hoveredCard;
+                heroAP.setText(String.valueOf(hero.getAttackPowerInGame()));
+                heroHP.setText(String.valueOf(hero.getHealthPointInGame()));
+                if (hero.getSpecialPower() != null) {
+                    heroDesc.setText(hero.getSpecialPower().getDesc());
+                } else {
+                    heroDesc.setText("no special power");
+                }
             } else {
-                heroDesc.setText("no special power");
+                Spell spell = (Spell) hoveredCard;
+                String back = Utils.getPath("neutral_artifact.png");
+                heroDialogCard.setStyle("-fx-background-image: url('" + back + "')");
+                heroAP.getParent().setVisible(false);
+                heroDesc.setText(spell.getDesc());
             }
         } else {
-            Spell spell = (Spell) hoveredCard;
             String back = Utils.getPath("neutral_artifact.png");
-            heroDialogCard.setStyle("-fx-background-image: url('" + back + "')");
             heroAP.getParent().setVisible(false);
-            heroDesc.setText(spell.getDesc());
+            heroDialogCard.setStyle("-fx-background-image: url('" + back + "')");
+            heroName.setText(hoveredItem.getName());
+            heroDesc.setText(hoveredItem.getDesc());
+            heroType.setText(hoveredItem.getClass().getSimpleName().toLowerCase());
         }
 
     }
 
     private void hideHeroDialog() {
-        if (hoveredCard == null) {
+        if (hoveredCard == null && hoveredItem == null) {
             return;
         }
         FadeTransition fadeTransition = new FadeTransition(Duration.millis(300),
@@ -402,6 +508,7 @@ public class BattleController implements Initializable {
         fadeTransition.setToValue(0);
         fadeTransition.play();
         hoveredCard = null;
+        hoveredItem = null;
     }
 
     private void prepareHeroDialogCard() {
@@ -516,9 +623,85 @@ public class BattleController implements Initializable {
                                 updateBoard(game.getInBoardCards(), true);
                             }
                         }
+                        if (event.getButton() == MouseButton.MIDDLE) {
+                            Spell spell = selectedCard.getSpecialPower();
+                            if (selectedCard.getClass() != Hero.class) {
+                                showDialog("card is not a hero");
+                                return;
+                            }
+                            if (spell == null) {
+                                showDialog("card doesnt have special power");
+                                return;
+                            }
+                            if (selectedCard.isOnAttack()
+                                    || selectedCard.isPassive()) {
+                                showDialog("hero's power is" +
+                                        " not controllable by player");
+                                return;
+                            }
+                            if (game.getCurrentPlayer().getMana()
+                                    < selectedCard.getSpecialPowerMana()) {
+                                showDialog("not enough mana");
+                                return;
+                            }
+                            if (selectedCard.getInGame().getCoolDown() > 0) {
+                                showDialog("cool down time is not over yet");
+                                return;
+                            }
+                            first = false;
+                            for (Node child : board.getChildren()) {
+                                child.setDisable(false);
+                                child.setStyle("-fx-background-color: rgba(249,255," +
+                                        "249,0.51)");
+                            }
+                            firstClickType = MouseButton.SECONDARY;
+                        }
                     } else {
                         first = true;
                         Hero card = game.getCardAt(finalI, finalJ);
+                        if (firstClickType == MouseButton.SECONDARY) {
+                            firstClickType = MouseButton.PRIMARY;
+                            try {
+                                game.useSpecialPower(selectedCard, finalI, finalJ);
+                                CardSprite sprite = selectedCard.getSpecialPower()
+                                        .getCardSprite();
+                                if (sprite == null) {
+                                    selectedCard.getSpecialPower().makeCardSprite();
+                                    sprite = selectedCard.getSpecialPower()
+                                            .getCardSprite();
+                                }
+                                sprite.showEffect();
+                                ImageView imageView = sprite.getImageView();
+                                imageView.setScaleX(2);
+                                imageView.setScaleY(2);
+                                VBox vBox = new VBox(sprite.getImageView());
+                                vBox.setStyle("-fx-background-color: rgba(0,0,0,0.51)");
+                                sprite.setOnFinished(e -> root.getChildren().remove(vBox));
+                                root.getChildren().add(vBox);
+                                vBox.setAlignment(Pos.CENTER);
+                                updateHand();
+                            } catch (GameException e) {
+                                showDialog(e.getMessage());
+                            }
+                            updateBoard(game.getInBoardCards(), true);
+                            return;
+                        }
+                        if (selectedItem != null) {
+                            try {
+                                game.useCollectable(selectedItem);
+                                CardSprite sprite = poison.get(0).clone();
+                                sprite.showEffect();
+                                root.getChildren().add(sprite.getImageView());
+                                StackPane.setAlignment(sprite.getImageView(), Pos.CENTER);
+                                sprite.setOnFinished(event1 ->
+                                        root.getChildren().remove(sprite.getImageView()));
+                            } catch (GameException e) {
+                                showDialog(e.getMessage());
+                            }
+                            updateBoard(game.getInBoardCards(), true);
+                            selectedItem = null;
+                            return;
+                        }
                         if (card != null
                                 && !card.getAccountName().equals(account.getUserName())) {
                             StackPane pane1 = getNodeByRowColumnIndex(selectedCard.getX(),
@@ -552,22 +735,7 @@ public class BattleController implements Initializable {
                             int oldX = selectedCard.getX();
                             int oldY = selectedCard.getY();
                             game.move(selectedCard, finalI, finalJ);
-                            updateBoard(game.getInBoardCards(), false);
-                            selectedCard.getCardSprite().showRun();
-
-                            ParallelTransition transition = new ParallelTransition();
-                            for (Node child :
-                                    getNodeByRowColumnIndex(oldX, oldY).getChildren()) {
-                                if (child instanceof ImageView) {
-                                    transition.getChildren().add(move(oldX, oldY,
-                                            finalI, finalJ, child));
-                                }
-                            }
-                            transition.play();
-                            transition.setOnFinished(e -> {
-                                selectedCard.getCardSprite().showBreathing();
-                                updateBoard(game.getInBoardCards(), true);
-                            });
+                            move(selectedCard, oldX, oldY, finalI, finalJ);
                         } else {
                             updateBoard(game.getInBoardCards(), true);
                         }
@@ -586,8 +754,27 @@ public class BattleController implements Initializable {
         }
     }
 
-    private TranslateTransition move(int oldX, int oldY, int finalI, int finalJ,
-                                     Node node) {
+    private void move(Card card, int oldX, int oldY, int finalI, int finalJ) {
+        updateBoard(game.getInBoardCards(), false);
+        card.getCardSprite().showRun();
+        ParallelTransition transition = new ParallelTransition();
+        StackPane pane = getNodeByRowColumnIndex(oldX, oldY);
+        pane.setStyle("");
+        for (Node child : pane.getChildren()) {
+            if (child instanceof ImageView) {
+                transition.getChildren().add(moveAnimation(oldX, oldY,
+                        finalI, finalJ, child));
+            }
+        }
+        transition.play();
+        transition.setOnFinished(e -> {
+            card.getCardSprite().showBreathing();
+            updateBoard(game.getInBoardCards(), true);
+        });
+    }
+
+    private TranslateTransition moveAnimation(int oldX, int oldY, int finalI, int finalJ,
+                                              Node node) {
         TranslateTransition transition =
                 new TranslateTransition(Duration.seconds(1),
                         node);
@@ -638,8 +825,9 @@ public class BattleController implements Initializable {
     }
 
     private void prepareHand() {
-        handContainer.prefWidthProperty().bind(root.widthProperty().multiply(.6));
-        handContainer.prefHeightProperty().bind(root.heightProperty().multiply(.15));
+        handContainer.setMinHeight(150);
+        handContainer.setMaxHeight(150);
+        handContainer.setPrefHeight(150);
         for (int i = 0; i < 5; i++) {
             StackPane pane = new StackPane();
             pane.setAlignment(Pos.CENTER);
@@ -684,7 +872,9 @@ public class BattleController implements Initializable {
                 @Override
                 public void nextRound(List<Hero> inGameCards) {
                     updateHand();
-                    updateBoard(inGameCards, true);
+                    if (!game.getCurrentPlayer().getAccountName().equals("AI")) {
+                        updateBoard(inGameCards, true);
+                    }
                     if (game.getCurrentPlayer().getAccountName().equals(account.getUserName())) {
                         showNotification(true);
                         turnButton.setDisable(false);
@@ -704,6 +894,12 @@ public class BattleController implements Initializable {
                         turnButton.setDisable(true);
                     }
 
+                }
+
+                @Override
+                public void AIMove(Card card, int oldX, int oldY, int finalI,
+                                   int finalJ) {
+                    move(card, oldX, oldY, finalI, finalJ);
                 }
 
                 @Override
@@ -855,17 +1051,55 @@ public class BattleController implements Initializable {
                 if (game.getBoard().get(i).get(j).isHasFlag()) {
                     addFlag(i, j, false);
                 }
+                Item item = game.getBoard().get(i).get(j).getCollectableItem();
+                if (item != null) {
+                    addCollectableItem(i, j, item);
+                }
+                List<Buff> buffs = game.getBoard().get(i).get(j).getBuffs();
+                for (Buff buff : buffs) {
+                    Buff buff1 = ((CellBuff) buff).getBuff();
+                    if (buff1.getClass() == WeaknessBuff.class) {
+                        addImageView(getNodeByRowColumnIndex(i, j),
+                                fire.get(0).getImageView());
+                        fire.add(fire.remove(0));
+                    } else if (buff1.getClass() == PoisonBuff.class) {
+                        addImageView(getNodeByRowColumnIndex(i, j),
+                                poison.get(0).getImageView());
+                        poison.add(poison.remove(0));
+                    } else if (buff1.getClass() == HolyBuff.class) {
+                        addImageView(getNodeByRowColumnIndex(i, j),
+                                holy.get(0).getImageView());
+                        holy.add(holy.remove(0));
+                    }
+                }
             }
         }
+    }
+
+    private void addCollectableItem(int x, int y, Item item) {
+        StackPane pane = getNodeByRowColumnIndex(x, y);
+        if (item.getCardSprite() == null) {
+            item.makeSprite();
+            item.getCardSprite().play();
+        }
+        ImageView imageView = item.getCardSprite().getImageView();
+        imageView.setScaleX(1.7);
+        imageView.setScaleY(1.7);
+        pane.getChildren().remove(imageView);
+        addImageView(pane, imageView);
+    }
+
+    private void addImageView(StackPane pane, ImageView imageView) {
+        imageView.fitHeightProperty().bind(pane.prefHeightProperty().multiply(.8));
+        imageView.fitWidthProperty().bind(imageView.fitHeightProperty().multiply(.457));
+        pane.getChildren().add(imageView);
+        imageView.toFront();
     }
 
     private void addFlag(int x, int y, boolean isOwned) {
         StackPane pane = getNodeByRowColumnIndex(x, y);
         ImageView imageView = new ImageView(flag);
-        imageView.fitHeightProperty().bind(pane.prefHeightProperty().multiply(.8));
-        imageView.fitWidthProperty().bind(imageView.fitHeightProperty().multiply(.457));
-        pane.getChildren().add(imageView);
-        imageView.toFront();
+        addImageView(pane, imageView);
         if (isOwned) {
             StackPane.setAlignment(imageView, Pos.TOP_RIGHT);
             StackPane.setMargin(imageView, new Insets(8, 8, 0, 0));
@@ -945,5 +1179,138 @@ public class BattleController implements Initializable {
 
     public void endTurn() {
         game.endTurn();
+    }
+
+    public void showCollectibles() {
+        if (game.getCurrentPlayer().getAccountName().equals(account.getUserName())) {
+            VBox vBox = new VBox();
+            vBox.setFillWidth(false);
+            vBox.setStyle("-fx-background-color: rgba(0,0,0,0.71)");
+            vBox.setAlignment(Pos.CENTER);
+            vBox.setPadding(new Insets(128, 0, 128, 0));
+            vBox.setOnMouseClicked(event -> root.getChildren().remove(vBox));
+            ListView<VBox> p1 = new ListView<>();
+            String back = Utils.getPath("neutral_artifact.png");
+            List<VBox> p1List = game.getCurrentPlayer().getCollectableItems().stream()
+                    .map(item -> {
+                        VBox box = new VBox(16);
+                        box.getStyleClass().add("back");
+                        box.setPadding(new Insets(8));
+                        box.setAlignment(Pos.CENTER);
+                        CardSprite sprite = item.getCardSprite();
+                        if (sprite == null) {
+                            item.makeSprite();
+                        }
+                        sprite = item.getCardSprite().clone();
+                        sprite.play();
+                        ImageView imageView = sprite.getImageView();
+                        imageView.setFitHeight(150);
+                        imageView.setFitWidth(150);
+                        box.getChildren().add(imageView);
+                        Label label = new Label(item.getName());
+                        label.setTextFill(Color.WHITE);
+                        label.setStyle("-fx-font-size: 18");
+                        label.setWrapText(true);
+                        label.setAlignment(Pos.CENTER);
+                        label.setMaxWidth(150);
+                        Label label1 = new Label(item.getDesc());
+                        label1.setTextFill(Color.WHITE);
+                        label1.setAlignment(Pos.CENTER);
+                        label1.setWrapText(true);
+                        label1.setMaxWidth(150);
+                        box.getChildren().add(label);
+                        box.getChildren().add(label1);
+                        box.prefHeightProperty()
+                                .bind(box.widthProperty().multiply(1.309));
+                        box.setStyle("-fx-background-image: url('" + back + "')");
+                        box.setOnMouseClicked(event -> {
+                            root.getChildren().remove(vBox);
+                            selectedItem = item;
+                            first = false;
+                            for (Node child : board.getChildren()) {
+                                child.setDisable(false);
+                                child.setStyle("-fx-background-color: rgba(255,160,238," +
+                                        "0.71)");
+                            }
+                        });
+                        return box;
+                    }).collect(Collectors.toList());
+            p1.getItems().addAll(p1List);
+            vBox.getChildren().add(p1);
+            VBox.setVgrow(p1, Priority.ALWAYS);
+            root.getChildren().add(vBox);
+        } else {
+            showDialog("it's not your turn");
+        }
+    }
+
+    public void showGraveYard() {
+        List<Card> cards = game.getGraveYard().getCards();
+        VBox vBox1 = new VBox();
+        vBox1.setAlignment(Pos.TOP_CENTER);
+        vBox1.setFillWidth(false);
+        vBox1.setSpacing(32);
+        VBox vBox2 = new VBox();
+        vBox2.setFillWidth(false);
+        vBox2.setSpacing(32);
+        vBox2.setAlignment(Pos.TOP_CENTER);
+        Label label1 = new Label("player 1 cards");
+        label1.setTextFill(Color.WHITE);
+        label1.setStyle("-fx-font-size: 30");
+        Label label2 = new Label("player 2 cards");
+        label2.setTextFill(Color.WHITE);
+        label2.setStyle("-fx-font-size: 30");
+
+        vBox1.getChildren().add(label1);
+        vBox1.getChildren().add(getListView(cards,
+                game.getPlayers().get(0).getAccountName()));
+        vBox2.getChildren().add(label2);
+        vBox2.getChildren().add(getListView(cards,
+                game.getPlayers().get(1).getAccountName()));
+        VBox.setVgrow(vBox1.getChildren().get(1), Priority.ALWAYS);
+        VBox.setVgrow(vBox2.getChildren().get(1), Priority.ALWAYS);
+        HBox hBox = new HBox(vBox1, vBox2);
+        hBox.setStyle("-fx-background-color: rgba(0,0,0,0.71)");
+        hBox.setAlignment(Pos.CENTER);
+        HBox.setHgrow(vBox1, Priority.ALWAYS);
+        HBox.setHgrow(vBox2, Priority.ALWAYS);
+        hBox.setPadding(new Insets(128, 0, 128, 0));
+        hBox.setOnMouseClicked(event -> root.getChildren().remove(hBox));
+        root.getChildren().add(hBox);
+    }
+
+    private ListView<VBox> getListView(List<Card> cards, String name) {
+        ListView<VBox> p1 = new ListView<>();
+        String back = Utils.getPath("neutral_artifact.png");
+        List<VBox> p1List = cards.stream()
+                .filter(card -> card.getAccountName().equals(name))
+                .map(card -> {
+                    VBox vBox = new VBox(16);
+                    vBox.setAlignment(Pos.CENTER);
+                    vBox.setPadding(new Insets(8));
+                    CardSprite sprite = card.getCardSprite();
+                    if (sprite == null) {
+                        card.makeCardSprite();
+                    }
+                    sprite = card.getCardSprite().clone();
+                    sprite.play();
+                    ImageView imageView = sprite.getImageView();
+                    imageView.setFitWidth(150);
+                    imageView.setFitHeight(150);
+                    vBox.getChildren().add(imageView);
+                    Label label = new Label(card.getName());
+                    label.setWrapText(true);
+                    label.setTextFill(Color.WHITE);
+                    label.setStyle("-fx-font-size: 18");
+                    label.setMaxWidth(150);
+                    label.setAlignment(Pos.CENTER);
+                    vBox.getChildren().add(label);
+                    vBox.getStyleClass().add("back");
+                    vBox.prefHeightProperty().bind(vBox.widthProperty().multiply(1.309));
+                    vBox.setStyle("-fx-background-image: url('" + back + "')");
+                    return vBox;
+                }).collect(Collectors.toList());
+        p1.getItems().addAll(p1List);
+        return p1;
     }
 }

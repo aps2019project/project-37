@@ -10,8 +10,6 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.util.Duration;
-
-import java.io.File;
 import java.util.List;
 
 public class CardSprite extends Transition implements Cloneable {
@@ -28,20 +26,23 @@ public class CardSprite extends Transition implements Cloneable {
     }
 
     public CardSprite(String filename, String effectFileName) {
-        this.fileName = filename;
-        cardFrames = new CardFrames(filename);
-        this.imageView = new ImageView(Utils.getPath(filename + ".png"));
-        currentFrames = cardFrames.getBreathingFrames();
-        if (currentFrames == null || currentFrames.isEmpty()) {
-            currentFrames = cardFrames.getSpellInactiveFrames();
-            imageView.setScaleX(.8);
-            imageView.setScaleY(.8);
-        } else {
-            imageView.setScaleX(1.4);
-            imageView.setScaleY(1.4);
-            imageView.setTranslateY(-30);
+        this.imageView = new ImageView();
+        if (filename!=null){
+            this.fileName = filename;
+            cardFrames = new CardFrames(filename);
+            this.imageView = new ImageView(Utils.getPath(filename + ".png"));
+            currentFrames = cardFrames.getBreathingFrames();
+            if (currentFrames == null || currentFrames.isEmpty()) {
+                currentFrames = cardFrames.getSpellInactiveFrames();
+                imageView.setScaleX(.8);
+                imageView.setScaleY(.8);
+            } else {
+                imageView.setScaleX(1.4);
+                imageView.setScaleY(1.4);
+                imageView.setTranslateY(-30);
+            }
+            imageView.setPreserveRatio(true);
         }
-        imageView.setPreserveRatio(true);
         setCycleDuration(Duration.seconds(1));
         setInterpolator(Interpolator.LINEAR);
         setCycleCount(Animation.INDEFINITE);
@@ -61,6 +62,8 @@ public class CardSprite extends Transition implements Cloneable {
     protected void interpolate(double frac) {
         final int index = Integer.min(currentFrames.size() - 1,
                 (int) Math.floor(frac * currentFrames.size()));
+        if (currentFrames.isEmpty())
+            return;
         Frame currentFrame = currentFrames.get(index);
         if (imageView != null) {
             if (index != currentIndex) {

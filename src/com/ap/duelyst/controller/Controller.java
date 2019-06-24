@@ -120,16 +120,11 @@ public class Controller {
         for (int i = 0; i < 10; i++) {
             account.getCollection().add(copyWithNewId(cards.get(i)));
         }
-        /*account.getCollection().add(copyWithNewId(Utils.getShop().getHeroes().get(0)));
-        account.getCollection().add(copyWithNewId((UsableItem) Utils.getShop()
-        .getObjectByName("king-wisdom")));
-        for (int i = 0; i < 10; i++) {
-            account.getCollection().add(copyWithNewId((Card) Utils.getShop()
-            .getObjectByName("persian-commander")));
-            account.getCollection().add(copyWithNewId((Card) Utils.getShop()
-            .getObjectByName("all-power")));
-        }*/
-
+        /*for (int i = 0; i < 20; i++) {
+            Spell spell=((Spell) Utils.getShop().getObjectByName("hellfire"));
+            account.getCollection().add(copyWithNewId(spell));
+        }
+*/
         createDeck("amin");
         for (Card card : account.getCollection().getCards()) {
             addToDeck(card.getId(), "amin");

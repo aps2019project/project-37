@@ -23,4 +23,8 @@ public class GraveYard {
                 .orElseThrow(() -> new GameException("No card with this id!"));
         return card.getInfoWithoutPrice();
     }
+
+    public ArrayList<Card> getCards() {
+        return cards;
+    }
 }

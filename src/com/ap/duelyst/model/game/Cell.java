@@ -43,7 +43,8 @@ public class Cell {
 
 
     public void nextRound() {
-        for (Buff buff : buffs) {
+        for (Iterator<Buff> iterator = buffs.iterator(); iterator.hasNext(); ) {
+            Buff buff = iterator.next();
             buff.decreaseRemainingTime();
             CellBuff cellBuff = (CellBuff) buff;
             if (cellBuff.getBuff() instanceof WeaknessBuff) {
@@ -55,7 +56,7 @@ public class Cell {
             }
             if (buff.getRemainingTime() <= 0) {
                 deactivate(buff);
-                buffs.remove(buff);
+                iterator.remove();
             }
         }
     }
@@ -87,25 +88,33 @@ public class Cell {
         return buffs;
     }
 
-    public void addBuff(Buff... buffs) {
-        CellBuff cellBuff = (CellBuff) buffs[0];
-        applyBuff(cellBuff);
-        this.buffs.addAll(Arrays.asList(buffs));
+    public void addBuff(Buff buff) {
+        try {
+            CellBuff cellBuff = (CellBuff) buff.clone();
+            applyBuff(cellBuff);
+            this.buffs.add(cellBuff);
+        } catch (CloneNotSupportedException ignored) {
+        }
     }
 
     private void applyBuff(CellBuff cellBuff) {
-        if (cellBuff.getBuff() instanceof PoisonBuff && heroMinion != null) {
+        if (heroMinion != null) {
             try {
                 Buff buff1 = cellBuff.getBuff().clone();
-                if (heroMinion.isImmuneToAllSpells() || !heroMinion.isCanBePoisoned()) {
-                    return;
+                if (cellBuff.getBuff() instanceof PoisonBuff) {
+                    if (heroMinion.isImmuneToAllSpells() || !heroMinion.isCanBePoisoned()) {
+                        return;
+                    }
+                    heroMinion.getInGame().addBuff(buff1);
+                    buff1.applyBuff(heroMinion);
+                } else if (cellBuff.getBuff() instanceof HolyBuff) {
+                    heroMinion.getInGame().addHolyNumber(1);
+                } else if (cellBuff.getBuff() instanceof WeaknessBuff) {
+                    heroMinion.getInGame().addBuff(buff1);
+                    buff1.applyBuff(heroMinion);
                 }
-                heroMinion.getInGame().addBuff(buff1);
-                buff1.applyBuff(heroMinion);
             } catch (CloneNotSupportedException ignored) {
             }
-        } else if (cellBuff.getBuff() instanceof HolyBuff) {
-            heroMinion.getInGame().addHolyNumber(1);
         }
     }
 

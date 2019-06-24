@@ -2,6 +2,7 @@ package com.ap.duelyst.model.items;
 
 import com.ap.duelyst.model.cards.ActivationTime;
 import com.ap.duelyst.model.buffs.Buff;
+import com.ap.duelyst.view.card.CardSprite;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,6 +15,8 @@ public class Item implements Cloneable {
     private String desc;
     private List<Buff> buffs = new ArrayList<>();
     private ActivationTime activationTime;
+    private CardSprite cardSprite;
+    private String fileName;
 
     public Item(String name, String desc, ActivationTime activationTime, Buff... buffs) {
         this.name = name;
@@ -24,7 +27,7 @@ public class Item implements Cloneable {
 
     @Override
     public Item clone() throws CloneNotSupportedException {
-        Item item= (Item) super.clone();
+        Item item = (Item) super.clone();
         item.buffs = item.buffs.stream().map(buff -> {
             try {
                 return buff.clone();
@@ -86,5 +89,17 @@ public class Item implements Cloneable {
 
     public List<Buff> getBuffs() {
         return buffs;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public CardSprite getCardSprite() {
+        return cardSprite;
+    }
+
+    public void makeSprite() {
+        this.cardSprite = new CardSprite(fileName);
     }
 }
