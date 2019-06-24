@@ -3,6 +3,7 @@ package com.ap.duelyst.model.items;
 import com.ap.duelyst.model.cards.ActivationTime;
 import com.ap.duelyst.model.buffs.Buff;
 import com.ap.duelyst.view.card.CardSprite;
+import javafx.scene.image.ImageView;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,6 +39,12 @@ public class Item implements Cloneable {
             }
         }).collect(Collectors.toList());
         return item;
+    }
+
+    public ImageView getImageView(){
+        cardSprite.getImageView().setScaleX(2);
+        cardSprite.getImageView().setScaleY(2);
+        return cardSprite.getImageView();
     }
 
     public String getName() {

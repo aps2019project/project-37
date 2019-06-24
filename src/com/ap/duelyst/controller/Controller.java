@@ -16,6 +16,7 @@ import com.ap.duelyst.model.items.Item;
 import com.ap.duelyst.model.items.UsableItem;
 import com.ap.duelyst.view.View;
 import com.google.gson.reflect.TypeToken;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -155,7 +156,7 @@ public class Controller {
     }
 
     public void loginGUI(String userName, String password) {
-        if(currentAccount != null && currentAccount.getUserName().equals(userName)){
+        if (currentAccount != null && currentAccount.getUserName().equals(userName)) {
             throw new GameException("You are logged in already");
         }
         if (!Utils.hasAccount(userName)) {
@@ -165,11 +166,11 @@ public class Controller {
         if (account.getPassword().equals(password)) {
             setCurrentAccount(account);
 
-        }
-        else {
+        } else {
             throw new GameException("Password is wrong!");
         }
     }
+
     public void showLeaderBoard() {
         StringBuilder leaderBoard = new StringBuilder();
         if (Utils.getAccounts().isEmpty()) {
@@ -208,7 +209,7 @@ public class Controller {
             }
             return Utils.getGson().fromJson(deckString.toString(),
                     new TypeToken<Deck>() {
-            }.getType());
+                    }.getType());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -228,7 +229,7 @@ public class Controller {
         }
     }
 
-    public void addCustomCard(Card card){
+    public void addCustomCard(Card card) {
         currentAccount.getCollection().add(copyWithNewId(card));
         Utils.getShop().add(card);
     }
@@ -273,8 +274,8 @@ public class Controller {
             buyUsableItem((UsableItem) object);
         }
     }
-    public Object buyAndReturn(String name) {
-        Object object = Utils.getShop().getObjectByName(name);
+
+    public Object buyAndReturn(Object object) {
         if (object instanceof Card) {
             return buyAndReturnCard((Card) object);
         } else if (object instanceof UsableItem) {
@@ -282,8 +283,13 @@ public class Controller {
         }
         return null;
     }
+
     public void sell(String id) {
         Object object = currentAccount.getCollection().getObjectById(id);
+        sellGUI(object);
+    }
+
+    public void sellGUI(Object object) {
         if (object instanceof Card) {
             sell((Card) object);
         } else if (object instanceof UsableItem) {
@@ -639,23 +645,27 @@ public class Controller {
         currentAccount.getCollection().add(copyWithNewId(card));
         showMessage("You have bought the card successfully!");
     }
+
     private Card buyAndReturnCard(Card card) {
         currentAccount.decreaseBudget(card.getPrice());
         Card newCard = copyWithNewId(card);
         currentAccount.getCollection().add(newCard);
         return newCard;
     }
+
     private void buyUsableItem(UsableItem usableItem) {
         currentAccount.decreaseBudget(usableItem.getPrice());
         currentAccount.getCollection().add(copyWithNewId(usableItem));
         showMessage("You have bought the item successfully!");
     }
+
     private Item buyAndReturnUsableItem(UsableItem usableItem) {
         currentAccount.decreaseBudget(usableItem.getPrice());
         Item newUsableItem = copyWithNewId(usableItem);
         currentAccount.getCollection().add(newUsableItem);
         return newUsableItem;
     }
+
     private void sell(Card card) {
         currentAccount.getCollection().remove(card);
         currentAccount.getDecks().forEach(deck -> deck.remove(card));

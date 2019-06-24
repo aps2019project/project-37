@@ -84,18 +84,10 @@
                 </HBox>
             </children>
         </VBox>
-        <VBox fx:id="DeckBox" alignment="CENTER" maxHeight="300.0" maxWidth="200.0" prefHeight="300.0" prefWidth="200.0"
-              visible="false">
+        <VBox fx:id="selectDeckBox" style="-fx-background-color: rgba(0,0,0,0.67)" alignment="CENTER" fillWidth="false"
+              prefHeight="300.0" prefWidth="200.0" spacing="16.0" visible="false">
             <children>
-                <TableView fx:id="listOfDecks" maxHeight="300.0" maxWidth="200.0" opacity="0.8">
-                    <columns>
-                        <TableColumn prefWidth="75.0" text="C1"/>
-                        <TableColumn prefWidth="75.0" text="C2"/>
-                    </columns>
-                    <columnResizePolicy>
-                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
-                    </columnResizePolicy>
-                </TableView>
+                <ListView fx:id="deckView" prefHeight="250.0" prefWidth="200.0"/>
                 <Button fx:id="selectDeckButton" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false"
                         prefHeight="60.0" prefWidth="180.0" text="Select">
                     <styleClass>
@@ -108,24 +100,28 @@
                 </Button>
             </children>
         </VBox>
-        <VBox fx:id="newDeckBox" alignment="BOTTOM_CENTER" fillWidth="false" maxHeight="150.15" maxWidth="500.0"
-              spacing="10.0" styleClass="notification" visible="false">
+        <VBox fx:id="newDeckBox" alignment="CENTER" style="-fx-background-color: rgba(0,0,0,0.67)" visible="false">
             <children>
-                <TextField fx:id="nameOfNewDeck" alignment="CENTER" promptText="Enter new deck's name">
-                    <font>
-                        <Font size="18.0"/>
-                    </font>
-                </TextField>
-                <Button fx:id="submitNameOfNewDeck" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false"
-                        prefHeight="60.0" prefWidth="180.0" text="Create">
-                    <styleClass>
-                        <String fx:value="button-accept"/>
-                        <String fx:value="back"/>
-                    </styleClass>
-                    <padding>
-                        <Insets bottom="8.0" left="8.0" right="8.0" top="8.0"/>
-                    </padding>
-                </Button>
+                <VBox alignment="BOTTOM_CENTER" fillWidth="false" maxHeight="-Infinity" maxWidth="-Infinity"
+                      prefHeight="150.15" prefWidth="500.0" spacing="10.0" styleClass="notification">
+                    <children>
+                        <TextField fx:id="nameOfNewDeck" alignment="CENTER" promptText="Enter new deck's name">
+                            <font>
+                                <Font size="18.0"/>
+                            </font>
+                        </TextField>
+                        <Button fx:id="submitNameOfNewDeck" minHeight="-Infinity" minWidth="-Infinity"
+                                mnemonicParsing="false" prefHeight="60.0" prefWidth="180.0" text="Create">
+                            <styleClass>
+                                <String fx:value="button-accept"/>
+                                <String fx:value="back"/>
+                            </styleClass>
+                            <padding>
+                                <Insets bottom="8.0" left="8.0" right="8.0" top="8.0"/>
+                            </padding>
+                        </Button>
+                    </children>
+                </VBox>
             </children>
         </VBox>
         <VBox fx:id="errorBox" alignment="CENTER" maxHeight="200.0" maxWidth="500.0" prefHeight="100.0"
@@ -136,25 +132,29 @@
                 <Button fx:id="exitErrorBox" mnemonicParsing="false" prefHeight="40.0" prefWidth="200.0" text="Back"/>
             </children>
         </VBox>
-
-        <VBox fx:id="importDeckBox" alignment="BOTTOM_CENTER" fillWidth="false" maxHeight="150.15" maxWidth="500.0"
-              spacing="10.0" styleClass="notification" visible="false">
+        <VBox fx:id="importDeckBox" alignment="CENTER" style="-fx-background-color: rgba(0,0,0,0.67)" visible="false">
             <children>
-                <TextField fx:id="nameOfImportDeck" alignment="CENTER" promptText="Enter deck's name">
-                    <font>
-                        <Font size="18.0"/>
-                    </font>
-                </TextField>
-                <Button fx:id="importButton" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false"
-                        prefHeight="60.0" prefWidth="180.0" text="Create">
-                    <styleClass>
-                        <String fx:value="button-accept"/>
-                        <String fx:value="back"/>
-                    </styleClass>
-                    <padding>
-                        <Insets bottom="8.0" left="8.0" right="8.0" top="8.0"/>
-                    </padding>
-                </Button>
+
+                <VBox alignment="BOTTOM_CENTER" fillWidth="false" maxHeight="150.15" maxWidth="500.0"
+                      prefHeight="150.15" prefWidth="500.0" spacing="10.0" styleClass="notification">
+                    <children>
+                        <TextField fx:id="nameOfImportDeck" alignment="CENTER" promptText="Enter deck's name">
+                            <font>
+                                <Font size="18.0"/>
+                            </font>
+                        </TextField>
+                        <Button fx:id="importButton" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false"
+                                prefHeight="60.0" prefWidth="180.0" text="Import">
+                            <styleClass>
+                                <String fx:value="button-accept"/>
+                                <String fx:value="back"/>
+                            </styleClass>
+                            <padding>
+                                <Insets bottom="8.0" left="8.0" right="8.0" top="8.0"/>
+                            </padding>
+                        </Button>
+                    </children>
+                </VBox>
             </children>
         </VBox>
         <VBox fx:id="dialogContainer" alignment="CENTER" fillWidth="false" prefHeight="200.0" prefWidth="100.0"

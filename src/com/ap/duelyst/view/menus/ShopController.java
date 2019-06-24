@@ -7,7 +7,9 @@ import com.ap.duelyst.controller.menu.ShopMenu;
 import com.ap.duelyst.model.Account;
 import com.ap.duelyst.model.Utils;
 import com.ap.duelyst.model.cards.Card;
+import com.ap.duelyst.model.items.Item;
 import com.ap.duelyst.view.DialogController;
+import javafx.animation.ScaleTransition;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.Initializable;
@@ -21,10 +23,12 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 
 import java.net.URL;
 import java.util.ResourceBundle;
 
+@SuppressWarnings("unchecked")
 public class ShopController implements Initializable {
     public VBox dialogContainer;
     public HBox dialog;
@@ -36,7 +40,7 @@ public class ShopController implements Initializable {
     public VBox mainBox;
     public ImageView gameLogo;
     public TableView shopTable;
-    public TableView<Card> collectionTable;
+    public TableView collectionTable;
     public Button buyButton;
     public Button sellButton;
     public Button exitButton;
@@ -114,38 +118,42 @@ public class ShopController implements Initializable {
     }
 
     public void updateShopTable() {
-        ObservableList<Card> shopCards =
-                FXCollections.observableArrayList(Utils.getShop().getHeroMinions());
-        shopCards.remove(10, 40);
+        ObservableList shopCards =
+                FXCollections.observableArrayList(Utils.getShop().getCards());
+        shopCards.addAll(Utils.getShop().getUsableItems());
         makeTableView(shopCards, shopTable);
 
     }
 
     public void updateCollectionTable() {
-        ObservableList<Card> collectionCards =
-                FXCollections.observableArrayList(controller.getCurrentAccount().getCollection().getHeroMinions());
-        makeTableView(collectionCards, collectionTable);
+        ObservableList cards = FXCollections.observableArrayList();
+        cards.addAll(controller.getCurrentAccount().getCollection().getUsableItems());
+        cards.addAll(controller.getCurrentAccount().getCollection().getCards());
+        makeTableView(cards, collectionTable);
     }
 
     public void updateRemainingMoney() {
         remainingMoney.setText("Remaining money: " + account.getBudget());
+        ScaleTransition transition=new ScaleTransition(Duration.millis(200),remainingMoney);
+        transition.setCycleCount(2);
+        transition.setAutoReverse(true);
+        transition.setToX(1.3);
+        transition.setToY(1.3);
+        transition.play();
     }
 
-    private void makeTableView(ObservableList<Card> cards, TableView tableView) {
-        cards.forEach(card -> {
-            if (card.getCardSprite() == null) {
-                card.makeCardSprite();
-            }
-            card.getCardSprite().play();
-        });
+    private void makeTableView(ObservableList cards, TableView tableView) {
+        for (Object o : cards) {
+            playSprite(o);
+        }
 
-        TableColumn<Card, Integer> imageColumn = new TableColumn<>("Image");
+        TableColumn<?, Integer> imageColumn = new TableColumn<>("Image");
         imageColumn.setCellValueFactory(new PropertyValueFactory<>("imageView"));
 
-        TableColumn<Card, String> nameColumn = new TableColumn<>("Name");
+        TableColumn<?, String> nameColumn = new TableColumn<>("Name");
         nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
 
-        TableColumn<Card, Integer> priceColumn = new TableColumn<>("Price");
+        TableColumn<?, Integer> priceColumn = new TableColumn<>("Price");
         priceColumn.setCellValueFactory(new PropertyValueFactory<>("price"));
 
         tableView.getItems().clear();
@@ -155,32 +163,54 @@ public class ShopController implements Initializable {
     }
 
     public void buyButtonClicked() {
-        Card selectedCard = (Card) shopTable.getSelectionModel().getSelectedItem();
-        Card newCard = null;
+        Object selectedCard = shopTable.getSelectionModel().getSelectedItem();
+        if (selectedCard == null) {
+            dialogController.showDialog("select an item");
+            return;
+        }
         try {
-            newCard = (Card) controller.buyAndReturn(selectedCard.getName());
-            newCard.makeCardSprite();
-            newCard.getCardSprite().play();
+            Object newCard = controller.buyAndReturn(selectedCard);
+            playSprite(newCard);
+            collectionTable.getItems().add(newCard);
+            updateRemainingMoney();
         } catch (GameException e) {
             errorLabel.setText(e.getMessage());
 //            errorBox.setVisible(true);
             dialogController.showDialog(e.getMessage());
         }
-        collectionTable.getItems().add(newCard);
-        updateRemainingMoney();
+    }
+
+    static void playSprite(Object o) {
+        if (o instanceof Card) {
+            Card card = (Card) o;
+            if ((card.getCardSprite() == null)) {
+                card.makeCardSprite();
+            }
+            card.getCardSprite().play();
+        } else {
+            Item item = (Item) o;
+            if ((item.getCardSprite() == null)) {
+                item.makeSprite();
+            }
+            item.getCardSprite().play();
+        }
     }
 
     public void sellButtonClicked() {
-        Card selectedCard = (Card) collectionTable.getSelectionModel().getSelectedItem();
+        Object selectedCard = collectionTable.getSelectionModel().getSelectedItem();
+        if (selectedCard == null) {
+            dialogController.showDialog("select an item");
+            return;
+        }
         try {
-            controller.sell(selectedCard.getId());
+            controller.sellGUI(selectedCard);
+            collectionTable.getItems().remove(selectedCard);
+            updateRemainingMoney();
         } catch (GameException e) {
             errorLabel.setText(e.getMessage());
 //            errorBox.setVisible(true);
             dialogController.showDialog(e.getMessage());
         }
-        collectionTable.getItems().remove(selectedCard);
-        updateRemainingMoney();
     }
 
     private void setButtonGlowOnMouseMoving(Button button, String normalPath,

@@ -14,10 +14,12 @@ import com.ap.duelyst.view.menus.ShopController;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.ImageCursor;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -78,7 +80,6 @@ public class Main extends Application {
                 }
             }
         }.start();
-        primaryStage.setFullScreen(false);
         primaryStage.show();
     }
 
@@ -90,7 +91,11 @@ public class Main extends Application {
             stage.setScene(mainMenuScene);
             stage.setTitle("Game Of Cards: Main Menu");
         });
-        Scene scene = new Scene(root, 1920, 1080);
+        
+        Screen screen = Screen.getPrimary();
+        Rectangle2D bounds = screen.getVisualBounds();
+        
+        Scene scene = new Scene(root, bounds.getWidth(), bounds.getHeight()-30);
         scene.setCursor(new ImageCursor(new Image(Utils.getPath(
                 "mouse_auto.png"))));
         scene.getStylesheets().add("com/ap/duelyst/Bugatti.css");
@@ -135,7 +140,6 @@ public class Main extends Application {
             stage.setScene(inGameBattleScene);
             stage.setTitle("Game Of Cards : Battle");
         }
-        stage.setFullScreen(false);
     }
 
     private Scene makeLogInPageScene() throws IOException {
@@ -144,7 +148,11 @@ public class Main extends Application {
         firstMenuController.setMenuManager(menuManager);
         firstMenuController.setLoginPage((LoginPage) currentMenu);
         firstMenuController.setController(controller);
-        Scene scene = new Scene(root, 1920, 1080);
+        
+        Screen screen = Screen.getPrimary();
+        Rectangle2D bounds = screen.getVisualBounds();
+        
+        Scene scene = new Scene(root, bounds.getWidth(), bounds.getHeight()-30);
         scene.getStylesheets().add("com/ap/duelyst/FirstMenu.css");
         scene.setCursor(new ImageCursor(new Image(Utils.getPath("mouse_auto.png"))));
         return scene;
@@ -160,7 +168,10 @@ public class Main extends Application {
             stage.setScene(customScene);
             stage.setTitle("Game Of Cards: Custom Card");
         });
-        Scene scene = new Scene(root, 1920, 1080);
+        Screen screen = Screen.getPrimary();
+        Rectangle2D bounds = screen.getVisualBounds();
+        
+        Scene scene = new Scene(root, bounds.getWidth(), bounds.getHeight()-30);
         scene.getStylesheets().add("com/ap/duelyst/SecondMenu.css");
         scene.setCursor(new ImageCursor(new Image(Utils.getPath("mouse_auto.png"))));
         return scene;
@@ -171,7 +182,11 @@ public class Main extends Application {
         shopController = shopLoader.getController();
         shopController.setMenuManager(menuManager);
         shopController.setController(controller);
-        Scene scene = new Scene(root, 1920, 1080);
+        
+        Screen screen = Screen.getPrimary();
+        Rectangle2D bounds = screen.getVisualBounds();
+        
+        Scene scene = new Scene(root, bounds.getWidth(), bounds.getHeight()-30);
         scene.getStylesheets().add("com/ap/duelyst/shop.css");
         scene.setCursor(new ImageCursor(new Image(Utils.getPath("mouse_auto.png"))));
         return scene;
@@ -182,7 +197,11 @@ public class Main extends Application {
         collectionController = collectionLoader.getController();
         collectionController.setMenuManager(menuManager);
         collectionController.setController(controller);
-        Scene scene = new Scene(root, 1920, 1080);
+        
+        Screen screen = Screen.getPrimary();
+        Rectangle2D bounds = screen.getVisualBounds();
+        
+        Scene scene = new Scene(root, bounds.getWidth(), bounds.getHeight()-30);
         scene.getStylesheets().add("com/ap/duelyst/collection.css");
         scene.setCursor(new ImageCursor(new Image(Utils.getPath("mouse_auto.png"))));
         return scene;
@@ -193,7 +212,11 @@ public class Main extends Application {
         battleMenuController = battleMenuLoader.getController();
         battleMenuController.setMenuManager(menuManager);
         battleMenuController.setController(controller);
-        Scene scene = new Scene(root, 1920, 1080);
+        
+        Screen screen = Screen.getPrimary();
+        Rectangle2D bounds = screen.getVisualBounds();
+        
+        Scene scene = new Scene(root, bounds.getWidth(), bounds.getHeight()-30);
         scene.getStylesheets().add("com/ap/duelyst/BattleMenu.css");
         scene.setCursor(new ImageCursor(new Image(Utils.getPath("mouse_auto.png"))));
         return scene;
@@ -204,7 +227,11 @@ public class Main extends Application {
                 new FXMLLoader(getClass().getResource("view/battle/battle.fxml"));
         Parent root = battleLoader.load();
         battleController = battleLoader.getController();
-        Scene scene = new Scene(root, 1920, 1080);
+        
+        Screen screen = Screen.getPrimary();
+        Rectangle2D bounds = screen.getVisualBounds();
+        
+        Scene scene = new Scene(root, bounds.getWidth(), bounds.getHeight()-30);
         scene.getStylesheets().add("com/ap/duelyst/Bugatti.css");
         scene.setCursor(new ImageCursor(new Image(Utils.getPath("mouse_auto.png"))));
         return scene;

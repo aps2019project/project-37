@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ChoiceBox?>
@@ -8,72 +13,135 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<StackPane fx:id="mainPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.ap.duelyst.view.menus.BattleMenuController">
-   <children>
-      <VBox fx:id="flagBox" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" visible="false">
-         <children>
-            <Label text="Enter Number Of Flags" />
-            <ChoiceBox fx:id="numberOfFlags" prefWidth="150.0" />
-            <Button fx:id="flagOkButton" mnemonicParsing="false" text="OK" />
-         </children>
-      </VBox>
-      <VBox fx:id="playerModeBox" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" spacing="20.0">
-         <children>
-            <Label style="-fx-font-size: 16;" text="Select Player Mode" />
-            <Button fx:id="singlePlayerButton" mnemonicParsing="false" prefHeight="60.0" prefWidth="200.0" text="Single Player" />
-            <Button fx:id="multiPlayerButton" mnemonicParsing="false" prefHeight="60.0" prefWidth="200.0" text="Multi Player" />
-         </children>
-      </VBox>
-      <VBox fx:id="singlePlayerBox" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="20.0" visible="false">
-         <children>
-            <Label style="-fx-font-size: 16;" text="Select Game Mode" />
-            <Button fx:id="storyButton" mnemonicParsing="false" prefHeight="60.0" prefWidth="200.0" text="Story" />
-            <Button fx:id="customButton" mnemonicParsing="false" prefHeight="60.0" prefWidth="200.0" text="Custom" />
-         </children>
-      </VBox>
-      <VBox fx:id="storyBox" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="20.0" visible="false">
-         <children>
-            <Label style="-fx-font-size: 16;" text="Select Story" />
-            <Label fx:id="storyDescription" text="StoryDescription" />
-            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="8.0">
-               <children>
-                  <Button fx:id="story1" mnemonicParsing="false" text="Story 1">
-                     <padding>
-                        <Insets bottom="16.0" left="16.0" right="16.0" top="16.0" />
-                     </padding></Button>
-                  <Button fx:id="story2" mnemonicParsing="false" text="Story 2">
-                     <padding>
-                        <Insets bottom="16.0" left="16.0" right="16.0" top="16.0" />
-                     </padding></Button>
-                  <Button fx:id="story3" mnemonicParsing="false" text="Story 3">
-                     <padding>
-                        <Insets bottom="16.0" left="16.0" right="16.0" top="16.0" />
-                     </padding></Button>
-               </children>
-            </HBox>
-         </children>
-      </VBox>
-      <VBox fx:id="customModeBox" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="20.0" visible="false">
-         <children>
-            <Label style="-fx-font-size: 16;" text="Select Custom Mode" />
-            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
-               <children>
-                  <Button fx:id="custom1" mnemonicParsing="false" text="kill-enemy-hero" />
-                  <Button fx:id="custom2" mnemonicParsing="false" text="keep-flags-8-rounds" />
-                  <Button fx:id="custom3" mnemonicParsing="false" text="collect-half-flags" />
-               </children>
-            </HBox>
-         </children>
-      </VBox>
-      <VBox fx:id="customHeroBox" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="20.0" visible="false">
-         <children>
-            <Label style="-fx-font-size: 16;" text="Select Opponent Deck" />
-            <HBox fx:id="heroRow" alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
-               <VBox.margin>
-                  <Insets />
-               </VBox.margin>
-            </HBox>
-         </children>
-      </VBox>
-   </children>
+<StackPane fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.ap.duelyst.view.menus.BattleMenuController">
+    <children>
+        <StackPane maxWidth="820.0" style="-fx-background-color: rgba(0,0,0,0.65)">
+            <children>
+                <VBox fx:id="playerModeBox" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" spacing="20.0">
+                    <children>
+                        <Label text="Select Play Mode" textFill="WHITE">
+                            <font>
+                                <Font size="24.0" />
+                            </font>
+                        </Label>
+                        <Button mnemonicParsing="false" onAction="#showSinglePlayer" prefHeight="60.0" prefWidth="200.0" text="Single Player">
+                            <VBox.margin>
+                                <Insets top="24.0" />
+                            </VBox.margin>
+                        </Button>
+                        <Button mnemonicParsing="false" onAction="#showMultiPlayer" prefHeight="60.0" prefWidth="200.0" text="Multi Player" />
+                  <Button mnemonicParsing="false" onAction="#exit" prefHeight="60.0" prefWidth="200.0" text="Exit" />
+                    </children>
+                </VBox>
+                <VBox fx:id="singlePlayerBox" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="20.0" visible="false">
+                    <children>
+                        <Label text="Select Game Mode" textFill="WHITE">
+                            <font>
+                                <Font size="24.0" />
+                            </font>
+                        </Label>
+                        <Button mnemonicParsing="false" onAction="#showStories" prefHeight="60.0" prefWidth="200.0" text="Story">
+                            <VBox.margin>
+                                <Insets top="16.0" />
+                            </VBox.margin>
+                        </Button>
+                        <Button mnemonicParsing="false" onAction="#showCustomGame" prefHeight="60.0" prefWidth="200.0" text="Custom" />
+                    </children>
+                </VBox>
+                <VBox fx:id="storyBox" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="20.0" visible="false">
+                    <children>
+                        <Label text="Select Story" textFill="WHITE">
+                            <font>
+                                <Font size="24.0" />
+                            </font>
+                        </Label>
+                  <TableView fx:id="storyTable" prefHeight="500.0" VBox.vgrow="ALWAYS">
+                    <columns>
+                      <TableColumn prefWidth="75.0" text="C1" />
+                      <TableColumn prefWidth="75.0" text="C2" />
+                    </columns>
+                     <VBox.margin>
+                        <Insets top="64.0" />
+                     </VBox.margin>
+                  </TableView>
+                          <Button mnemonicParsing="false" onAction="#selectStory" prefHeight="60.0" prefWidth="200.0" styleClass="button-accept" text="Select" />
+                    </children>
+               <padding>
+                  <Insets bottom="64.0" top="64.0" />
+               </padding>
+                </VBox>
+                <VBox fx:id="customModeBox" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="20.0" visible="false">
+                    <children>
+                  <Label text="Custom Game Selections" textFill="WHITE">
+                     <font>
+                        <Font size="24.0" />
+                     </font>
+                  </Label>
+                  <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="24.0">
+                     <children>
+                        <VBox alignment="CENTER" prefHeight="200.0" prefWidth="300.0" spacing="16.0">
+                           <children>
+                                    <Label style="-fx-font-size: 16;" text="Select Mode" textFill="WHITE">
+                                 <font>
+                                    <Font size="20.0" />
+                                 </font>
+                              </Label>
+                              <ChoiceBox fx:id="customMode" prefWidth="200.0" />
+                           </children>
+                        </VBox>
+                        <VBox alignment="CENTER" prefHeight="200.0" prefWidth="300.0" spacing="16.0">
+                           <children>
+                              <Label style="-fx-font-size: 16;" text="Select Flag Numbers" textFill="WHITE">
+                                 <font>
+                                    <Font size="20.0" />
+                                 </font>
+                              </Label>
+                              <ChoiceBox fx:id="customFlagNumbers" prefWidth="200.0" />
+                           </children>
+                        </VBox>
+                     </children>
+                     <VBox.margin>
+                        <Insets top="16.0" />
+                     </VBox.margin>
+                  </HBox>
+                  <Label style="-fx-font-size: 16;" text="Select Enemy Hero" textFill="WHITE">
+                     <font>
+                        <Font size="20.0" />
+                     </font>
+                  </Label>
+                  <HBox fx:id="heroes" prefHeight="100.0" prefWidth="200.0" />
+                  <Label style="-fx-font-size: 16;" text="Reward: 1000" textFill="WHITE">
+                     <font>
+                        <Font size="20.0" />
+                     </font>
+                     <VBox.margin>
+                        <Insets top="16.0" />
+                     </VBox.margin>
+                  </Label>
+                  <Button mnemonicParsing="false" onAction="#playCustom" prefHeight="60.0" prefWidth="200.0" styleClass="button-accept" text="Play" />
+                    </children>
+                </VBox>
+            </children>
+        </StackPane>
+        <Button mnemonicParsing="false" onAction="#back" StackPane.alignment="TOP_LEFT" prefHeight="100.0" prefWidth="100.0" styleClass="button-back" />
+        <VBox fx:id="dialogContainer" alignment="CENTER" fillWidth="false" prefHeight="200.0" prefWidth="100.0" style="-fx-background-color: rgba(0,0,0,0.61);">
+            <children>
+                <HBox fx:id="dialog" alignment="CENTER_RIGHT">
+                    <children>
+                        <Label fx:id="dialogText" textFill="#090222" wrapText="true">
+                            <font>
+                                <Font size="22.0" />
+                            </font>
+                            <opaqueInsets>
+                                <Insets />
+                            </opaqueInsets>
+                        </Label>
+                    </children>
+                    <padding>
+                        <Insets bottom="16.0" left="16.0" right="64.0" top="16.0" />
+                    </padding>
+                </HBox>
+            </children>
+        </VBox>
+    </children>
 </StackPane>

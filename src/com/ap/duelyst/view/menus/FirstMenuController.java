@@ -25,6 +25,7 @@ public class FirstMenuController implements Initializable {
     public VBox dialogContainer;
     public HBox dialog;
     public Label dialogText;
+    public VBox leadBoardContainer;
     private Controller controller;
     private MenuManager menuManager;
     private LoginPage loginPage;
@@ -78,10 +79,6 @@ public class FirstMenuController implements Initializable {
         accountButton.setStyle("-fx-background-image: url(' " + greenButtonNormalPath + "')");
         logInButton.setStyle("-fx-background-image: url(' " + greenButtonNormalPath +
                 "')");
-
-        String leaderBoardBack = Utils.getPath("chapter17_preview@2x.jpg");
-        leaderBoardTable.setStyle("-fx-background-image: url(' " + leaderBoardBack +
-                "')");
     }
 
     static void setStyle(ImageView gameLogo, Button leaderBoardButton,
@@ -106,11 +103,16 @@ public class FirstMenuController implements Initializable {
                 try {
                     controller.loginGUI(userNameText.getText(), passwordText.getText());
                     userNameLabel.setText("username: " + controller.getCurrentAccount().getUserName());
+                    dialogController.showDialog("login successful");
                 } catch (GameException e) {
                     errorLabel.setText(e.getMessage());
 //                    errorBox.setVisible(true);
                     dialogController.showDialog(e.getMessage());
                 }
+                userNameText.setText("");
+                passwordText.setText("");
+            } else {
+                dialogController.showDialog("fill all fields");
             }
         });
         accountButton.setOnAction(o -> {
@@ -124,9 +126,11 @@ public class FirstMenuController implements Initializable {
 //                    errorBox.setVisible(true);
                     dialogController.showDialog(e.getMessage());
                 }
+                userNameText.setText("");
+                passwordText.setText("");
+            } else {
+                dialogController.showDialog("fill all fields");
             }
-            userNameText.setText("");
-            passwordText.setText("");
         });
         exitErrorBox.setOnAction(e -> errorBox.setVisible(false));
         exitButton.setOnAction(e -> {
@@ -138,6 +142,7 @@ public class FirstMenuController implements Initializable {
                 userNameLabel.setText("");
                 userNameText.setText("");
                 passwordText.setText("");
+                dialogController.showDialog("logout successful");
             } catch (GameException e) {
                 errorLabel.setText(e.getMessage());
 //                errorBox.setVisible(true);
@@ -146,14 +151,15 @@ public class FirstMenuController implements Initializable {
         });
         leaderBoardButton.setOnAction(e -> {
             updateLeaderBoard();
-            leaderBoardTable.setVisible(true);
+            leadBoardContainer.setVisible(true);
         });
-        leaderBoardTable.setOnKeyPressed(ke -> {
+        leadBoardContainer.setOnKeyPressed(ke -> {
             KeyCode keyCode = ke.getCode();
             if (keyCode.equals(KeyCode.ESCAPE)) {
-                leaderBoardTable.setVisible(false);
+                leadBoardContainer.setVisible(false);
             }
         });
+        leadBoardContainer.setOnMouseClicked(event -> leadBoardContainer.setVisible(false));
         mainMenuButton.setOnAction(o -> {
             if (controller.getCurrentAccount() != null) {
                 menuManager.setCurrentMenu(loginPage.getMainMenu());
@@ -205,11 +211,12 @@ public class FirstMenuController implements Initializable {
                 FXCollections.observableArrayList(Utils.getAccounts());
 
         TableColumn<Account, String> usernameColumn = new TableColumn<>("User Name");
+        usernameColumn.setMinWidth(150);
         usernameColumn.setCellValueFactory(new PropertyValueFactory<>("userName"));
 
         TableColumn<Account, Integer> winsColumn = new TableColumn<>("Wins");
+        winsColumn.setMinWidth(150);
         winsColumn.setCellValueFactory(new PropertyValueFactory<>("wins"));
-
         leaderBoardTable.getColumns().clear();
         leaderBoardTable.setItems(accounts);
         leaderBoardTable.getColumns().add(usernameColumn);

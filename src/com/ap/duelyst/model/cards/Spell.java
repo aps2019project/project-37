@@ -2,6 +2,7 @@ package com.ap.duelyst.model.cards;
 
 import com.ap.duelyst.model.buffs.Buff;
 import com.ap.duelyst.view.card.CardSprite;
+import javafx.scene.image.ImageView;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,6 +37,13 @@ public class Spell extends Card {
     @Override
     public void makeCardSprite() {
         cardSprite = new CardSprite(getFileName(), effectFileName);
+    }
+
+    @Override
+    public ImageView getImageView() {
+        cardSprite.getImageView().setScaleX(2);
+        cardSprite.getImageView().setScaleY(2);
+        return cardSprite.getImageView();
     }
 
     public void setEffects(List<Buff> effects) {

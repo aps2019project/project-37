@@ -1,17 +1,81 @@
-#stackPane{
-    -fx-background-size: stretch;
-    -fx-text-alignment: center center;
+.root {
+    -fx-background-size: cover;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: center;
+}
+
+.back {
+    -fx-background-size: cover;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: center;
+}
+
+.label {
+    -fx-font-weight: bold;
 }
 
 .button {
-    -fx-background-size: stretch;
+    -fx-background-size: contain;
     -fx-background-repeat: no-repeat;
     -fx-background-position: center;
     -fx-text-fill: white;
     -fx-text-alignment: center;
-    -fx-font-size: 14pt;
+    -fx-font-size: 16;
     -fx-font-weight: bold;
     -fx-font-family: "Times New Roman";
     -fx-background-color: transparent;
     -fx-cursor: hand;
+    -fx-background-image: url("file:///home/amin/Desktop/projects/Duelyst/resources/ui/button_primary@2x.png");
+    -fx-padding: 16;
+}
+
+
+.button:pressed {
+    -fx-background-image: url("file:///home/amin/Desktop/projects/Duelyst/resources/ui/button_primary_glow@2x.png");
+}
+
+.button-accept {
+    -fx-background-image: url("file:///home/amin/Desktop/projects/Duelyst/resources/ui/button_confirm@2x.png");
+    -fx-padding: 16;
+}
+
+.button-accept:pressed {
+    -fx-background-image: url("file:///home/amin/Desktop/projects/Duelyst/resources/ui/button_confirm_glow@2x.png");
+}
+
+.button-back, .button-back:pressed {
+    -fx-background-image: url("file:///home/amin/Desktop/projects/Duelyst/resources/ui/button_back_corner@2x.png");
+}
+
+.table-view {
+    -fx-background-color: transparent;
+}
+
+.table-row-cell:odd {
+    -fx-background-color: transparent;
+}
+
+.table-row-cell:even {
+    -fx-background-color: transparent;
+}
+
+.table-column {
+    -fx-text-fill: white;
+    -fx-alignment: center;
+    -fx-text-alignment: center;
+    -fx-font-size: 16;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: rgba(31, 255, 45, 0.38);
+}
+
+.choice-box .menu-item .label {
+    -fx-font-weight: normal;
+    -fx-padding: 8;
+}
+
+.choice-box > .label {
+    -fx-font-weight: normal;
+    -fx-padding: 8;
 }

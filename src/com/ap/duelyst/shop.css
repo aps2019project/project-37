@@ -48,6 +48,7 @@
 .label {
     -fx-background-color: midnightblue;
     -fx-background-radius: 10;
+    -fx-padding: 8;
     -fx-text-alignment: center center;
     -fx-text-fill: white;
     -fx-font-size: 16pt;

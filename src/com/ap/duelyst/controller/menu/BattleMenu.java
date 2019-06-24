@@ -320,14 +320,14 @@ public class BattleMenu extends Menu {
         }
     }
 
-    public String storyString() {
+    private String storyString() {
         return "choose one\n1.  Hero: white-beast   mode: kill-enemy-hero  reward: " +
                 "500\n" +
                 "2.  Hero: zahhak   mode: keep-flags-8-rounds  reward: 1000\n" +
                 "3.  Hero: arash   mode: collect-half-flags  reward: 1500\n";
     }
 
-    public String customGameString() {
+    private String customGameString() {
         StringBuilder builder = new StringBuilder();
         for (int i = 1; i <= 3; i++) {
             try {

@@ -58,6 +58,14 @@ public class Shop {
         cards.remove(card);
     }
 
+    public void remove(Object o) {
+        if (o instanceof Card) {
+            remove((Card) o);
+        } else {
+            remove((Item) o);
+        }
+    }
+
     public void remove(Item item) {
         items.remove(item);
     }

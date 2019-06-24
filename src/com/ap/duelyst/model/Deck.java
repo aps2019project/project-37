@@ -106,4 +106,12 @@ public class Deck extends Collection {
             throw new GameException("Deck has an item with this id!");
         }
     }
+
+    public void add(Object o){
+        if (o instanceof UsableItem){
+            add((UsableItem) o);
+        }else {
+            add((Card) o);
+        }
+    }
 }
