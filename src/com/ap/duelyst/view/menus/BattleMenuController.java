@@ -7,13 +7,12 @@ import com.ap.duelyst.controller.menu.MenuManager;
 import com.ap.duelyst.model.Deck;
 import com.ap.duelyst.model.Utils;
 import com.ap.duelyst.model.cards.Card;
+import com.ap.duelyst.model.cards.Hero;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
@@ -22,6 +21,7 @@ import java.util.ArrayList;
 import java.util.ResourceBundle;
 
 public class BattleMenuController implements Initializable {
+    public HBox heroRow;
     private MenuManager menuManager;
     private BattleMenu battleMenu;
     private Controller controller;
@@ -42,25 +42,50 @@ public class BattleMenuController implements Initializable {
     public Button story2;
     public Button story3;
 
-    public VBox customBox;
-    public Label customDescription;
+    public VBox customModeBox;
     public Button custom1;
     public Button custom2;
     public Button custom3;
 
+    public VBox customHeroBox;
+
+    public VBox flagBox;
+    public ChoiceBox<Integer> numberOfFlags;
+    public Button flagOkButton;
+
+    BattleMenu.CustomGameMode customGameMode;
+    int flagNumber;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         setAllBackgrounds();
         setAllActions();
+        numberOfFlags.getItems().addAll(5,6,7,8,9,10);
 
-        TableColumn<Deck, String> column = new TableColumn<>("Name");
-        column.setCellValueFactory(new PropertyValueFactory<>("name"));
 
     }
     public void update(){
+        playerModeBox.setVisible(true);
+        singlePlayerBox.setVisible(false);
+        storyBox.setVisible(false);
+        customModeBox.setVisible(false);
+        try {
+            Hero first = controller.createDeck(1).getHero();
+            Hero second = controller.createDeck(2).getHero();
+            Hero third = controller.createDeck(3).getHero();
+            first.makeCardSprite();
+            first.getCardSprite().play();
+            second.makeCardSprite();
+            second.getCardSprite().play();
+            third.makeCardSprite();
+            third.getCardSprite().play();
+
+            heroRow.getChildren().addAll(first.getImageView(),second.getImageView(),third.getImageView());
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
         storyDescription.setText(battleMenu.storyString());
-        customDescription.setText(battleMenu.customGameString());
+        storyDescription.setStyle("-fx-font-size: 14pt");
     }
 
     public void setAllBackgrounds(){
@@ -83,6 +108,7 @@ public class BattleMenuController implements Initializable {
         buttons.add(story1);
         buttons.add(story2);
         buttons.add(story3);
+        buttons.add(flagOkButton);
         buttons.forEach(button -> {
             setButtonBackground(button,greenButtonNormalPath);
             setButtonGlowOnMouseMoving(button,greenButtonNormalPath,greenButtonGlowPath);
@@ -104,10 +130,9 @@ public class BattleMenuController implements Initializable {
         });
         customButton.setOnAction(o->{
             singlePlayerBox.setVisible(false);
-            customBox.setVisible(true);
+            customModeBox.setVisible(true);
         });
         story1.setOnAction(o -> {
-            battleMenu.setStoryLevel(BattleMenu.StoryLevel.ONE);
             try {
                 controller.createGame(BattleMenu.StoryLevel.ONE,0);
             } catch (CloneNotSupportedException e) {
@@ -117,7 +142,6 @@ public class BattleMenuController implements Initializable {
         });
 
         story2.setOnAction(o -> {
-            battleMenu.setStoryLevel(BattleMenu.StoryLevel.TWO);
             try {
                 controller.createGame(BattleMenu.StoryLevel.TWO,1);
             } catch (CloneNotSupportedException e) {
@@ -127,7 +151,6 @@ public class BattleMenuController implements Initializable {
         });
 
         story3.setOnAction(o -> {
-            battleMenu.setStoryLevel(BattleMenu.StoryLevel.THREE);
             try {
                 controller.createGame(BattleMenu.StoryLevel.THREE,7);
             } catch (CloneNotSupportedException e) {
@@ -135,6 +158,39 @@ public class BattleMenuController implements Initializable {
             }
             menuManager.setCurrentMenu(battleMenu.getInGameBattleMenu());
         });
+        custom1.setOnAction(o ->{
+            customGameMode = BattleMenu.CustomGameMode.KILL_ENEMY_HERO;
+            customModeBox.setVisible(false);
+            customHeroBox.setVisible(true);
+
+        });
+        custom2.setOnAction(o ->{
+            customGameMode = BattleMenu.CustomGameMode.KEEP_FLAG_8_ROUNDS;
+            customModeBox.setVisible(false);
+            customHeroBox.setVisible(true);
+        });
+        custom3.setOnAction(o ->{
+            customGameMode = BattleMenu.CustomGameMode.COLLECT_HALF_FLAGS;
+            customModeBox.setVisible(false);
+            flagBox.setVisible(true);
+        });
+        flagOkButton.setOnAction(o -> {
+            flagNumber = numberOfFlags.getValue();
+            flagBox.setVisible(false);
+            customHeroBox.setVisible(true);
+        });
+
+        for (int i = 0; i < heroRow.getChildren().size(); i++) {
+            int finalI = i;
+            heroRow.getChildren().get(i).setOnMouseClicked(o->{
+                try {
+                    controller.createGame(finalI +1,customGameMode,flagNumber);
+                } catch (CloneNotSupportedException e) {
+                    e.printStackTrace();
+                }
+                menuManager.setCurrentMenu(battleMenu.getInGameBattleMenu());
+            });
+        }
     }
 
     public void setController(Controller controller) {
