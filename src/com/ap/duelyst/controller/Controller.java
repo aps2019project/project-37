@@ -9,6 +9,7 @@ import com.ap.duelyst.model.Utils;
 import com.ap.duelyst.model.cards.Card;
 import com.ap.duelyst.model.cards.Hero;
 import com.ap.duelyst.model.cards.Minion;
+import com.ap.duelyst.model.cards.Spell;
 import com.ap.duelyst.model.game.Game;
 import com.ap.duelyst.model.items.CollectableItem;
 import com.ap.duelyst.model.items.Item;
@@ -33,7 +34,7 @@ public class Controller {
         menuManager = new MenuManager(this);
     }
 
-    public void start(){
+    public void start() {
         do {
             runCommand(view.getInputAsString());
         } while (menuManager.getCurrentMenu() != null);
@@ -109,14 +110,24 @@ public class Controller {
                 Utils.getShop().getCards().stream().filter(card -> card instanceof Minion)
                         .collect(Collectors.toList());
         Collections.shuffle(cards);
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 10; i++) {
+            account.getCollection().add(copyWithNewId(cards.get(i)));
+        }
+        cards =
+                Utils.getShop().getCards().stream().filter(card -> card instanceof Spell)
+                        .collect(Collectors.toList());
+        Collections.shuffle(cards);
+        for (int i = 0; i < 10; i++) {
             account.getCollection().add(copyWithNewId(cards.get(i)));
         }
         /*account.getCollection().add(copyWithNewId(Utils.getShop().getHeroes().get(0)));
-        account.getCollection().add(copyWithNewId((UsableItem) Utils.getShop().getObjectByName("king-wisdom")));
+        account.getCollection().add(copyWithNewId((UsableItem) Utils.getShop()
+        .getObjectByName("king-wisdom")));
         for (int i = 0; i < 10; i++) {
-            account.getCollection().add(copyWithNewId((Card) Utils.getShop().getObjectByName("persian-commander")));
-            account.getCollection().add(copyWithNewId((Card) Utils.getShop().getObjectByName("all-power")));
+            account.getCollection().add(copyWithNewId((Card) Utils.getShop()
+            .getObjectByName("persian-commander")));
+            account.getCollection().add(copyWithNewId((Card) Utils.getShop()
+            .getObjectByName("all-power")));
         }*/
 
         createDeck("amin");

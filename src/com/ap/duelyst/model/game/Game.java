@@ -74,7 +74,6 @@ public class Game {
             case COLLECT_HALF_FLAGS:
                 addFlags(flagNumber);
                 break;
-
         }
 
     }
@@ -89,7 +88,7 @@ public class Game {
     }
 
     private void addFlags(int flagNumber) {
-        for (int[] xy : Utils.getRandomCoordinates(flagNumber)) {
+        for (int[] xy : Utils.getRandomCoordinates(flagNumber/2)) {
             board.get(xy[0]).get(xy[1]).setHasFlag(true);
             board.get(xy[0]).get(8 - xy[1]).setHasFlag(true);
         }
@@ -153,6 +152,7 @@ public class Game {
         currentPlayer = getOpponent();
         String result = checkEndGame();
         if (result != null) {
+            events.gameEnded(result);
             return result;
         }
         nextRound();
@@ -450,7 +450,7 @@ public class Game {
                 if (hero.getInGame().isMoved()) {
                     throw new GameException("card has moved before");
                 }
-                board.get(hero.getX()).get(hero.getY()).removeCard();
+                board.get(hero.getX()).get(hero.getY()).removeCard(false);
                 CollectableItem item = board.get(x).get(y).addCard(card);
                 if (item != null) {
                     currentPlayer.addCollectableItem(item);
@@ -695,7 +695,7 @@ public class Game {
                 }
             }
             graveYard.add(card);
-            board.get(card.getX()).get(card.getY()).removeCard();
+            board.get(card.getX()).get(card.getY()).removeCard(true);
             return card.getCardSprite();
         }
         return null;

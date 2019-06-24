@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface GameEvents {
     void nextRound(List<Hero> inGameCards);
+
+    void gameEnded(String result);
 }

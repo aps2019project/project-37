@@ -4,6 +4,7 @@ import com.ap.duelyst.model.buffs.*;
 import com.ap.duelyst.model.cards.Card;
 import com.ap.duelyst.model.cards.Hero;
 import com.ap.duelyst.model.items.CollectableItem;
+
 import java.util.*;
 
 public class Cell {
@@ -68,7 +69,7 @@ public class Cell {
         }
     }
 
-    public void removeCard() {
+    public void removeCard(boolean removeFlag) {
         heroMinion.setPosition(-1, -1);
         for (Buff buff : buffs) {
             CellBuff cellBuff = (CellBuff) buff;
@@ -76,8 +77,8 @@ public class Cell {
                 heroMinion.getInGame().addHolyNumber(-1);
             }
         }
-        if (heroMinion.getInGame().isHasFlag()) {
-            hasFlag = false;
+        if (removeFlag && heroMinion.getInGame().isHasFlag()) {
+            hasFlag = true;
         }
         heroMinion = null;
     }

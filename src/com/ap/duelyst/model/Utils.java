@@ -57,31 +57,41 @@ public class Utils {
                 RangeType.ONE);
         Spell spell = new Spell("total-disarm", 1000, 0,
                 "disarms enemy minion till the end of the game", buff);
+        spell.setFileName("icon_f1_aegisbarrier");
+        spell.setEffectFileName("fx_f5_tremor");
         cards.add(spell);
 
 
         buff = new DispelBuff(1, false, TargetType.MINION, SideType.ALL,
                 RangeType.SQUARE2);
         spell = new Spell("aria-dispel", 1500, 2, "dispels buffs for all", buff);
+        spell.setFileName("icon_f1_aerial_rift");
+        spell.setEffectFileName("fx_shadowcreep");
         cards.add(spell);
 
 
         buff = new PowerBuff(-1, false, TargetType.MINION, SideType.ALLY, RangeType.ONE,
                 EffectType.ATTACK_POWER, 2);
         spell = new Spell("empower", 250, 1, "increases ap of ally minion by 2", buff);
+        spell.setFileName("icon_f1_afterglow");
+        spell.setEffectFileName("f3_fx_circleofdessication");
         cards.add(spell);
 
 
         buff = new AttackBuff(1, false, TargetType.MINION, SideType.ENEMY,
                 RangeType.ONE, 4);
         spell = new Spell("fireball", 400, 1, "damages enemy minion 4 points", buff);
+        spell.setFileName("icon_f1_aurynnexus");
+        spell.setEffectFileName("fx_f1_aperionssurge");
         cards.add(spell);
 
 
-        buff = new PowerBuff(Integer.MAX_VALUE, false, TargetType.HERO, SideType.ALLY,
+        buff = new PowerBuff(-1, false, TargetType.HERO, SideType.ALLY,
                 RangeType.ONE,
                 EffectType.ATTACK_POWER, 4);
         spell = new Spell("god-strength", 450, 2, "increases ap of ally hero by 4", buff);
+        spell.setFileName("icon_f1_beamshock");
+        spell.setEffectFileName("fx_f1_aurynnexus");
         cards.add(spell);
 
 
@@ -91,12 +101,16 @@ public class Utils {
         buff = new CellBuff(2, false, TargetType.CELL, SideType.ALL, RangeType.SQUARE2,
                 buff1);
         spell = new Spell("hellfire", 450, 2, "increases ap of ally hero by 4", buff);
+        spell.setFileName("icon_f1_blessing");
+        spell.setEffectFileName("fx_f1_bbs_kingsguard");
         cards.add(spell);
 
 
         buff = new AttackBuff(1, false, TargetType.HERO, SideType.ENEMY, RangeType.ONE,
                 8);
         spell = new Spell("lightning-bolt", 1250, 2, "damages enemy hero 4 points", buff);
+        spell.setFileName("icon_f1_breathoflife");
+        spell.setEffectFileName("fx_f1_lasting_judgment");
         cards.add(spell);
 
 
@@ -106,6 +120,8 @@ public class Utils {
                 , buff);
         spell = new Spell("poison-lake", 900, 5, "adds poison effect in a square size " +
                 "3", buff1);
+        spell.setFileName("icon_f1_buffbloom");
+        spell.setEffectFileName("fx_f1_warsurge");
         cards.add(spell);
 
 
@@ -115,23 +131,31 @@ public class Utils {
                 EffectType.ATTACK_POWER, 4);
         spell = new Spell("madness", 650, 0, "increases ally minion ap but disarms him"
                 , buff, buff1);
+        spell.setFileName("icon_f1_celestialconduit");
+        spell.setEffectFileName("fx_f2_bbs_spellsword");
         cards.add(spell);
 
 
         buff = new DisarmBuff(1, false, TargetType.MINION, SideType.ENEMY,
                 RangeType.ALL_BOARD);
         spell = new Spell("all-disarm", 2000, 9, "disarms all enemy minions", buff);
+        spell.setFileName("icon_f1_chargeintobattle");
+        spell.setEffectFileName("fx_f2_eightgates_bluelotus");
         cards.add(spell);
 
 
         buff = new PoisonBuff(4, false, TargetType.MINION, SideType.ENEMY,
                 RangeType.ALL_BOARD);
         spell = new Spell("all-poison", 1500, 8, "poisons all enemy minions", buff);
+        spell.setFileName("icon_f1_circleoflife");
+        spell.setEffectFileName("fx_f2_eightgates_teallotus");
         cards.add(spell);
 
 
         buff = new DispelBuff(1, false, TargetType.MINION, SideType.ALL, RangeType.ONE);
         spell = new Spell("dispel", 2100, 0, "dispels buffs for one enemy or ally", buff);
+        spell.setFileName("icon_f1_decimate");
+        spell.setEffectFileName("fx_f2_killingedge");
         cards.add(spell);
 
 
@@ -143,6 +167,8 @@ public class Utils {
         spell = new Spell("health-with-benefit", 2250, 0,
                 "adds holly buff to a minion for 3 rounds and 2 points but weakens him " +
                         "by 6 points", buff, buff1);
+        spell.setFileName("icon_f1_divinebond");
+        spell.setEffectFileName("fx_f2_mistdragonseal");
         cards.add(spell);
 
 
@@ -150,6 +176,8 @@ public class Utils {
                 EffectType.ATTACK_POWER, 6);
         spell = new Spell("power-up", 2500, 2, "increases ally minion ap by 6 points",
                 buff);
+        spell.setFileName("icon_f1_divinestbond");
+        spell.setEffectFileName("fx_f2_saberspineseal");
         cards.add(spell);
 
 
@@ -158,6 +186,8 @@ public class Utils {
                 EffectType.ATTACK_POWER, 2);
         spell = new Spell("all-power", 2000, 4, "increases all ally minions ap by 2 " +
                 "points", buff);
+        spell.setFileName("icon_f1_drainingwave");
+        spell.setEffectFileName("fx_f2_twilightreiki");
         cards.add(spell);
 
 
@@ -165,6 +195,8 @@ public class Utils {
                 RangeType.ALL_IN_ONE_COLUMN, 6);
         spell = new Spell("all-attack", 1500, 4, "damages all enemy minions in one " +
                 "column", buff);
+        spell.setFileName("icon_f1_enthrall");
+        spell.setEffectFileName("fx_f2_twinstrike");
         cards.add(spell);
 
 
@@ -173,6 +205,8 @@ public class Utils {
                 EffectType.ATTACK_POWER, 4);
         spell = new Spell("weakening", 1000, 1, "weakens enemy minion's ap by 4 points"
                 , buff);
+        spell.setFileName("icon_f1_fortifiedassault");
+        spell.setEffectFileName("fx_f3_rashascurse");
         cards.add(spell);
 
 
@@ -183,6 +217,8 @@ public class Utils {
                 EffectType.ATTACK_POWER, 8);
         spell = new Spell("sacrifice", 1600, 2,
                 "weakens ally minion hp by 6 but increases it's ap by 8", buff, buff1);
+        spell.setFileName("icon_f1_greatergood");
+        spell.setEffectFileName("fx_f4_bbs_husk");
         cards.add(spell);
 
 
@@ -191,11 +227,15 @@ public class Utils {
         buff.setRandom(true);
         spell = new Spell("kings-guard", 1750, 9, "kills one random enemy minion in " +
                 "radius 8 of ally hero", buff);
+        spell.setFileName("icon_f1_holyimmolation");
+        spell.setEffectFileName("fx_f4_nethersummoning");
         cards.add(spell);
 
 
         buff = new StunBuff(2, false, TargetType.MINION, SideType.ENEMY, RangeType.ONE);
         spell = new Spell("shock", 1200, 1, "stuns an enemy minion for 2 rounds", buff);
+        spell.setFileName("icon_f1_increasingdominance");
+        spell.setEffectFileName("fx_f4_shadownova");
         cards.add(spell);
 
 

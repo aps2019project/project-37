@@ -4,6 +4,17 @@
     -fx-background-position: center;
 }
 
+.back{
+    -fx-background-size: cover;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: center;
+}
+
+.shadow{
+    -fx-stroke-width: 1;
+    -fx-stroke: black;
+}
+
 .board-cell {
     -fx-background-color: rgba(0, 0, 0, 0.27);
     -fx-background-radius: 10;

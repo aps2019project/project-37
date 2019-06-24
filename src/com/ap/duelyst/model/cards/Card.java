@@ -5,7 +5,7 @@ import com.ap.duelyst.view.card.CardSprite;
 
 public abstract class Card implements Cloneable {
     private String fileName;
-    private CardSprite cardSprite;
+    CardSprite cardSprite;
     private String id;
     private String name;
     private long price;

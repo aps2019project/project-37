@@ -85,14 +85,22 @@ public class Frame {
     }
 
     public static ArrayList<Frame> getFrames(NSDictionary rootDict, FrameType frameType) {
-        if (frameType == FrameType.ATTACK) {
-            return getFrames(rootDict, Pattern.compile("\\_attack\\_"));
-        } else if (frameType == FrameType.BREATHING) {
-            return getFrames(rootDict, Pattern.compile("\\_breathing\\_"));
-        } else if (frameType == FrameType.DEATH) {
-            return getFrames(rootDict, Pattern.compile("\\_death\\_"));
-        } else if (frameType == FrameType.RUN) {
-            return getFrames(rootDict, Pattern.compile("\\_run\\_"));
+        switch (frameType) {
+            case ATTACK:
+                return getFrames(rootDict, Pattern.compile("_attack_"));
+            case BREATHING:
+                return getFrames(rootDict, Pattern.compile("_breathing_"));
+            case DEATH:
+                return getFrames(rootDict, Pattern.compile("_death_"));
+            case RUN:
+                return getFrames(rootDict, Pattern.compile("_run_"));
+            case SPELL_ACTIVE:
+                return getFrames(rootDict, Pattern.compile("_active_"));
+            case SPELL_INACTIVE:
+                return getFrames(rootDict,Pattern.compile("^(?!.*active).*$"));
+
+            case SPELL_EFFECT:
+                return getFrames(rootDict,Pattern.compile(".*"));
         }
         return null;
     }
