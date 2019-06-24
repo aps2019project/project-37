@@ -1,8 +1,9 @@
-#mainBox{
+#mainBox {
     -fx-background-size: stretch;
     -fx-background-position: center center;
     -fx-background-repeat: stretch;
 }
+
 .button {
     -fx-background-size: stretch;
     -fx-background-repeat: no-repeat;
@@ -13,4 +14,11 @@
     -fx-font-weight: bold;
     -fx-font-family: "Times New Roman";
     -fx-background-color: transparent;
+    -fx-cursor: hand;
+}
+
+.back {
+    -fx-background-size: cover;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: center;
 }

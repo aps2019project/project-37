@@ -18,7 +18,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        /*FXMLLoader loader =
+       /* FXMLLoader loader =
                 new FXMLLoader(getClass().getResource("view/battle/battle.fxml"));
         Parent root = loader.load();
         BattleController battleController = loader.getController();*/

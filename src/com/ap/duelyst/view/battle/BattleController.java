@@ -14,6 +14,7 @@ import com.ap.duelyst.model.game.Player;
 import com.ap.duelyst.model.items.CollectableItem;
 import com.ap.duelyst.model.items.Item;
 import com.ap.duelyst.model.items.UsableItem;
+import com.ap.duelyst.view.DialogController;
 import com.ap.duelyst.view.GameEvents;
 import com.ap.duelyst.view.card.CardSprite;
 import javafx.animation.*;
@@ -59,6 +60,7 @@ public class BattleController implements Initializable {
     public HBox dialog;
     public Label dialogText;
     public VBox dialogContainer;
+    private DialogController dialogController;
     public VBox notificationContainer;
     public Label notification;
     public VBox rightButtonContainer;
@@ -195,7 +197,7 @@ public class BattleController implements Initializable {
                             }
                             insertableCard = null;
                         } catch (GameException e) {
-                            showDialog(e.getMessage());
+                            dialogController.showDialog(e.getMessage());
                         }
                         updateBoard(game.getInBoardCards(), true);
                         updateHand();
@@ -291,7 +293,8 @@ public class BattleController implements Initializable {
         prepareHand();
         prepareBoard();
         prepareMana();
-        prepareDialog();
+        dialogController = new DialogController(root, dialog, dialogText,
+                dialogContainer);
         prepareRightButtons();
         notification.setStyle("-fx-background-image: url('" + mineNotifBack + "')");
         notification.getStyleClass().addAll("back", "shadow");
@@ -335,18 +338,7 @@ public class BattleController implements Initializable {
                         "')")
         );
     }
-
-    private void prepareDialog() {
-        dialogText.prefWidthProperty().bind(root.widthProperty().multiply(.2));
-        dialog.prefWidthProperty().bind(root.widthProperty().multiply(.35));
-        dialog.prefHeightProperty().bind(dialog.prefWidthProperty().multiply(.287));
-        String back = Utils.getPath("dialog_plate@2x.png");
-        dialog.getStyleClass().add("back");
-        dialog.setStyle("-fx-background-image: url('" + back + "')");
-        dialogContainer.setOnMouseClicked(event -> hideDialog());
-        dialogContainer.setVisible(false);
-    }
-
+    
     private void showNotification(boolean mine) {
         if (mine) {
             notification.setStyle("-fx-background-image: url('" + mineNotifBack + "')");
@@ -390,41 +382,7 @@ public class BattleController implements Initializable {
         transition.play();
         transition.setOnFinished(event -> notificationContainer.setVisible(false));
     }
-
-    private void showDialog(String message) {
-        dialogText.setText(message);
-        FadeTransition fade = new FadeTransition(Duration.millis(300),
-                dialogContainer);
-        fade.setFromValue(0);
-        fade.setToValue(1);
-        dialogContainer.setVisible(true);
-        fade.play();
-        ScaleTransition scale = new ScaleTransition(Duration.millis(300), dialog);
-        scale.setFromX(.4);
-        scale.setFromY(.4);
-        scale.setToY(1);
-        scale.setToX(1);
-        scale.play();
-    }
-
-    private void hideDialog() {
-        FadeTransition fade = new FadeTransition(Duration.millis(300),
-                dialogContainer);
-        fade.setFromValue(1);
-        fade.setToValue(0);
-        fade.play();
-        fade.setOnFinished(event -> dialogContainer.setVisible(false));
-        ScaleTransition scale = new ScaleTransition(Duration.millis(300), dialog);
-        scale.setFromX(1);
-        scale.setFromY(1);
-        scale.setToY(.4);
-        scale.setToX(.4);
-        scale.play();
-        if (gameEnded) {
-            System.exit(0);
-        }
-    }
-
+    
     private void showHeroDialog(boolean showTop) {
         if (showTop) {
             VBox box = p2Box;
@@ -555,7 +513,7 @@ public class BattleController implements Initializable {
                         if (event.getButton() == MouseButton.PRIMARY) {
                             if (selectedCard.getInGame().isMoved()
                                     || !selectedCard.getInGame().isMovable()) {
-                                showDialog("card cant move");
+                                dialogController.showDialog("card cant move");
                                 return;
                             }
                             first = false;
@@ -578,7 +536,7 @@ public class BattleController implements Initializable {
                         }
                         if (event.getButton() == MouseButton.SECONDARY) {
                             if (selectedCard.getInGame().isAttacked()) {
-                                showDialog("card has attacked");
+                                dialogController.showDialog("card has attacked");
                                 return;
                             }
                             for (Node child : board.getChildren()) {
@@ -620,33 +578,33 @@ public class BattleController implements Initializable {
                                 }
                             }
                             if (first) {
-                                showDialog("card cant attack or no target is detected");
+                                dialogController.showDialog("card cant attack or no target is detected");
                                 updateBoard(game.getInBoardCards(), true);
                             }
                         }
                         if (event.getButton() == MouseButton.MIDDLE) {
                             Spell spell = selectedCard.getSpecialPower();
                             if (selectedCard.getClass() != Hero.class) {
-                                showDialog("card is not a hero");
+                                dialogController.showDialog("card is not a hero");
                                 return;
                             }
                             if (spell == null) {
-                                showDialog("card doesnt have special power");
+                                dialogController.showDialog("card doesnt have special power");
                                 return;
                             }
                             if (selectedCard.isOnAttack()
                                     || selectedCard.isPassive()) {
-                                showDialog("hero's power is" +
+                                dialogController.showDialog("hero's power is" +
                                         " not controllable by player");
                                 return;
                             }
                             if (game.getCurrentPlayer().getMana()
                                     < selectedCard.getSpecialPowerMana()) {
-                                showDialog("not enough mana");
+                                dialogController.showDialog("not enough mana");
                                 return;
                             }
                             if (selectedCard.getInGame().getCoolDown() > 0) {
-                                showDialog("cool down time is not over yet");
+                                dialogController.showDialog("cool down time is not over yet");
                                 return;
                             }
                             first = false;
@@ -682,7 +640,7 @@ public class BattleController implements Initializable {
                                 vBox.setAlignment(Pos.CENTER);
                                 updateHand();
                             } catch (GameException e) {
-                                showDialog(e.getMessage());
+                                dialogController.showDialog(e.getMessage());
                             }
                             updateBoard(game.getInBoardCards(), true);
                             return;
@@ -697,7 +655,7 @@ public class BattleController implements Initializable {
                                 sprite.setOnFinished(event1 ->
                                         root.getChildren().remove(sprite.getImageView()));
                             } catch (GameException e) {
-                                showDialog(e.getMessage());
+                                dialogController.showDialog(e.getMessage());
                             }
                             updateBoard(game.getInBoardCards(), true);
                             selectedItem = null;
@@ -906,7 +864,7 @@ public class BattleController implements Initializable {
                 @Override
                 public void gameEnded(String result) {
                     gameEnded = true;
-                    showDialog(result);
+                    dialogController.showDialog(result);
                 }
             });
             this.game.startGame();
@@ -1269,7 +1227,7 @@ public class BattleController implements Initializable {
             VBox.setVgrow(p1, Priority.ALWAYS);
             root.getChildren().add(vBox);
         } else {
-            showDialog("it's not your turn");
+            dialogController.showDialog("it's not your turn");
         }
     }
 

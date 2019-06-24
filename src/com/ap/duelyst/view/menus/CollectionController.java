@@ -8,6 +8,7 @@ import com.ap.duelyst.controller.menu.ShopMenu;
 import com.ap.duelyst.model.Deck;
 import com.ap.duelyst.model.Utils;
 import com.ap.duelyst.model.cards.Card;
+import com.ap.duelyst.view.DialogController;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.Initializable;
@@ -15,6 +16,8 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 import javax.swing.*;
@@ -22,6 +25,10 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 public class CollectionController implements Initializable {
+    public StackPane root;
+    public VBox dialogContainer;
+    public HBox dialog;
+    public Label dialogText;
     private MenuManager menuManager;
     private CollectionMenu collectionMenu;
     private Controller controller;
@@ -50,13 +57,17 @@ public class CollectionController implements Initializable {
     public TableView<Deck> listOfDecks;
     public TableView<Card> collectionTable;
     public TableView<Card> deckTable;
+    private DialogController dialogController;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         setAllBackgrounds();
         setAllActions();
+        dialogController = new DialogController(root, dialog, dialogText,
+                dialogContainer);
     }
-    private void setAllBackgrounds(){
+
+    private void setAllBackgrounds() {
         String rightButtonNormalPath = Utils.getPath("button_icon_right.png");
         String leftButtonNormalPath = Utils.getPath("button_icon_left.png");
         String rightButtonGlowPath = Utils.getPath("button_icon_right_glow.png");
@@ -86,34 +97,41 @@ public class CollectionController implements Initializable {
         setButtonBackground(exportDeckButton, blueButtonNormalPath);
         setButtonBackground(exitButton, blueButtonNormalPath);
 
-        setButtonGlowOnMouseMoving(addToDeckButton, rightButtonNormalPath, rightButtonGlowPath);
-        setButtonGlowOnMouseMoving(removeFromDeckButton, leftButtonNormalPath, leftButtonGlowPath);
-        setButtonGlowOnMouseMoving(createNewDeckButton, greenButtonNormalPath, greenButtonGlowPath);
-        setButtonGlowOnMouseMoving(changeDeckButton, greenButtonNormalPath, greenButtonGlowPath);
-        setButtonGlowOnMouseMoving(setAsMainDeckButton, greenButtonNormalPath, greenButtonGlowPath);
-        setButtonGlowOnMouseMoving(importDeckButton, blueButtonNormalPath, blueButtonGlowPath);
-        setButtonGlowOnMouseMoving(exportDeckButton, blueButtonNormalPath, blueButtonGlowPath);
+        setButtonGlowOnMouseMoving(addToDeckButton, rightButtonNormalPath,
+                rightButtonGlowPath);
+        setButtonGlowOnMouseMoving(removeFromDeckButton, leftButtonNormalPath,
+                leftButtonGlowPath);
+        setButtonGlowOnMouseMoving(createNewDeckButton, greenButtonNormalPath,
+                greenButtonGlowPath);
+        setButtonGlowOnMouseMoving(changeDeckButton, greenButtonNormalPath,
+                greenButtonGlowPath);
+        setButtonGlowOnMouseMoving(setAsMainDeckButton, greenButtonNormalPath,
+                greenButtonGlowPath);
+        setButtonGlowOnMouseMoving(importDeckButton, blueButtonNormalPath,
+                blueButtonGlowPath);
+        setButtonGlowOnMouseMoving(exportDeckButton, blueButtonNormalPath,
+                blueButtonGlowPath);
         setButtonGlowOnMouseMoving(exitButton, blueButtonNormalPath, blueButtonGlowPath);
 
     }
 
-    private void setAllActions(){
-        exitButton.setOnAction(e->{
+    private void setAllActions() {
+        exitButton.setOnAction(e -> {
             menuManager.setCurrentMenu(collectionMenu.getParentMenu());
         });
-        changeDeckButton.setOnAction(e ->{
-            if(controller.getCurrentAccount().getDecks().isEmpty()){
+        changeDeckButton.setOnAction(e -> {
+            if (controller.getCurrentAccount().getDecks().isEmpty()) {
                 showNoDeck();
-            }else{
+            } else {
                 DeckBox.setVisible(true);
             }
         });
         addToDeckButton.setOnAction(o -> {
-            if(currentDeck == null){
+            if (currentDeck == null) {
                 showNoDeck();
-            }else if(collectionTable.getSelectionModel().getSelectedItem() == null){
+            } else if (collectionTable.getSelectionModel().getSelectedItem() == null) {
                 showError("Please select a card from collection!");
-            }else{
+            } else {
                 Card selectedCard = collectionTable.getSelectionModel().getSelectedItem();
                 try {
                     currentDeck.add(selectedCard);
@@ -121,17 +139,17 @@ public class CollectionController implements Initializable {
                     deckTable.getItems().add(selectedCard);
                 } catch (GameException e) {
                     errorLabel.setText(e.getMessage());
-                    errorBox.setVisible(true);
+//                    errorBox.setVisible(true);
+                    dialogController.showDialog(e.getMessage());
                 }
             }
         });
         removeFromDeckButton.setOnAction(o -> {
-            if(currentDeck == null){
+            if (currentDeck == null) {
                 showNoDeck();
-            }else if(deckTable.getSelectionModel().getSelectedItem() == null){
+            } else if (deckTable.getSelectionModel().getSelectedItem() == null) {
                 showError("Please select a card from deck!");
-            }
-            else {
+            } else {
                 Card selectedCard = deckTable.getSelectionModel().getSelectedItem();
                 try {
                     currentDeck.remove(selectedCard);
@@ -139,7 +157,8 @@ public class CollectionController implements Initializable {
                     collectionTable.getItems().add(selectedCard);
                 } catch (GameException e) {
                     errorLabel.setText(e.getMessage());
-                    errorBox.setVisible(true);
+//                    errorBox.setVisible(true);
+                    dialogController.showDialog(e.getMessage());
                 }
             }
         });
@@ -147,14 +166,16 @@ public class CollectionController implements Initializable {
             newDeckBox.setVisible(true);
         });
         submitNameOfNewDeck.setOnAction(o -> {
-            if(!nameOfNewDeck.getText().isEmpty()) {
+            if (!nameOfNewDeck.getText().isEmpty()) {
                 try {
                     controller.createDeck(nameOfNewDeck.getText());
-                    currentDeck = controller.getCurrentAccount().getDeck(nameOfNewDeck.getText());
+                    currentDeck =
+                            controller.getCurrentAccount().getDeck(nameOfNewDeck.getText());
                     updateListOfDecks();
-                }catch (GameException e){
+                } catch (GameException e) {
                     errorLabel.setText(e.getMessage());
-                    errorBox.setVisible(true);
+//                    errorBox.setVisible(true);
+                    dialogController.showDialog(e.getMessage());
                 }
             }
             nameOfNewDeck.setText("");
@@ -162,7 +183,7 @@ public class CollectionController implements Initializable {
         });
         selectDeckButton.setOnAction(o -> {
             Deck selectedDeck = listOfDecks.getSelectionModel().getSelectedItem();
-            if(selectedDeck != null){
+            if (selectedDeck != null) {
                 currentDeck = selectedDeck;
                 update();
             }
@@ -171,34 +192,36 @@ public class CollectionController implements Initializable {
         setAsMainDeckButton.setOnAction(o -> {
             try {
                 controller.setMainDeck(currentDeck.getName());
-            }catch (GameException e){
+            } catch (GameException e) {
                 errorLabel.setText(e.getMessage());
-                errorBox.setVisible(true);
+//                errorBox.setVisible(true);
+                dialogController.showDialog(e.getMessage());
             }
         });
         exitErrorBox.setOnAction(o -> {
             errorBox.setVisible(false);
         });
         exportDeckButton.setOnAction(o -> {
-            if(currentDeck != null) {
+            if (currentDeck != null) {
                 controller.exportDeck(currentDeck);
-            }else {
+                dialogController.showDialog("deck exported successfully");
+            } else {
                 showError("Please select a deck to export!");
             }
         });
         importDeckButton.setOnAction(o -> {
             importDeckBox.setVisible(true);
         });
-        importButton.setOnAction( o ->{
+        importButton.setOnAction(o -> {
             Deck deck = controller.importDeck(nameOfImportDeck.getText());
-            if(deck != null){
-                if (controller.getCurrentAccount().hasDeck(deck.getName())){
+            if (deck != null) {
+                if (controller.getCurrentAccount().hasDeck(deck.getName())) {
                     showError("You already has that deck!");
-                }else{
+                } else {
                     controller.getCurrentAccount().getDecks().add(deck);
-                    showError(deck.getName()+" is added successfully!");
+                    showError(deck.getName() + " is added successfully!");
                 }
-            }else{
+            } else {
                 showError("There is no deck with this name");
             }
             nameOfImportDeck.setText("");
@@ -206,27 +229,34 @@ public class CollectionController implements Initializable {
             updateListOfDecks();
         });
     }
+
     public void setMenuManager(MenuManager menuManager) {
         this.menuManager = menuManager;
     }
+
     public void setCollectionMenu(CollectionMenu collectionMenu) {
         this.collectionMenu = collectionMenu;
     }
+
     public void setController(Controller controller) {
         this.controller = controller;
     }
-    public void update(){
+
+    public void update() {
         updateListOfDecks();
         updateDeckTable();
         updateCollectionTable();
     }
-    public void loadMainDeckOnTable(){
-        if(controller.getCurrentAccount().getMainDeck() != null){
+
+    public void loadMainDeckOnTable() {
+        if (controller.getCurrentAccount().getMainDeck() != null) {
             currentDeck = controller.getCurrentAccount().getMainDeck();
         }
     }
-    public void updateListOfDecks(){
-        ObservableList<Deck> decks = FXCollections.observableArrayList(controller.getCurrentAccount().getDecks());
+
+    public void updateListOfDecks() {
+        ObservableList<Deck> decks =
+                FXCollections.observableArrayList(controller.getCurrentAccount().getDecks());
 
         TableColumn<Deck, String> nameColumn = getDeckStringTableColumn("Name", "name");
 
@@ -236,19 +266,24 @@ public class CollectionController implements Initializable {
         listOfDecks.getColumns().addAll(nameColumn);
 
     }
-    public void updateDeckTable(){
-        if(currentDeck != null) {
-            ObservableList<Card> cards = FXCollections.observableArrayList(currentDeck.getHeroMinions());
+
+    public void updateDeckTable() {
+        if (currentDeck != null) {
+            ObservableList<Card> cards =
+                    FXCollections.observableArrayList(currentDeck.getHeroMinions());
             makeTableView(cards, deckTable);
         }
     }
-    public void updateCollectionTable(){
-        ObservableList<Card> cards = FXCollections.observableArrayList(controller.getCurrentAccount().getCollection().getHeroMinions());
+
+    public void updateCollectionTable() {
+        ObservableList<Card> cards =
+                FXCollections.observableArrayList(controller.getCurrentAccount().getCollection().getHeroMinions());
         cards.removeAll(deckTable.getItems());
         makeTableView(cards, collectionTable);
 
     }
-    private void makeTableView(ObservableList<Card> cards, TableView tableView){
+
+    private void makeTableView(ObservableList<Card> cards, TableView tableView) {
         cards.forEach(card -> {
             if (card.getCardSprite() == null) {
                 card.makeCardSprite();
@@ -256,9 +291,10 @@ public class CollectionController implements Initializable {
             card.getCardSprite().play();
         });
 
-        TableColumn<Card, ImageView> imageColumn = getCardImageTableColumn("Image", "imageView");
+        TableColumn<Card, ImageView> imageColumn = getCardImageTableColumn("Image",
+                "imageView");
 
-        TableColumn<Card, String> nameColumn = getCardStringTableColumn("Name","name");
+        TableColumn<Card, String> nameColumn = getCardStringTableColumn("Name", "name");
 
         TableColumn<Card, String> idColumn = getCardStringTableColumn("ID", "id");
 
@@ -268,38 +304,50 @@ public class CollectionController implements Initializable {
         tableView.getColumns().addAll(imageColumn, nameColumn, idColumn);
     }
 
-    private TableColumn<Card, String> getCardStringTableColumn(String showName, String realName) {
+    private TableColumn<Card, String> getCardStringTableColumn(String showName,
+                                                               String realName) {
         TableColumn<Card, String> column = new TableColumn<>(showName);
         column.setCellValueFactory(new PropertyValueFactory<>(realName));
         return column;
     }
-    private TableColumn<Card, ImageView> getCardImageTableColumn(String showName, String realName) {
+
+    private TableColumn<Card, ImageView> getCardImageTableColumn(String showName,
+                                                                 String realName) {
         TableColumn<Card, ImageView> column = new TableColumn<>("Image");
         column.setCellValueFactory(new PropertyValueFactory<>("imageView"));
         return column;
     }
-    private TableColumn<Deck, String> getDeckStringTableColumn(String showName, String realName) {
+
+    private TableColumn<Deck, String> getDeckStringTableColumn(String showName,
+                                                               String realName) {
         TableColumn<Deck, String> column = new TableColumn<>(showName);
         column.setCellValueFactory(new PropertyValueFactory<>(realName));
         return column;
     }
-    private void setButtonGlowOnMouseMoving(Button button, String normalPath, String glowPath){
+
+    private void setButtonGlowOnMouseMoving(Button button, String normalPath,
+                                            String glowPath) {
         button.setOnMouseEntered(e -> {
-            setButtonBackground(button,glowPath);
+            setButtonBackground(button, glowPath);
         });
         button.setOnMouseExited(e -> {
-            setButtonBackground(button,normalPath);
+            setButtonBackground(button, normalPath);
         });
     }
-    private void setButtonBackground(Button button, String backgroundPath){
+
+    private void setButtonBackground(Button button, String backgroundPath) {
         button.setStyle("-fx-background-image: url(' " + backgroundPath + "')");
     }
-    private void showNoDeck(){
+
+    private void showNoDeck() {
         errorLabel.setText("There is no deck, please create a new deck");
-        errorBox.setVisible(true);
+//        errorBox.setVisible(true);
+        dialogController.showDialog("There is no deck, please create a new deck");
     }
-    private void showError(String message){
+
+    private void showError(String message) {
         errorLabel.setText(message);
-        errorBox.setVisible(true);
+//        errorBox.setVisible(true);
+        dialogController.showDialog(message);
     }
 }

@@ -9,9 +9,14 @@ import com.ap.duelyst.model.buffs.traget.RangeType;
 import com.ap.duelyst.model.buffs.traget.SideType;
 import com.ap.duelyst.model.buffs.traget.TargetType;
 import com.ap.duelyst.model.cards.*;
+import com.ap.duelyst.view.DialogController;
 import com.ap.duelyst.view.card.CardSprite;
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
+import javafx.application.Platform;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -28,10 +33,7 @@ import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("Duplicates")
@@ -60,6 +62,8 @@ public class CustomCardController implements Initializable {
     private String fileName;
     private String effectFileName;
     private Controller controller;
+    private DialogController dialogController;
+    private EventHandler<ActionEvent> eventHandler;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -139,52 +143,9 @@ public class CustomCardController implements Initializable {
         addNumberLimitation(mana);
         addNumberLimitation(coolDown);
         addNumberLimitation(cost);
-        prepareDialog();
-    }
-
-    private void prepareDialog() {
-        dialogText.prefWidthProperty().bind(root.widthProperty().multiply(.2));
-        dialog.prefWidthProperty().bind(root.widthProperty().multiply(.35));
-        dialog.prefHeightProperty().bind(dialog.prefWidthProperty().multiply(.287));
-        String back = Utils.getPath("dialog_plate@2x.png");
-        dialog.getStyleClass().add("back");
-        dialog.setStyle("-fx-background-image: url('" + back + "')");
-        dialogContainer.setOnMouseClicked(event -> hideDialog());
-        dialogContainer.setVisible(false);
-    }
-
-
-    private void showDialog(String message) {
-        dialogText.setText(message);
-        FadeTransition fade = new FadeTransition(Duration.millis(300),
+        dialogController = new DialogController(root, dialog, dialogText,
                 dialogContainer);
-        fade.setFromValue(0);
-        fade.setToValue(1);
-        dialogContainer.setVisible(true);
-        fade.play();
-        ScaleTransition scale = new ScaleTransition(Duration.millis(300), dialog);
-        scale.setFromX(.4);
-        scale.setFromY(.4);
-        scale.setToY(1);
-        scale.setToX(1);
-        scale.play();
     }
-
-    private void hideDialog() {
-        FadeTransition fade = new FadeTransition(Duration.millis(300),
-                dialogContainer);
-        fade.setFromValue(1);
-        fade.setToValue(0);
-        fade.play();
-        fade.setOnFinished(event -> dialogContainer.setVisible(false));
-        ScaleTransition scale = new ScaleTransition(Duration.millis(300), dialog);
-        scale.setFromX(1);
-        scale.setFromY(1);
-        scale.setToY(.4);
-        scale.setToX(.4);
-        scale.play();
-    }
-
 
     private void addNumberLimitation(TextField textField) {
         textField.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -240,7 +201,8 @@ public class CustomCardController implements Initializable {
             imageView.setOnMouseClicked(event -> {
                 CustomCardController.this.fileName = card.getFileName();
                 if (card instanceof Spell) {
-                    CustomCardController.this.effectFileName = ((Spell) card).getEffectFileName();
+                    CustomCardController.this.effectFileName =
+                            ((Spell) card).getEffectFileName();
                 }
                 root.getChildren().remove(vBox);
             });
@@ -262,39 +224,39 @@ public class CustomCardController implements Initializable {
         Card card = null;
         String name = this.name.getText();
         if (name.isEmpty()) {
-            showDialog("name should not be empty");
+            dialogController.showDialog("name should not be empty");
             return;
         }
         try {
             Utils.getShop().getObjectByName(name);
-            showDialog("card exists");
+            dialogController.showDialog("card exists");
             return;
         } catch (GameException ignored) {
         }
         if (fileName == null || fileName.isEmpty()) {
-            showDialog("sprite is not selected");
+            dialogController.showDialog("sprite is not selected");
             return;
         }
         if (this.cost.getText().isEmpty()) {
-            showDialog("cost should not be empty");
+            dialogController.showDialog("cost should not be empty");
             return;
         }
         switch (cardType.getValue()) {
             case "hero":
                 if (ap.getText().isEmpty()) {
-                    showDialog("ap should not be empty");
+                    dialogController.showDialog("ap should not be empty");
                     return;
                 }
                 if (hp.getText().isEmpty()) {
-                    showDialog("hp should not be empty");
+                    dialogController.showDialog("hp should not be empty");
                     return;
                 }
                 if (range.getText().isEmpty()) {
-                    showDialog("range should not be empty");
+                    dialogController.showDialog("range should not be empty");
                     return;
                 }
                 if (coolDown.getText().isEmpty()) {
-                    showDialog("coolDown should not be empty");
+                    dialogController.showDialog("coolDown should not be empty");
                     return;
                 }
                 Hero hero = new Hero(name, getValue(cost), getValue(hp), getValue(hp),
@@ -307,19 +269,19 @@ public class CustomCardController implements Initializable {
                 break;
             case "minion":
                 if (ap.getText().isEmpty()) {
-                    showDialog("ap should not be empty");
+                    dialogController.showDialog("ap should not be empty");
                     return;
                 }
                 if (hp.getText().isEmpty()) {
-                    showDialog("hp should not be empty");
+                    dialogController.showDialog("hp should not be empty");
                     return;
                 }
                 if (range.getText().isEmpty()) {
-                    showDialog("range should not be empty");
+                    dialogController.showDialog("range should not be empty");
                     return;
                 }
                 if (mana.getText().isEmpty()) {
-                    showDialog("coolDown should not be empty");
+                    dialogController.showDialog("coolDown should not be empty");
                     return;
                 }
                 Minion minion = new Minion(name, getValue(cost), getValue(mana),
@@ -334,7 +296,7 @@ public class CustomCardController implements Initializable {
                 break;
             case "spell":
                 if (mana.getText().isEmpty()) {
-                    showDialog("coolDown should not be empty");
+                    dialogController.showDialog("coolDown should not be empty");
                     return;
                 }
                 Buff buff = null;
@@ -397,6 +359,16 @@ public class CustomCardController implements Initializable {
                 break;
         }
         controller.addCustomCard(card);
+        dialogController.showDialog("card added successfully");
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                Platform.runLater(() -> {
+                    dialogController.hideDialog();
+                    close();
+                });
+            }
+        }, 2000);
     }
 
     private int getValue(TextField textField) {
@@ -405,5 +377,14 @@ public class CustomCardController implements Initializable {
 
     public void setController(Controller controller) {
         this.controller = controller;
+    }
+
+    @FXML
+    private void close() {
+        eventHandler.handle(null);
+    }
+
+    public void setEventHandler(EventHandler<ActionEvent> eventHandler) {
+        this.eventHandler = eventHandler;
     }
 }

@@ -211,6 +211,11 @@
                   <Insets top="8.0" />
                </VBox.margin>
             </StackPane>
+            <StackPane prefHeight="150.0" prefWidth="200.0">
+               <children>
+                  <Button minHeight="60.0" minWidth="200.0" mnemonicParsing="false" onAction="#close" styleClass="button-primary" text="exit" />
+               </children>
+            </StackPane>
          </children>
          <padding>
             <Insets bottom="16.0" left="16.0" right="16.0" top="16.0" />
