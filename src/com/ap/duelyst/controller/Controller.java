@@ -18,12 +18,13 @@ import com.ap.duelyst.view.View;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class Controller {
     private View view;
     private Account currentAccount;
-    private MenuManager menuManager;
+    private final MenuManager menuManager;
     private Game game;
     private Card selectedCard;
     private CollectableItem selectedItem;
@@ -41,6 +42,10 @@ public class Controller {
 
     public Game getGame() {
         return game;
+    }
+
+    public MenuManager getMenuManager() {
+        return menuManager;
     }
 
     public void setCurrentAccount(Account currentAccount) {
@@ -71,6 +76,17 @@ public class Controller {
         }
     }
 
+    public void createAccountGUI(String userName, String password) {
+        if (Utils.hasAccount(userName)) {
+            throw new GameException("There is an account with this username!");
+        } else {
+            Account account = new Account();
+            account.setUserName(userName);
+            account.setPassword(password);
+            Utils.add(account);
+        }
+    }
+
     public Account getCurrentAccount() {
         return currentAccount;
     }
@@ -88,6 +104,7 @@ public class Controller {
         }
         showMessage("tip: select user [user name]\n");
     }
+
 
     public void login(String userName) {
         if (!Utils.hasAccount(userName)) {
@@ -112,12 +129,14 @@ public class Controller {
         for (int i = 0; i < 20; i++) {
             account.getCollection().add(copyWithNewId(cards.get(i)));
         }
-        /*account.getCollection().add(copyWithNewId(Utils.getShop().getHeroes().get(0)));
-        account.getCollection().add(copyWithNewId((UsableItem) Utils.getShop().getObjectByName("king-wisdom")));
-        for (int i = 0; i < 10; i++) {
-            account.getCollection().add(copyWithNewId((Card) Utils.getShop().getObjectByName("persian-commander")));
-            account.getCollection().add(copyWithNewId((Card) Utils.getShop().getObjectByName("all-power")));
-        }*/
+
+        //account.getCollection().add(copyWithNewId(Utils.getShop().getHeroes().get(0)));
+        //account.getCollection().add(copyWithNewId((UsableItem) Utils.getShop().getObjectByName("king-wisdom")));
+        //for (int i = 0; i < 10; i++) {
+        //    account.getCollection().add(copyWithNewId((Card) Utils.getShop().getObjectByName("persian-commander")));
+        //    account.getCollection().add(copyWithNewId((Card) Utils.getShop().getObjectByName("all-power")));
+        //}
+
 
         createDeck("amin");
         for (Card card : account.getCollection().getCards()) {
@@ -127,9 +146,24 @@ public class Controller {
             addToDeck(usableItem.getId(), "amin");
         }
         setMainDeck("amin");
-//
     }
 
+    public void loginGUI(String userName, String password) {
+        if(currentAccount != null && currentAccount.getUserName().equals(userName)){
+            throw new GameException("You are logged in already");
+        }
+        if (!Utils.hasAccount(userName)) {
+            throw new GameException("No account with this username");
+        }
+        Account account = Utils.getAccountByUsername(userName);
+        if (account.getPassword().equals(password)) {
+            setCurrentAccount(account);
+
+        }
+        else {
+            throw new GameException("Password is wrong!");
+        }
+    }
     public void showLeaderBoard() {
         StringBuilder leaderBoard = new StringBuilder();
         if (Utils.getAccounts().isEmpty()) {
@@ -186,7 +220,15 @@ public class Controller {
             buyUsableItem((UsableItem) object);
         }
     }
-
+    public Object buyAndReturn(String name) {
+        Object object = Utils.getShop().getObjectByName(name);
+        if (object instanceof Card) {
+            return buyAndReturnCard((Card) object);
+        } else if (object instanceof UsableItem) {
+            return buyAndReturnUsableItem((UsableItem) object);
+        }
+        return null;
+    }
     public void sell(String id) {
         Object object = currentAccount.getCollection().getObjectById(id);
         if (object instanceof Card) {
@@ -544,20 +586,32 @@ public class Controller {
         currentAccount.getCollection().add(copyWithNewId(card));
         showMessage("You have bought the card successfully!");
     }
-
+    private Card buyAndReturnCard(Card card) {
+        currentAccount.decreaseBudget(card.getPrice());
+        Card newCard = copyWithNewId(card);
+        currentAccount.getCollection().add(newCard);
+        return newCard;
+    }
     private void buyUsableItem(UsableItem usableItem) {
         currentAccount.decreaseBudget(usableItem.getPrice());
         currentAccount.getCollection().add(copyWithNewId(usableItem));
         showMessage("You have bought the item successfully!");
     }
-
+    private Item buyAndReturnUsableItem(UsableItem usableItem) {
+        currentAccount.decreaseBudget(usableItem.getPrice());
+        Item newUsableItem = copyWithNewId(usableItem);
+        currentAccount.getCollection().add(newUsableItem);
+        return newUsableItem;
+    }
     private void sell(Card card) {
         currentAccount.getCollection().remove(card);
+        currentAccount.getDecks().forEach(deck -> deck.remove(card));
         currentAccount.increaseBudget(card.getPrice());
     }
 
     private void sell(UsableItem usableItem) {
         currentAccount.getCollection().remove(usableItem);
+        currentAccount.getDecks().forEach(deck -> deck.remove(usableItem));
         currentAccount.increaseBudget(usableItem.getPrice());
     }
 

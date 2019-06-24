@@ -2,8 +2,10 @@ package com.ap.duelyst.model.cards;
 
 
 import com.ap.duelyst.view.card.CardSprite;
+import javafx.scene.image.ImageView;
 
 public abstract class Card implements Cloneable {
+    private ImageView imageView;
     private String fileName;
     private CardSprite cardSprite;
     private String id;
@@ -23,11 +25,17 @@ public abstract class Card implements Cloneable {
     }
 
     public Card clone() throws CloneNotSupportedException {
-        return (Card) super.clone();
+        Card card = (Card) super.clone();
+        if(this.cardSprite != null){
+            card.cardSprite = this.getCardSprite().clone();
+            card.getCardSprite().play();
+        }
+        return card;
     }
 
     public void makeCardSprite() {
         this.cardSprite = new CardSprite(fileName);
+        this.imageView = this.cardSprite.getImageView();
     }
 
     public CardSprite getCardSprite() {
@@ -68,6 +76,10 @@ public abstract class Card implements Cloneable {
 
     public String getAccountName() {
         return accountName;
+    }
+
+    public ImageView getImageView() {
+        return imageView;
     }
 
     public boolean idEquals(String id) {
