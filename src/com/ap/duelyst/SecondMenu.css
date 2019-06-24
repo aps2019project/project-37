@@ -1,0 +1,16 @@
+#mainBox{
+    -fx-background-size: stretch;
+    -fx-background-position: center center;
+    -fx-background-repeat: stretch;
+}
+.button {
+    -fx-background-size: stretch;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: center;
+    -fx-text-fill: white;
+    -fx-text-alignment: center;
+    -fx-font-size: 14pt;
+    -fx-font-weight: bold;
+    -fx-font-family: "Times New Roman";
+    -fx-background-color: transparent;
+}

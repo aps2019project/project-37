@@ -40,7 +40,7 @@ public class LoginPage extends Menu {
         super(controller);
         setParentMenu(null);
         mainMenu = new MainMenu(controller);
-        mainMenu.setParentMenu(null);
+        mainMenu.setParentMenu(this);
         initCommandPatterns();
     }
 
@@ -85,6 +85,10 @@ public class LoginPage extends Menu {
                 return getParentMenu();
         }
         return this;
+    }
+
+    public MainMenu getMainMenu() {
+        return mainMenu;
     }
 
     private CommandTypeLoginPage getCommandType(String command) {

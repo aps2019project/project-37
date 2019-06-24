@@ -22,6 +22,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class Controller {
@@ -45,6 +46,10 @@ public class Controller {
 
     public Game getGame() {
         return game;
+    }
+
+    public MenuManager getMenuManager() {
+        return menuManager;
     }
 
     public void setCurrentAccount(Account currentAccount) {
@@ -72,6 +77,17 @@ public class Controller {
             account.setPassword(view.getInputAsString());
             Utils.add(account);
             showMessage("Account Created");
+        }
+    }
+
+    public void createAccountGUI(String userName, String password) {
+        if (Utils.hasAccount(userName)) {
+            throw new GameException("There is an account with this username!");
+        } else {
+            Account account = new Account();
+            account.setUserName(userName);
+            account.setPassword(password);
+            Utils.add(account);
         }
     }
 
@@ -136,10 +152,24 @@ public class Controller {
             addToDeck(usableItem.getId(), "amin");
         }
         setMainDeck("amin");
-        save();
-//
     }
 
+    public void loginGUI(String userName, String password) {
+        if(currentAccount != null && currentAccount.getUserName().equals(userName)){
+            throw new GameException("You are logged in already");
+        }
+        if (!Utils.hasAccount(userName)) {
+            throw new GameException("No account with this username");
+        }
+        Account account = Utils.getAccountByUsername(userName);
+        if (account.getPassword().equals(password)) {
+            setCurrentAccount(account);
+
+        }
+        else {
+            throw new GameException("Password is wrong!");
+        }
+    }
     public void showLeaderBoard() {
         StringBuilder leaderBoard = new StringBuilder();
         if (Utils.getAccounts().isEmpty()) {
@@ -165,7 +195,7 @@ public class Controller {
         }
     }
 
-    private Deck importDeck(String name) {
+    public Deck importDeck(String name) {
         try {
             Files.createDirectories(Paths.get("src/com/ap/duelyst/data"));
             FileReader reader =
@@ -185,7 +215,7 @@ public class Controller {
         return null;
     }
 
-    private void exportDeck(Deck deck) {
+    public void exportDeck(Deck deck) {
         try {
             Files.createDirectories(Paths.get("src/com/ap/duelyst/data"));
             FileWriter writer = new FileWriter(
@@ -243,7 +273,15 @@ public class Controller {
             buyUsableItem((UsableItem) object);
         }
     }
-
+    public Object buyAndReturn(String name) {
+        Object object = Utils.getShop().getObjectByName(name);
+        if (object instanceof Card) {
+            return buyAndReturnCard((Card) object);
+        } else if (object instanceof UsableItem) {
+            return buyAndReturnUsableItem((UsableItem) object);
+        }
+        return null;
+    }
     public void sell(String id) {
         Object object = currentAccount.getCollection().getObjectById(id);
         if (object instanceof Card) {
@@ -601,20 +639,32 @@ public class Controller {
         currentAccount.getCollection().add(copyWithNewId(card));
         showMessage("You have bought the card successfully!");
     }
-
+    private Card buyAndReturnCard(Card card) {
+        currentAccount.decreaseBudget(card.getPrice());
+        Card newCard = copyWithNewId(card);
+        currentAccount.getCollection().add(newCard);
+        return newCard;
+    }
     private void buyUsableItem(UsableItem usableItem) {
         currentAccount.decreaseBudget(usableItem.getPrice());
         currentAccount.getCollection().add(copyWithNewId(usableItem));
         showMessage("You have bought the item successfully!");
     }
-
+    private Item buyAndReturnUsableItem(UsableItem usableItem) {
+        currentAccount.decreaseBudget(usableItem.getPrice());
+        Item newUsableItem = copyWithNewId(usableItem);
+        currentAccount.getCollection().add(newUsableItem);
+        return newUsableItem;
+    }
     private void sell(Card card) {
         currentAccount.getCollection().remove(card);
+        currentAccount.getDecks().forEach(deck -> deck.remove(card));
         currentAccount.increaseBudget(card.getPrice());
     }
 
     private void sell(UsableItem usableItem) {
         currentAccount.getCollection().remove(usableItem);
+        currentAccount.getDecks().forEach(deck -> deck.remove(usableItem));
         currentAccount.increaseBudget(usableItem.getPrice());
     }
 

@@ -48,6 +48,18 @@ public class MainMenu extends Menu {
         initCommandPatterns();
     }
 
+    public ShopMenu getShopMenu() {
+        return shopMenu;
+    }
+
+    public CollectionMenu getCollectionMenu() {
+        return collectionMenu;
+    }
+
+    public BattleMenu getBattleMenu() {
+        return battleMenu;
+    }
+
     private void initCommandPatterns() {
         String[] commandRegexes = new String[NUMBER_OF_COMMANDS];
         commandRegexes[0] = "^enter collection$";
@@ -114,4 +126,5 @@ public class MainMenu extends Menu {
                 "5- exit\n" +
                 "6- help\n";
     }
+
 }

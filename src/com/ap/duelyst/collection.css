@@ -1,0 +1,38 @@
+.table-view{
+    -fx-opacity: 0.8;
+    -fx-min-height: 400;
+}
+.table-row-cell:odd{
+    -fx-background-color: #000526;
+    -fx-min-height: 150;
+
+}
+.table-row-cell:even{
+    -fx-background-color: darkblue;
+    -fx-min-height: 150;
+}
+.table-column{
+    -fx-text-fill: white;
+    -fx-text-alignment: center center;
+    -fx-font-size: 12pt;
+    -fx-font-family: "Times New Roman";
+}
+.table-row-cell:selected {
+    -fx-background-color: maroon;
+}
+#mainBox{
+    -fx-background-size: stretch;
+    -fx-background-position: center center;
+    -fx-background-repeat: stretch;
+}
+.button {
+    -fx-background-size: stretch;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: center;
+    -fx-text-fill: white;
+    -fx-text-alignment: center;
+    -fx-font-size: 14pt;
+    -fx-font-weight: bold;
+    -fx-font-family: "Times New Roman";
+    -fx-background-color: transparent;
+}
