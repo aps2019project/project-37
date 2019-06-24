@@ -3,6 +3,7 @@ package com.ap.duelyst;
 import com.ap.duelyst.controller.Controller;
 import com.ap.duelyst.model.Utils;
 import com.ap.duelyst.view.battle.BattleController;
+import com.ap.duelyst.view.customize.CustomCardController;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -19,12 +20,13 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws Exception {
         /*FXMLLoader loader =
                 new FXMLLoader(getClass().getResource("view/battle/battle.fxml"));
-        Parent root = loader.load();*/
+        Parent root = loader.load();
+        BattleController battleController = loader.getController();*/
         FXMLLoader loader =
                 new FXMLLoader(getClass().getResource("view/customize" +
                         "/customCard.fxml"));
         Parent root = loader.load();
-//        BattleController battleController = loader.getController();
+        ((CustomCardController) loader.getController()).setController(controller);
         primaryStage.setTitle("Hello World");
         primaryStage.setScene(new Scene(root, 600, 300));
         primaryStage.getScene().getStylesheets().add("com/ap/duelyst/Bugatti.css");
@@ -36,7 +38,8 @@ public class Main extends Application {
                 }
             }
         }.start();
-        primaryStage.getScene().setCursor(new ImageCursor(new Image(Utils.getPath("mouse_auto.png"))));
+        primaryStage.getScene().setCursor(new ImageCursor(new Image(Utils.getPath(
+                "mouse_auto.png"))));
         primaryStage.show();
     }
 

@@ -198,6 +198,11 @@ public class Controller {
         }
     }
 
+    public void addCustomCard(Card card){
+        currentAccount.getCollection().add(copyWithNewId(card));
+        Utils.getShop().add(card);
+    }
+
     public void logout() {
         if (currentAccount == null) {
             throw new GameException("You are not logged in!");
