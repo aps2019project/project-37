@@ -1,5 +1,6 @@
 package com.ap.duelyst.view.menus;
 
+import com.ap.duelyst.Command;
 import com.ap.duelyst.Main;
 import com.ap.duelyst.controller.Controller;
 import com.ap.duelyst.controller.menu.LoginPage;
@@ -8,6 +9,9 @@ import com.ap.duelyst.controller.menu.MenuManager;
 import com.ap.duelyst.model.Utils;
 import com.ap.duelyst.view.DialogController;
 import com.ap.duelyst.view.customize.CustomCardController;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
@@ -28,6 +32,8 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class SecondMenuController implements Initializable {
     public Button customButton;
@@ -35,7 +41,6 @@ public class SecondMenuController implements Initializable {
     public HBox dialog;
     public Label dialogText;
     public StackPane root;
-    private Controller controller;
     private MenuManager menuManager;
     private MainMenu mainMenu;
     public ImageView gameLogo;
@@ -80,11 +85,14 @@ public class SecondMenuController implements Initializable {
             menuManager.setCurrentMenu(mainMenu.getCollectionMenu());
         });
         battleButton.setOnAction(e -> {
-            if (controller.getCurrentAccount().getMainDeck() != null
-                    && controller.getCurrentAccount().getMainDeck().isValid()) {
+            Command command = new Command("validateDeck");
+            Main.writer.println(Utils.getGson().toJson(command));
+            JsonObject resp =
+                    new JsonParser().parse(Main.scanner.nextLine()).getAsJsonObject();
+            if (resp.get("resp") != null) {
                 menuManager.setCurrentMenu(mainMenu.getBattleMenu());
             } else {
-                dialogController.showDialog("deck is not valid");
+                dialogController.showDialog(resp.get("error").getAsString());
             }
         });
         setButtonGlowOnMouseMoving(exitButton);
@@ -101,10 +109,6 @@ public class SecondMenuController implements Initializable {
 
     public void setMainMenu(MainMenu mainMenu) {
         this.mainMenu = mainMenu;
-    }
-
-    public void setController(Controller controller) {
-        this.controller = controller;
     }
 
     public void update() {

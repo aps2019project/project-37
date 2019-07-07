@@ -1,5 +1,7 @@
 package com.ap.duelyst.view.customize;
 
+import com.ap.duelyst.Command;
+import com.ap.duelyst.Main;
 import com.ap.duelyst.controller.Controller;
 import com.ap.duelyst.controller.GameException;
 import com.ap.duelyst.model.Utils;
@@ -11,6 +13,8 @@ import com.ap.duelyst.model.buffs.traget.TargetType;
 import com.ap.duelyst.model.cards.*;
 import com.ap.duelyst.view.DialogController;
 import com.ap.duelyst.view.card.CardSprite;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
 import javafx.application.Platform;
@@ -61,7 +65,6 @@ public class CustomCardController implements Initializable {
     public Label dialogText;
     private String fileName;
     private String effectFileName;
-    private Controller controller;
     private DialogController dialogController;
     private EventHandler<ActionEvent> eventHandler;
 
@@ -358,25 +361,32 @@ public class CustomCardController implements Initializable {
                 card = spell;
                 break;
         }
-        controller.addCustomCard(card);
-        dialogController.showDialog("card added successfully");
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                Platform.runLater(() -> {
-                    dialogController.hideDialog();
-                    close();
-                });
-            }
-        }, 2000);
+        if (card == null) {
+            return;
+        }
+        Command command = new Command("addCustomCard",
+                Utils.getGson().toJson(card), card.getClass().getName());
+        Main.writer.println(Utils.getGson().toJson(command));
+        JsonObject resp =
+                new JsonParser().parse(Main.scanner.nextLine()).getAsJsonObject();
+        if (resp.get("resp") != null) {
+            dialogController.showDialog(resp.get("resp").getAsString());
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    Platform.runLater(() -> {
+                        dialogController.hideDialog();
+                        close();
+                    });
+                }
+            }, 2000);
+        } else {
+            dialogController.showDialog(resp.get("error").getAsString());
+        }
     }
 
     private int getValue(TextField textField) {
         return Integer.parseInt(textField.getText());
-    }
-
-    public void setController(Controller controller) {
-        this.controller = controller;
     }
 
     @FXML

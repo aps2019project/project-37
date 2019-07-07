@@ -93,7 +93,6 @@ public class Main extends Application {
 
     private Scene makeCustomScene(Stage stage) throws IOException {
         Parent root = customLoader.load();
-        ((CustomCardController) customLoader.getController()).setController(controller);
         ((CustomCardController) customLoader.getController()).setEventHandler(event -> {
             custom = false;
             stage.setScene(mainMenuScene);
@@ -170,7 +169,6 @@ public class Main extends Application {
         Parent root = secondMenuLoader.load();
         secondMenuController = secondMenuLoader.getController();
         secondMenuController.setMenuManager(menuManager);
-        secondMenuController.setController(controller);
         secondMenuController.setEvent(event -> {
             custom = true;
             stage.setScene(customScene);

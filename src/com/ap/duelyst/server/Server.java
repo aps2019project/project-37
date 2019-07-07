@@ -5,6 +5,9 @@ import com.ap.duelyst.controller.Controller;
 import com.ap.duelyst.controller.GameException;
 import com.ap.duelyst.model.Account;
 import com.ap.duelyst.model.Utils;
+import com.ap.duelyst.model.cards.Card;
+import com.ap.duelyst.model.items.Item;
+import com.ap.duelyst.model.items.UsableItem;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
@@ -143,7 +146,64 @@ class ClientHandler extends Thread {
         }
     }
 
-    private List<Account> getAllAccounts(){
+    private List<Account> getAllAccounts() {
         return Utils.getAccounts();
     }
+
+    private String validateDeck(){
+        if (account.getMainDeck()!=null&& account.getMainDeck().isValid()){
+            return "deck is valid";
+        }
+        throw new GameException("deck is invalid");
+    }
+
+    public String addCustomCard(String cardJson, String className) throws ClassNotFoundException {
+        Card card = (Card) gson.fromJson(cardJson, Class.forName(className));
+        account.getCollection().add(copyWithNewId(card));
+        Utils.getShop().add(card);
+        return "card added successfully";
+    }
+
+
+    private Card copyWithNewId(Card card) {
+        String id = generateNewId(card);
+        try {
+            Card copiedCard = card.clone();
+            copiedCard.setId(id);
+            copiedCard.setAccountName(account.getUserName());
+            return copiedCard;
+        } catch (CloneNotSupportedException ignored) {
+        }
+        return null;
+    }
+
+    private Item copyWithNewId(UsableItem usableItem) {
+        String id = generateNewId(usableItem);
+        try {
+            UsableItem copiedItem = (UsableItem) usableItem.clone();
+            copiedItem.setId(id);
+            copiedItem.setAccountName(account.getUserName());
+            return copiedItem;
+        } catch (CloneNotSupportedException ignored) {
+        }
+        return null;
+    }
+
+
+    private String generateNewId(Card newCard) {
+        int index = 1;
+        index += account.getCollection().getCards().stream()
+                .filter(card -> card.nameEquals(newCard.getName()))
+                .count();
+        return account.getUserName() + "_" + newCard.getName() + "_" + index;
+    }
+
+    private String generateNewId(Item newItem) {
+        int index = 1;
+        index += account.getCollection().getUsableItems().stream()
+                .filter(card -> card.nameEquals(newItem.getName()))
+                .count();
+        return account.getUserName() + "_" + newItem.getName() + "_" + index;
+    }
+
 }
