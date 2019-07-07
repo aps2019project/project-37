@@ -4,6 +4,8 @@ import com.ap.duelyst.Command;
 import com.ap.duelyst.controller.Controller;
 import com.ap.duelyst.controller.GameException;
 import com.ap.duelyst.model.Account;
+import com.ap.duelyst.model.Collection;
+import com.ap.duelyst.model.Shop;
 import com.ap.duelyst.model.Utils;
 import com.ap.duelyst.model.cards.Card;
 import com.ap.duelyst.model.items.Item;
@@ -35,6 +37,7 @@ public class Server {
 }
 
 
+@SuppressWarnings("Duplicates")
 class ClientHandler extends Thread {
     private String token = null;
     private Account account;
@@ -150,8 +153,20 @@ class ClientHandler extends Thread {
         return Utils.getAccounts();
     }
 
-    private String validateDeck(){
-        if (account.getMainDeck()!=null&& account.getMainDeck().isValid()){
+    private Shop getShop() {
+        return Utils.getShop();
+    }
+
+    private long getMoney() {
+        return account.getBudget();
+    }
+
+    private Collection getCollection() {
+        return account.getCollection();
+    }
+
+    private String validateDeck() {
+        if (account.getMainDeck() != null && account.getMainDeck().isValid()) {
             return "deck is valid";
         }
         throw new GameException("deck is invalid");
@@ -204,6 +219,77 @@ class ClientHandler extends Thread {
                 .filter(card -> card.nameEquals(newItem.getName()))
                 .count();
         return account.getUserName() + "_" + newItem.getName() + "_" + index;
+    }
+
+    public Object buyAndReturn(String objectJson, String className) throws ClassNotFoundException {
+        Object object = gson.fromJson(objectJson, Class.forName(className));
+        if (object instanceof Card) {
+            return buyAndReturnCard((Card) object);
+        } else if (object instanceof UsableItem) {
+            return buyAndReturnUsableItem((UsableItem) object);
+        }
+        return null;
+    }
+
+    private Card buyAndReturnCard(Card card) {
+        account.decreaseBudget(card.getPrice());
+        Card newCard = copyWithNewId(card);
+        account.getCollection().add(newCard);
+        Card c = (Card) getShop().getObjectByName(card.getName());
+        c.decreaseCount();
+        if (c.getCount() == 0) {
+            Utils.getShop().remove(c);
+        }
+        return newCard;
+    }
+
+    private Item buyAndReturnUsableItem(UsableItem usableItem) {
+        account.decreaseBudget(usableItem.getPrice());
+        Item newUsableItem = copyWithNewId(usableItem);
+        account.getCollection().add(newUsableItem);
+        UsableItem item = (UsableItem) getShop().getObjectByName(usableItem.getName());
+        item.decreaseCount();
+        if (item.getCount() == 0) {
+            Utils.getShop().remove(item);
+        }
+        return newUsableItem;
+    }
+
+    public String sellGUI(String objectJson, String className) throws ClassNotFoundException {
+        Object object = gson.fromJson(objectJson, Class.forName(className));
+        if (object instanceof Card) {
+            sell((Card) object);
+        } else if (object instanceof UsableItem) {
+            sell((UsableItem) object);
+        }
+        return "sell successful";
+    }
+
+
+    private void sell(Card card) {
+        account.getCollection().remove(card);
+        account.getDecks().forEach(deck -> deck.remove(card));
+        account.increaseBudget(card.getPrice());
+        try {
+            ((Card) getShop().getObjectByName(card.getName())).increaseCount();
+        } catch (GameException e) {
+            e.printStackTrace();
+            card.setCount(1);
+            getShop().add(card);
+        }
+    }
+
+    private void sell(UsableItem usableItem) {
+        account.getCollection().remove(usableItem);
+        account.getDecks().forEach(deck -> deck.remove(usableItem));
+        account.increaseBudget(usableItem.getPrice());
+        try {
+            ((UsableItem) getShop().getObjectByName(usableItem.getName())).increaseCount();
+        } catch (GameException e) {
+            e.printStackTrace();
+            usableItem.setCount(1);
+            getShop().add(usableItem);
+        }
     }
 
 }

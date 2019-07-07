@@ -5,13 +5,14 @@ import com.ap.duelyst.view.card.CardSprite;
 import javafx.scene.image.ImageView;
 
 public abstract class Card implements Cloneable {
-    transient ImageView imageView;
+    private transient ImageView imageView;
     private String fileName;
     transient CardSprite cardSprite;
     private String id;
     private String name;
     private long price;
     private String accountName;
+    private int count = 10;
 
     Card(String name, long price) {
         setName(name);
@@ -32,6 +33,11 @@ public abstract class Card implements Cloneable {
 
     public void makeCardSprite() {
         this.cardSprite = new CardSprite(fileName);
+        this.imageView = this.cardSprite.getImageView();
+    }
+
+    public void setCardSprite(CardSprite cardSprite) {
+        this.cardSprite = cardSprite;
         this.imageView = this.cardSprite.getImageView();
     }
 
@@ -103,6 +109,20 @@ public abstract class Card implements Cloneable {
 
     public String getFileName() {
         return fileName;
+    }
+
+    public void setCount(int count) {
+        this.count = count;
+    }
+
+    public int getCount() {
+        return count;
+    }
+
+    public void increaseCount() {
+        count++;
+    }public void decreaseCount() {
+        count--;
     }
 }
 

@@ -103,6 +103,10 @@ public class Item implements Cloneable {
         this.fileName = fileName;
     }
 
+    public void setCardSprite(CardSprite cardSprite) {
+        this.cardSprite = cardSprite;
+    }
+
     public CardSprite getCardSprite() {
         return cardSprite;
     }
@@ -110,4 +114,6 @@ public class Item implements Cloneable {
     public void makeSprite() {
         this.cardSprite = new CardSprite(fileName);
     }
+
+
 }

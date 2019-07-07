@@ -1,14 +1,25 @@
 package com.ap.duelyst.view.menus;
 
+import com.ap.duelyst.Command;
+import com.ap.duelyst.Main;
 import com.ap.duelyst.controller.Controller;
 import com.ap.duelyst.controller.GameException;
 import com.ap.duelyst.controller.menu.MenuManager;
 import com.ap.duelyst.controller.menu.ShopMenu;
 import com.ap.duelyst.model.Account;
+import com.ap.duelyst.model.Collection;
+import com.ap.duelyst.model.Shop;
 import com.ap.duelyst.model.Utils;
 import com.ap.duelyst.model.cards.Card;
+import com.ap.duelyst.model.cards.Hero;
 import com.ap.duelyst.model.items.Item;
+import com.ap.duelyst.model.items.UsableItem;
 import com.ap.duelyst.view.DialogController;
+import com.ap.duelyst.view.card.CardSprite;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import javafx.animation.ScaleTransition;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -26,7 +37,9 @@ import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("unchecked")
 public class ShopController implements Initializable {
@@ -34,7 +47,6 @@ public class ShopController implements Initializable {
     public HBox dialog;
     public Label dialogText;
     public StackPane root;
-    private Controller controller;
     private MenuManager menuManager;
     private ShopMenu shopMenu;
     public VBox mainBox;
@@ -49,8 +61,8 @@ public class ShopController implements Initializable {
     public VBox errorBox;
     public Label errorLabel;
     public Button exitErrorBox;
-    private Account account;
     private DialogController dialogController;
+    private Shop shop;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -105,36 +117,79 @@ public class ShopController implements Initializable {
         this.shopMenu = shopMenu;
     }
 
-    public void setController(Controller controller) {
-        this.controller = controller;
-    }
-
     public void update() {
-        account = controller.getCurrentAccount();
-        usernameLabel.setText("username : " + controller.getCurrentAccount().getUserName());
+        usernameLabel.setText("username : " + Main.userName);
         updateShopTable();
         updateCollectionTable();
         updateRemainingMoney();
     }
 
     public void updateShopTable() {
-        ObservableList shopCards =
-                FXCollections.observableArrayList(Utils.getShop().getCards());
-        shopCards.addAll(Utils.getShop().getUsableItems());
-        makeTableView(shopCards, shopTable);
+        Command command = new Command("getShop");
+        Main.writer.println(new Gson().toJson(command));
+        JsonObject resp = new JsonParser().parse(Main.scanner.nextLine())
+                .getAsJsonObject();
+        if (resp.get("resp") != null) {
+            Shop shop = Utils.getGson().fromJson(resp.get("resp").getAsString(),
+                    Shop.class);
 
+            shop.getCards().forEach(card -> {
+                if (this.shop != null) {
+                    this.shop.getCards().stream()
+                            .filter(o -> o.getName().equals(card.getName()))
+                            .map(Card::getCardSprite).findFirst()
+                            .ifPresent(card::setCardSprite);
+                }
+            });
+            shop.getUsableItems().forEach(usableItem -> {
+                if (this.shop != null) {
+                    this.shop.getUsableItems().stream()
+                            .filter(o -> o.getName().equals(usableItem.getName()))
+                            .map(UsableItem::getCardSprite).findFirst()
+                            .ifPresent(usableItem::setCardSprite);
+                }
+            });
+            ObservableList shopCards =
+                    FXCollections.observableArrayList(shop.getCards());
+            shopCards.addAll(shop.getUsableItems());
+            makeTableView(shopCards, shopTable, true);
+            this.shop = shop;
+        } else {
+            dialogController.showDialog(resp.get("error").getAsString());
+        }
     }
 
     public void updateCollectionTable() {
         ObservableList cards = FXCollections.observableArrayList();
-        cards.addAll(controller.getCurrentAccount().getCollection().getUsableItems());
-        cards.addAll(controller.getCurrentAccount().getCollection().getCards());
-        makeTableView(cards, collectionTable);
+        Command command = new Command("getCollection");
+        Main.writer.println(new Gson().toJson(command));
+        JsonObject resp = new JsonParser().parse(Main.scanner.nextLine())
+                .getAsJsonObject();
+        if (resp.get("resp") != null) {
+            Collection collection =
+                    Utils.getGson().fromJson(resp.get("resp").getAsString(),
+                            Collection.class);
+            cards.addAll(collection.getUsableItems());
+            cards.addAll(collection.getCards());
+            makeTableView(cards, collectionTable, false);
+
+        } else {
+            dialogController.showDialog(resp.get("error").getAsString());
+        }
     }
 
     public void updateRemainingMoney() {
-        remainingMoney.setText("Remaining money: " + account.getBudget());
-        ScaleTransition transition=new ScaleTransition(Duration.millis(200),remainingMoney);
+        Command command = new Command("getMoney");
+        Main.writer.println(new Gson().toJson(command));
+        JsonObject resp = new JsonParser().parse(Main.scanner.nextLine())
+                .getAsJsonObject();
+        if (resp.get("resp") != null) {
+            remainingMoney.setText("Remaining money: " + resp.get("resp").getAsString());
+        } else {
+            dialogController.showDialog(resp.get("error").getAsString());
+        }
+        ScaleTransition transition = new ScaleTransition(Duration.millis(200),
+                remainingMoney);
         transition.setCycleCount(2);
         transition.setAutoReverse(true);
         transition.setToX(1.3);
@@ -142,7 +197,8 @@ public class ShopController implements Initializable {
         transition.play();
     }
 
-    private void makeTableView(ObservableList cards, TableView tableView) {
+    private void makeTableView(ObservableList cards, TableView tableView,
+                               boolean hasCount) {
         for (Object o : cards) {
             playSprite(o);
         }
@@ -160,6 +216,12 @@ public class ShopController implements Initializable {
         tableView.getColumns().clear();
         tableView.setItems(cards);
         tableView.getColumns().addAll(imageColumn, nameColumn, priceColumn);
+        if (hasCount) {
+            TableColumn<?, Integer> countColumn = new TableColumn<>("Count");
+            countColumn.setCellValueFactory(new PropertyValueFactory<>("count"));
+            tableView.getColumns().add(countColumn);
+        }
+
     }
 
     public void buyButtonClicked() {
@@ -169,13 +231,24 @@ public class ShopController implements Initializable {
             return;
         }
         try {
-            Object newCard = controller.buyAndReturn(selectedCard);
-            playSprite(newCard);
-            collectionTable.getItems().add(newCard);
-            updateRemainingMoney();
-        } catch (GameException e) {
-            errorLabel.setText(e.getMessage());
-//            errorBox.setVisible(true);
+            Command command = new Command("buyAndReturn",
+                    Utils.getGson().toJson(selectedCard),
+                    selectedCard.getClass().getName());
+            Main.writer.println(new Gson().toJson(command));
+            JsonObject resp = new JsonParser().parse(Main.scanner.nextLine())
+                    .getAsJsonObject();
+            if (resp.get("resp") != null) {
+                Object newCard =
+                        Utils.getGson().fromJson(resp.get("resp").getAsString(),
+                                selectedCard.getClass());
+                playSprite(newCard);
+                collectionTable.getItems().add(newCard);
+                updateShopTable();
+                updateRemainingMoney();
+            } else {
+                dialogController.showDialog(resp.get("error").getAsString());
+            }
+        } catch (Exception e) {
             dialogController.showDialog(e.getMessage());
         }
     }
@@ -203,12 +276,21 @@ public class ShopController implements Initializable {
             return;
         }
         try {
-            controller.sellGUI(selectedCard);
-            collectionTable.getItems().remove(selectedCard);
-            updateRemainingMoney();
-        } catch (GameException e) {
-            errorLabel.setText(e.getMessage());
-//            errorBox.setVisible(true);
+            Command command = new Command("sellGUI",
+                    Utils.getGson().toJson(selectedCard),
+                    selectedCard.getClass().getName());
+            Main.writer.println(new Gson().toJson(command));
+            JsonObject resp = new JsonParser().parse(Main.scanner.nextLine())
+                    .getAsJsonObject();
+            if (resp.get("resp") != null) {
+                collectionTable.getItems().remove(selectedCard);
+                updateRemainingMoney();
+                updateShopTable();
+                updateRemainingMoney();
+            } else {
+                dialogController.showDialog(resp.get("error").getAsString());
+            }
+        } catch (Exception e) {
             dialogController.showDialog(e.getMessage());
         }
     }

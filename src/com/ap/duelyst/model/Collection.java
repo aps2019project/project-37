@@ -67,7 +67,7 @@ public class Collection extends Shop {
             } else {
                 return ((Card) o).idEquals(id);
             }
-        }).findFirst().orElseThrow(()->new GameException("Card/item not found"));
+        }).findFirst().orElseThrow(() -> new GameException("Card/item not found"));
     }
 
     private Card getCardById(String id) {
@@ -92,5 +92,15 @@ public class Collection extends Shop {
         } else {
             throw new GameException("You have 3 Items in your Collection!");
         }
+    }
+
+    @Override
+    public void remove(Card card) {
+        getCards().removeIf(card1 -> card1.getId().equals(card.getId()));
+    }
+
+    @Override
+    public void remove(Item item) {
+        getItems().removeIf(item1 -> item1.getId().equals(item.getId()));
     }
 }

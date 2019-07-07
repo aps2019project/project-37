@@ -186,8 +186,7 @@ public class Main extends Application {
         Parent root = shopLoader.load();
         shopController = shopLoader.getController();
         shopController.setMenuManager(menuManager);
-        shopController.setController(controller);
-        
+
         Screen screen = Screen.getPrimary();
         Rectangle2D bounds = screen.getVisualBounds();
         
