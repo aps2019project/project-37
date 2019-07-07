@@ -1,5 +1,6 @@
 package com.ap.duelyst.view.menus;
 
+import com.ap.duelyst.Main;
 import com.ap.duelyst.controller.Controller;
 import com.ap.duelyst.controller.menu.LoginPage;
 import com.ap.duelyst.controller.menu.MainMenu;
@@ -82,7 +83,7 @@ public class SecondMenuController implements Initializable {
             if (controller.getCurrentAccount().getMainDeck() != null
                     && controller.getCurrentAccount().getMainDeck().isValid()) {
                 menuManager.setCurrentMenu(mainMenu.getBattleMenu());
-            }else {
+            } else {
                 dialogController.showDialog("deck is not valid");
             }
         });
@@ -107,7 +108,7 @@ public class SecondMenuController implements Initializable {
     }
 
     public void update() {
-        userNameLabel.setText("username : " + controller.getCurrentAccount().getUserName());
+        userNameLabel.setText("username : " + Main.userName);
     }
 
     private void setButtonGlowOnMouseMoving(Button button) {

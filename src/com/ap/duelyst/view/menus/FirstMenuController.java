@@ -1,5 +1,7 @@
 package com.ap.duelyst.view.menus;
 
+import com.ap.duelyst.Command;
+import com.ap.duelyst.Main;
 import com.ap.duelyst.controller.Controller;
 import com.ap.duelyst.controller.GameException;
 import com.ap.duelyst.controller.menu.LoginPage;
@@ -7,6 +9,11 @@ import com.ap.duelyst.controller.menu.MenuManager;
 import com.ap.duelyst.model.Account;
 import com.ap.duelyst.model.Utils;
 import com.ap.duelyst.view.DialogController;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.Initializable;
@@ -19,6 +26,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
 
 public class FirstMenuController implements Initializable {
@@ -101,12 +109,21 @@ public class FirstMenuController implements Initializable {
         logInButton.setOnAction(o -> {
             if (!userNameText.getText().isEmpty() && !passwordText.getText().isEmpty()) {
                 try {
-                    controller.loginGUI(userNameText.getText(), passwordText.getText());
-                    userNameLabel.setText("username: " + controller.getCurrentAccount().getUserName());
-                    dialogController.showDialog("login successful");
-                } catch (GameException e) {
-                    errorLabel.setText(e.getMessage());
-//                    errorBox.setVisible(true);
+                    Command command = new Command("loginGUI",
+                            userNameText.getText(), passwordText.getText());
+                    Main.writer.println(new Gson().toJson(command));
+                    JsonObject resp = new JsonParser().parse(Main.scanner.nextLine())
+                            .getAsJsonObject();
+                    if (resp.get("token") != null) {
+                        Main.token = resp.get("token").getAsString();
+                        dialogController.showDialog("login successful");
+                        Main.userName = userNameText.getText();
+                        userNameLabel.setText("username: " + Main.userName);
+                    }
+                    if (resp.get("error") != null) {
+                        dialogController.showDialog(resp.get("error").getAsString());
+                    }
+                } catch (JsonSyntaxException e) {
                     dialogController.showDialog(e.getMessage());
                 }
                 userNameText.setText("");
@@ -118,12 +135,17 @@ public class FirstMenuController implements Initializable {
         accountButton.setOnAction(o -> {
             if (!userNameText.getText().isEmpty() && !passwordText.getText().isEmpty()) {
                 try {
-                    controller.createAccountGUI(userNameText.getText(),
-                            passwordText.getText());
-                    dialogController.showDialog("account created successfully");
-                } catch (GameException e) {
-                    errorLabel.setText(e.getMessage());
-//                    errorBox.setVisible(true);
+                    Command command = new Command("createAccountGUI",
+                            userNameText.getText(), passwordText.getText());
+                    Main.writer.println(new Gson().toJson(command));
+                    JsonObject resp = new JsonParser().parse(Main.scanner.nextLine())
+                            .getAsJsonObject();
+                    if (resp.get("error") != null) {
+                        dialogController.showDialog(resp.get("error").getAsString());
+                    } else {
+                        dialogController.showDialog(resp.get("resp").getAsString());
+                    }
+                } catch (JsonSyntaxException e) {
                     dialogController.showDialog(e.getMessage());
                 }
                 userNameText.setText("");
@@ -132,26 +154,31 @@ public class FirstMenuController implements Initializable {
                 dialogController.showDialog("fill all fields");
             }
         });
-        exitErrorBox.setOnAction(e -> errorBox.setVisible(false));
         exitButton.setOnAction(e -> {
             Runtime.getRuntime().exit(0);
         });
         logOutButton.setOnAction(o -> {
             try {
-                controller.logout();
-                userNameLabel.setText("");
-                userNameText.setText("");
-                passwordText.setText("");
-                dialogController.showDialog("logout successful");
-            } catch (GameException e) {
-                errorLabel.setText(e.getMessage());
-//                errorBox.setVisible(true);
+                Command command = new Command("logout");
+                Main.writer.println(new Gson().toJson(command));
+                JsonObject resp = new JsonParser().parse(Main.scanner.nextLine())
+                        .getAsJsonObject();
+                if (resp.get("error") != null) {
+                    dialogController.showDialog(resp.get("error").getAsString());
+                } else {
+                    userNameLabel.setText("");
+                    userNameText.setText("");
+                    passwordText.setText("");
+                    dialogController.showDialog(resp.get("resp").getAsString());
+                    Main.userName = null;
+                    Main.token = null;
+                }
+            } catch (Exception e) {
                 dialogController.showDialog(e.getMessage());
             }
         });
         leaderBoardButton.setOnAction(e -> {
             updateLeaderBoard();
-            leadBoardContainer.setVisible(true);
         });
         leadBoardContainer.setOnKeyPressed(ke -> {
             KeyCode keyCode = ke.getCode();
@@ -161,7 +188,7 @@ public class FirstMenuController implements Initializable {
         });
         leadBoardContainer.setOnMouseClicked(event -> leadBoardContainer.setVisible(false));
         mainMenuButton.setOnAction(o -> {
-            if (controller.getCurrentAccount() != null) {
+            if (Main.userName != null) {
                 menuManager.setCurrentMenu(loginPage.getMainMenu());
             } else {
                 errorLabel.setText("please log in!");
@@ -207,9 +234,21 @@ public class FirstMenuController implements Initializable {
     }
 
     public void updateLeaderBoard() {
-        ObservableList<Account> accounts =
-                FXCollections.observableArrayList(Utils.getAccounts());
-
+        ObservableList<Account> accounts = FXCollections.observableArrayList();
+        Command command = new Command("getAllAccounts");
+        Main.writer.println(new Gson().toJson(command));
+        JsonObject resp = new JsonParser().parse(Main.scanner.nextLine())
+                .getAsJsonObject();
+        if (resp.get("error") != null) {
+            dialogController.showDialog(resp.get("error").getAsString());
+            return;
+        } else {
+            List<Account> accounts1 =
+                    Utils.getGson().fromJson(resp.get("resp").getAsString(),
+                            new TypeToken<List<Account>>() {
+                            }.getType());
+            accounts.addAll(accounts1);
+        }
         TableColumn<Account, String> usernameColumn = new TableColumn<>("User Name");
         usernameColumn.setMinWidth(150);
         usernameColumn.setCellValueFactory(new PropertyValueFactory<>("userName"));
@@ -221,6 +260,8 @@ public class FirstMenuController implements Initializable {
         leaderBoardTable.setItems(accounts);
         leaderBoardTable.getColumns().add(usernameColumn);
         leaderBoardTable.getColumns().add(winsColumn);
+        leadBoardContainer.setVisible(true);
+
     }
 
     private void setBlueButtonGlowOnMouseMoving(Button button) {

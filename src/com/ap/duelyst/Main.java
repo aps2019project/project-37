@@ -23,9 +23,17 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.util.Scanner;
 
 @SuppressWarnings("Duplicates")
 public class Main extends Application {
+    public static String token;
+    public static String userName;
+    public static PrintWriter writer;
+    public static Scanner scanner;
+
     private FXMLLoader firstMenuLoader;
     private FXMLLoader secondMenuLoader;
     private FXMLLoader shopLoader;
@@ -170,7 +178,6 @@ public class Main extends Application {
         });
         Screen screen = Screen.getPrimary();
         Rectangle2D bounds = screen.getVisualBounds();
-        
         Scene scene = new Scene(root, bounds.getWidth(), bounds.getHeight()-30);
         scene.getStylesheets().add("com/ap/duelyst/SecondMenu.css");
         scene.setCursor(new ImageCursor(new Image(Utils.getPath("mouse_auto.png"))));
@@ -237,12 +244,15 @@ public class Main extends Application {
         return scene;
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         ControllerThread thread = new ControllerThread();
         controller = thread.getController();
         thread.setDaemon(true);
         thread.start();
-        menuManager = controller.getMenuManager();
+        Socket socket = new Socket("localhost", 8080);
+        writer = new PrintWriter(socket.getOutputStream(), true);
+        scanner = new Scanner(socket.getInputStream());
+        menuManager = new MenuManager(null);
         currentMenu = menuManager.getCurrentMenu();
         launch(args);
     }

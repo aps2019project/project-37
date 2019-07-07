@@ -1,8 +1,13 @@
 package com.ap.duelyst.server;
 
+import com.ap.duelyst.Command;
 import com.ap.duelyst.controller.Controller;
 import com.ap.duelyst.controller.GameException;
+import com.ap.duelyst.model.Account;
+import com.ap.duelyst.model.Utils;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
@@ -12,164 +17,133 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Server {
-    private ServerSocket serverSocket;
-    Server(){
-        try {
-            serverSocket = new ServerSocket(8000);
-        }catch (IOException e){
-            e.printStackTrace();
-        }
-    }
-    public ServerSocket getServerSocket() {
-        return serverSocket;
-    }
-
-    public static void main(String[] args) {
-        Server server = new Server();
-        while (true){
-            try {
-                Socket socket = server.getServerSocket().accept();
-                new ClientHandler(socket).start();
-            }
-            catch (IOException e) {
-                e.printStackTrace();
-            }
+    public static void main(String[] args) throws IOException {
+        ServerSocket serverSocket = new ServerSocket(8080);
+        while (true) {
+            Socket socket = serverSocket.accept();
+            new ClientHandler(socket).start();
         }
     }
 }
 
 
-class ClientHandler extends Thread{
-    String token = null;
-    String userName;
-    Gson gson;
-    Socket socket;
-    Controller controller;
-    BufferedReader reader;
-    BufferedWriter writer;
-    ClientHandler(Socket socket){
+class ClientHandler extends Thread {
+    private String token = null;
+    private Account account;
+    private Gson gson;
+    private Socket socket;
+    private Scanner reader;
+    private PrintWriter writer;
+
+    ClientHandler(Socket socket) {
         this.socket = socket;
-        this.gson = new Gson();
+        this.gson = Utils.getGson();
         try {
-            DataInputStream is = new DataInputStream(socket.getInputStream());
-            DataOutputStream os = new DataOutputStream(socket.getOutputStream());
-            writer = new BufferedWriter(new OutputStreamWriter(os));
-            reader = new BufferedReader(new InputStreamReader(is));
-            controller = new Controller();
-        }catch (IOException e){
+            writer = new PrintWriter(socket.getOutputStream(), true);
+            reader = new Scanner(socket.getInputStream());
+        } catch (IOException e) {
             e.printStackTrace();
         }
         System.out.println("new client added");
     }
+
     @Override
     public void run() {
-        Class clazz = controller.getClass();
         Command command;
         Method method;
-        String json ;
-        while (true){
+        String input;
+        while (true) {
             try {
-                System.out.println("hi");
-                json = reader.readLine();
-                System.out.println(json);
-                command = gson.fromJson(json,Command.class);
-                method = clazz.getMethod(command.getCommandName(),command.getParameterTypes());
-                if(checkToken(command)) {
-                    json = gson.toJson(method.invoke(controller, command.getParameters()));
+                input = reader.nextLine();
+                System.out.println(input);
+                command = gson.fromJson(input, new TypeToken<Command>() {
+                }.getType());
+                method = getClass().getDeclaredMethod(command.getCommandName(),
+                        command.getParameterTypes());
+                if (command.getCommandName().equals("loginGUI")) {
+                    method.invoke(this, command.getParameters());
+                    token = generateToken();
+                    JsonObject jsonObject = new JsonObject();
+                    jsonObject.addProperty("token", token);
+                    writer.println(gson.toJson(jsonObject));
+                } else if (command.getCommandName().equals("createAccountGUI")) {
+                    JsonObject jsonObject = new JsonObject();
+                    jsonObject.addProperty("resp",
+                            "account created successfully");
+                    method.invoke(this, command.getParameters());
+                    writer.println(gson.toJson(jsonObject));
+                } else if (token != null && token.equals(command.getToken())) {
+                    JsonObject jsonObject = new JsonObject();
+                    jsonObject.addProperty("resp",
+                            gson.toJson(method.invoke(this,
+                                    command.getParameters())));
+                    writer.println(jsonObject);
+                } else {
+                    throw new GameException("authentication failed");
                 }
-                if(command.getCommandName().equals("loginGUI")){
-                    token = generateToken(controller.getCurrentAccount().getUserName());
-                    json = gson.toJson(token);
-                }
-                writer.write(json);
-                writer.flush();
-            }
-            catch (IOException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e){
+            } catch (NoSuchMethodException | IllegalAccessException
+                    | InvocationTargetException | GameException e) {
                 e.printStackTrace();
-            } catch (GameException e){
-                try {
-                    writer.write("N");
-                } catch (IOException ex) {
-                    ex.printStackTrace();
+                JsonObject jsonObject = new JsonObject();
+                if (e instanceof InvocationTargetException) {
+                    jsonObject
+                            .addProperty("error", ((InvocationTargetException) e)
+                                    .getTargetException().getMessage());
+                } else {
+                    jsonObject.addProperty("error", e.getMessage());
                 }
+                writer.println(jsonObject);
             }
         }
     }
-    public String generateToken(String userName){
-        Calendar cal = Calendar.getInstance();
-        Date date=cal.getTime();
-        DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
-        String formattedDate = dateFormat.format(date);
-        System.out.println(formattedDate + userName);
-        return formattedDate + userName;
+
+    private String generateToken() {
+        return Base64.getEncoder()
+                .encodeToString((account.getUserName() + new Date().getTime()).getBytes());
     }
-    public boolean checkToken(Command command){
-        if(command.getToken().equals("allow")){
-            if(command.getCommandName().equals("login") | command.getCommandName().equals("createAccount")){
-                return true;
-            }else {
-                return false;
-            }
+
+    private void loginGUI(String userName, String password) {
+        if (!Utils.hasAccount(userName)) {
+            throw new GameException("No account with this username");
         }
-        String extractedUserName ;
-        String token = command.getToken();
-        Pattern pattern = Pattern.compile("\\d+\\:\\d+\\:\\d+");
-        Matcher matcher = pattern.matcher(token);
-        if(matcher.find()) {
-             extractedUserName = matcher.replaceFirst("");
-        }else{
-            return false;
+        if (account != null && account.getUserName().equals(userName)) {
+            throw new GameException("You are already logged in");
         }
-        if(extractedUserName.equals(this.userName)){
-            return true;
-        }else {
-            return false;
+        Account account = Utils.getAccountByUsername(userName);
+        if (account.getPassword().equals(password)) {
+            this.account = account;
+        } else {
+            throw new GameException("Password is wrong!");
         }
+    }
+
+    private void createAccountGUI(String userName, String password) {
+        if (Utils.hasAccount(userName)) {
+            throw new GameException("There is an account with this username!");
+        } else {
+            Account account = new Account();
+            account.setUserName(userName);
+            account.setPassword(password);
+            Utils.add(account);
+        }
+    }
+
+    private String logout() {
+        if (account == null) {
+            throw new GameException("You are not logged in!");
+        } else {
+            account = null;
+            token = null;
+            return "logout successful";
+        }
+    }
+
+    private List<Account> getAllAccounts(){
+        return Utils.getAccounts();
     }
 }
-
-
-class Command{
-    private String commandName;
-    private Object parameters[];
-    private String token;
-    Command(String commandName, Object... parameters){
-        this.commandName = commandName;
-        this.parameters = parameters;
-    }
-
-    public String getCommandName() {
-        return commandName;
-    }
-
-    public Object[] getParameters() {
-        return parameters;
-    }
-
-    public Class[] getParameterTypes() {
-        Class parameterTypes[];
-        parameterTypes = new Class[parameters.length];
-        for (int i = 0; i < parameters.length; i++) {
-            parameterTypes[i] = parameters[i].getClass();
-        }
-        return parameterTypes;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
-    }
-
-}
-
-
