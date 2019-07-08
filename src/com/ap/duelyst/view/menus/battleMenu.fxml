@@ -1,19 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.text.*?>
-<?import java.lang.*?>
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
-<StackPane fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.ap.duelyst.view.menus.BattleMenuController">
+<StackPane fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.ap.duelyst.view.menus.BattleMenuController">
     <children>
         <StackPane maxWidth="820.0" style="-fx-background-color: rgba(0,0,0,0.65)">
             <children>
@@ -48,6 +46,7 @@
                         <Button mnemonicParsing="false" onAction="#showCustomGame" prefHeight="60.0" prefWidth="200.0" text="Custom" />
                     </children>
                 </VBox>
+            <VBox fx:id="multiPlayerBox" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" visible="false" />
                 <VBox fx:id="storyBox" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="20.0" visible="false">
                     <children>
                         <Label text="Select Story" textFill="WHITE">
@@ -123,7 +122,7 @@
                 </VBox>
             </children>
         </StackPane>
-        <Button mnemonicParsing="false" onAction="#back" StackPane.alignment="TOP_LEFT" prefHeight="100.0" prefWidth="100.0" styleClass="button-back" />
+        <Button mnemonicParsing="false" onAction="#back" prefHeight="100.0" prefWidth="100.0" styleClass="button-back" StackPane.alignment="TOP_LEFT" />
         <VBox fx:id="dialogContainer" alignment="CENTER" fillWidth="false" prefHeight="200.0" prefWidth="100.0" style="-fx-background-color: rgba(0,0,0,0.61);">
             <children>
                 <HBox fx:id="dialog" alignment="CENTER_RIGHT">

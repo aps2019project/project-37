@@ -414,4 +414,77 @@ class ClientHandler extends Thread {
         }
     }
 
+
+    public Deck createDeck(Double deckNumber) throws CloneNotSupportedException {
+
+        List<Card> cards = new ArrayList<>();
+        Item item = null;
+
+        switch (deckNumber.intValue()) {
+            case 1:
+                addCard(cards, "white-beast", "persian-archer", "transoxianain-spear-man",
+                        "transoxianain-trench-raider", "transoxianain-trench-raider",
+                        "black-beast", "one-eyed-giant"
+                        , "poisonous-snake", "gigantic-snake", "White-wolf", "high" +
+                                "-witch", "nane-sarma", "siavash",
+                        "beast-arjang", "total-disarm", "lightning-bolt", "all-disarm",
+                        "all-poison", "dispel",
+                        "sacrifice", "kings-guard");
+                item = getItem("wisdom-throne");
+                break;
+            case 2:
+                addCard(cards, "zahhak", "persian-swordsman", "persian-spear-man",
+                        "persian-hero",
+                        "transoxianain-sling-man", "transoxianain-prince", "giant-rock" +
+                                "-thrower", "giant-rock-thrower",
+                        "fire-dragon", "panther", "ghost", "giv", "iraj", "giant-king",
+                        "aria-dispel", "empower",
+                        "god-strength", "poison-lake", "madness", "health-with-benefit"
+                        , "kings-guard");
+                item = getItem("soul-eater");
+                break;
+            case 3:
+                addCard(cards, "arash", "persian-commander", "transoxianain-archer",
+                        "transoxianain-spy",
+                        "giant-rock-thrower", "cavalry-beast", "cavalry-beast", "fierce" +
+                                "-lion", "wolf", "witch", "wild" +
+                                "-pig",
+                        "piran", "bahman", "big-giant", "hellfire", "all-disarm",
+                        "dispel", "power-up", "all-power",
+                        "all-attack", "weakening");
+                item = getItem("terror-hood");
+                break;
+        }
+
+        Deck deck = new Deck("AI_deck" + deckNumber);
+        for (Card card : cards) {
+            deck.add(card);
+        }
+        deck.add(item);
+        return deck;
+    }
+
+    private void addCard(List<Card> cards, String... names) throws CloneNotSupportedException {
+        for (String name : names) {
+            Card card = ((Card) Utils.getShop().getObjectByName(name)).clone();
+            String id = generateId(cards, card);
+            card.setId(id);
+            card.setAccountName("AI");
+            cards.add(card);
+        }
+    }
+
+    private Item getItem(String name) throws CloneNotSupportedException {
+        Item item = ((Item) Utils.getShop().getObjectByName(name)).clone();
+        item.setId("AI_Player_" + name + "_1");
+        return item;
+    }
+
+    private String generateId(List<Card> cards, Card card) {
+        int index = 1;
+        index += cards.stream().filter(card1 -> card.nameEquals(card1.getName())).count();
+        return "AI_Player_" + card.getName() + "_" + index;
+    }
+
+
 }

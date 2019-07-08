@@ -213,8 +213,7 @@ public class Main extends Application {
         Parent root = battleMenuLoader.load();
         battleMenuController = battleMenuLoader.getController();
         battleMenuController.setMenuManager(menuManager);
-        battleMenuController.setController(controller);
-        
+
         Screen screen = Screen.getPrimary();
         Rectangle2D bounds = screen.getVisualBounds();
         

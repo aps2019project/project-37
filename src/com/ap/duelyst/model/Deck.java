@@ -85,6 +85,14 @@ public class Deck extends Collection {
     @Override
     public void add(Card card) {
         if (!hasCardById(card.getId())) {
+            if (card.getClass().equals(Hero.class)) {
+                if (hasOneHero()){
+                    throw new GameException("Deck has one Hero!");
+                }else {
+                    super.add(card);
+                    return;
+                }
+            }
             if (getCards().size() - getHeroes().size() < Constants.MAXIMUM_NUMBER_OF_CARDS_IN_DECK) {
                 if (card.getClass().equals(Hero.class) && hasOneHero()) {
                     throw new GameException("Deck has one Hero!");
