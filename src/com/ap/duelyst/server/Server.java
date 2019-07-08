@@ -27,7 +27,6 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Server {
     public static void main(String[] args) throws IOException {
@@ -560,16 +559,6 @@ class ClientHandler extends Thread {
         });
     }
 
-
-    private List<Card> getInBoardCards() {
-        return game.getInBoardCards().stream()
-                .map(hero -> (Card) hero).collect(Collectors.toList());
-    }
-
-    private Hero getCardAt(int x, int y) {
-        return game.getCardAt(x, y);
-    }
-
     private List<List<Cell>> getBoard() {
         return game.getBoard();
     }
@@ -578,12 +567,12 @@ class ClientHandler extends Thread {
         return game.getPlayers();
     }
 
-    private List<int[]> getCellsInRange(Double x, Double y, Double range) {
-        return game.getCellsInRange(x.intValue(), y.intValue(), range.intValue());
+    private Object[] getCellsInRange(Double x, Double y, Double range) {
+        return game.getCellsInRange(x.intValue(), y.intValue(), range.intValue()).toArray();
     }
 
-    private List<int[]> getNeighbours(Double x, Double y) {
-        return game.getNeighbours(x.intValue(), y.intValue());
+    private Object[] getNeighbours(Double x, Double y) {
+        return game.getNeighbours(x.intValue(), y.intValue()).toArray();
     }
 
     private Player getCurrentPlayer() {

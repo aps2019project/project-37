@@ -20,10 +20,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Utils {
@@ -1052,4 +1049,17 @@ public class Utils {
         return new URI(getPath(name));
     }
 
+    public static List<int[]> getEmptyPosList(){
+        return new ArrayList<int[]>() {
+            @Override
+            public int indexOf(Object o) {
+                for (int i = 0; i < this.size(); i++) {
+                    if (Arrays.equals(this.get(i), (int[]) o)) {
+                        return i;
+                    }
+                }
+                return -1;
+            }
+        };
+    }
 }
