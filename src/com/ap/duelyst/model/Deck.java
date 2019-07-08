@@ -7,6 +7,7 @@ import com.ap.duelyst.model.cards.Hero;
 import com.ap.duelyst.model.items.UsableItem;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class Deck extends Collection {
     private String name;
@@ -113,5 +114,22 @@ public class Deck extends Collection {
         }else {
             add((Card) o);
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Deck deck = (Deck) o;
+        return Objects.equals(name, deck.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name);
     }
 }

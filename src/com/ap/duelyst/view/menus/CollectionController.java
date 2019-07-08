@@ -1,14 +1,22 @@
 package com.ap.duelyst.view.menus;
 
+import com.ap.duelyst.Command;
+import com.ap.duelyst.Main;
 import com.ap.duelyst.controller.Controller;
 import com.ap.duelyst.controller.GameException;
 import com.ap.duelyst.controller.menu.CollectionMenu;
 import com.ap.duelyst.controller.menu.MenuManager;
+import com.ap.duelyst.model.Collection;
 import com.ap.duelyst.model.Deck;
 import com.ap.duelyst.model.Utils;
 import com.ap.duelyst.model.cards.Card;
+import com.ap.duelyst.model.items.Item;
 import com.ap.duelyst.model.items.UsableItem;
 import com.ap.duelyst.view.DialogController;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.Initializable;
@@ -21,6 +29,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
 
 @SuppressWarnings("unchecked")
@@ -32,7 +41,6 @@ public class CollectionController implements Initializable {
     public ListView<String> deckView;
     private MenuManager menuManager;
     private CollectionMenu collectionMenu;
-    private Controller controller;
     private Deck currentDeck;
     public VBox mainBox;
     public VBox selectDeckBox;
@@ -121,7 +129,7 @@ public class CollectionController implements Initializable {
             menuManager.setCurrentMenu(collectionMenu.getParentMenu());
         });
         changeDeckButton.setOnAction(e -> {
-            if (controller.getCurrentAccount().getDecks().isEmpty()) {
+            if (decks.isEmpty()) {
                 showNoDeck();
             } else {
                 selectDeckBox.setVisible(true);
@@ -136,12 +144,21 @@ public class CollectionController implements Initializable {
                 Object selectedCard =
                         collectionTable.getSelectionModel().getSelectedItem();
                 try {
-                    currentDeck.add(selectedCard);
-                    collectionTable.getItems().remove(selectedCard);
-                    deckTable.getItems().add(selectedCard);
-                } catch (GameException e) {
-                    errorLabel.setText(e.getMessage());
-//                    errorBox.setVisible(true);
+                    Command command = new Command("addToDeck",
+                            Utils.getGson().toJson(selectedCard),
+                            selectedCard.getClass().getName(),
+                            currentDeck.getName());
+                    Main.writer.println(new Gson().toJson(command));
+                    JsonObject resp = new JsonParser().parse(Main.scanner.nextLine())
+                            .getAsJsonObject();
+                    if (resp.get("resp") != null) {
+                        currentDeck.add(selectedCard);
+                        collectionTable.getItems().remove(selectedCard);
+                        deckTable.getItems().add(selectedCard);
+                    } else {
+                        showError(resp.get("error").getAsString());
+                    }
+                } catch (Exception e) {
                     dialogController.showDialog(e.getMessage());
                 }
             }
@@ -154,12 +171,25 @@ public class CollectionController implements Initializable {
             } else {
                 Object selectedCard = deckTable.getSelectionModel().getSelectedItem();
                 try {
-                    currentDeck.remove(selectedCard);
-                    deckTable.getItems().remove(selectedCard);
-                    collectionTable.getItems().add(selectedCard);
-                } catch (GameException e) {
-                    errorLabel.setText(e.getMessage());
-//                    errorBox.setVisible(true);
+                    String id;
+                    if (selectedCard instanceof Card) {
+                        id = ((Card) selectedCard).getId();
+                    } else {
+                        id = ((Item) selectedCard).getId();
+                    }
+                    Command command = new Command("removeFromDeck", id,
+                            currentDeck.getName());
+                    Main.writer.println(new Gson().toJson(command));
+                    JsonObject resp = new JsonParser().parse(Main.scanner.nextLine())
+                            .getAsJsonObject();
+                    if (resp.get("resp") != null) {
+                        currentDeck.remove(selectedCard);
+                        deckTable.getItems().remove(selectedCard);
+                        collectionTable.getItems().add(selectedCard);
+                    } else {
+                        showError(resp.get("error").getAsString());
+                    }
+                } catch (Exception e) {
                     dialogController.showDialog(e.getMessage());
                 }
             }
@@ -170,13 +200,9 @@ public class CollectionController implements Initializable {
         submitNameOfNewDeck.setOnAction(o -> {
             if (!nameOfNewDeck.getText().isEmpty()) {
                 try {
-                    controller.createDeck(nameOfNewDeck.getText());
-                    currentDeck =
-                            controller.getCurrentAccount().getDeck(nameOfNewDeck.getText());
-                    updateListOfDecks();
-                } catch (GameException e) {
-                    errorLabel.setText(e.getMessage());
-//                    errorBox.setVisible(true);
+                    Command command = new Command("createDeck", nameOfNewDeck.getText());
+                    showSimpleResponse(command, true);
+                } catch (Exception e) {
                     dialogController.showDialog(e.getMessage());
                 }
             }
@@ -197,22 +223,19 @@ public class CollectionController implements Initializable {
                 showError("you dont have any selected deck");
             } else {
                 try {
-                    controller.setMainDeck(currentDeck.getName());
-                    showError("current deck selected as main deck");
+                    Command command = new Command("setMainDeck",
+                            Utils.getGson().toJson(currentDeck));
+                    showSimpleResponse(command, false);
                 } catch (GameException e) {
-                    errorLabel.setText(e.getMessage());
-//                errorBox.setVisible(true);
                     dialogController.showDialog(e.getMessage());
                 }
             }
         });
-        exitErrorBox.setOnAction(o -> {
-            errorBox.setVisible(false);
-        });
         exportDeckButton.setOnAction(o -> {
             if (currentDeck != null) {
-                controller.exportDeck(currentDeck);
-                dialogController.showDialog("deck exported successfully");
+                Command command = new Command("exportDeck",
+                        currentDeck.getName());
+                showSimpleResponse(command, false);
             } else {
                 showError("Please select a deck to export!");
             }
@@ -221,21 +244,27 @@ public class CollectionController implements Initializable {
             importDeckBox.setVisible(true);
         });
         importButton.setOnAction(o -> {
-            Deck deck = controller.importDeck(nameOfImportDeck.getText());
-            if (deck != null) {
-                if (controller.getCurrentAccount().hasDeck(deck.getName())) {
-                    showError("You already have that deck!");
-                } else {
-                    controller.getCurrentAccount().getDecks().add(deck);
-                    showError(deck.getName() + " is added successfully!");
-                }
-            } else {
-                showError("There is no deck with this name");
-            }
+            Command command = new Command("importDeck",
+                    nameOfImportDeck.getText());
+            showSimpleResponse(command, true);
             nameOfImportDeck.setText("");
             importDeckBox.setVisible(false);
             updateListOfDecks();
         });
+    }
+
+    private void showSimpleResponse(Command command, boolean updateDecks) {
+        Main.writer.println(new Gson().toJson(command));
+        JsonObject resp = new JsonParser().parse(Main.scanner.nextLine())
+                .getAsJsonObject();
+        if (resp.get("resp") != null) {
+            dialogController.showDialog(resp.get("resp").getAsString());
+            if (updateDecks) {
+                updateListOfDecks();
+            }
+        } else {
+            showError(resp.get("error").getAsString());
+        }
     }
 
     public void setMenuManager(MenuManager menuManager) {
@@ -246,9 +275,6 @@ public class CollectionController implements Initializable {
         this.collectionMenu = collectionMenu;
     }
 
-    public void setController(Controller controller) {
-        this.controller = controller;
-    }
 
     public void update() {
         updateListOfDecks();
@@ -257,19 +283,36 @@ public class CollectionController implements Initializable {
     }
 
     public void loadMainDeckOnTable() {
-        if (controller.getCurrentAccount().getMainDeck() != null) {
-            currentDeck = controller.getCurrentAccount().getMainDeck();
+        Command command = new Command("getMainDeck");
+        Main.writer.println(new Gson().toJson(command));
+        JsonObject resp = new JsonParser().parse(Main.scanner.nextLine())
+                .getAsJsonObject();
+        if (resp.get("resp") != null) {
+            currentDeck = Utils.getGson().fromJson(resp.get("resp").getAsString(),
+                    Deck.class);
         } else {
             currentDeck = null;
         }
+
     }
 
     public void updateListOfDecks() {
-        decks = FXCollections.observableArrayList(controller.getCurrentAccount().getDecks());
-        deckView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-        deckView.getItems().clear();
-        for (Deck deck : decks) {
-            deckView.getItems().add(deck.getName());
+        Command command = new Command("getAllDecks");
+        Main.writer.println(new Gson().toJson(command));
+        JsonObject resp =
+                new JsonParser().parse(Main.scanner.nextLine()).getAsJsonObject();
+        if (resp.get("resp") != null) {
+            List<Deck> decks1 = Utils.getGson().fromJson(resp.get("resp").getAsString(),
+                    new TypeToken<List<Deck>>() {
+                    }.getType());
+            decks = FXCollections.observableArrayList(decks1);
+            deckView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+            deckView.getItems().clear();
+            for (Deck deck : decks) {
+                deckView.getItems().add(deck.getName());
+            }
+        } else {
+            showError(resp.get("error").getAsString());
         }
     }
 
@@ -285,25 +328,41 @@ public class CollectionController implements Initializable {
     }
 
     public void updateCollectionTable() {
-        ObservableList cards = FXCollections.observableArrayList();
-        cards.addAll(controller.getCurrentAccount().getCollection().getCards());
-        cards.addAll(controller.getCurrentAccount().getCollection().getUsableItems());
-        cards.removeIf(o -> {
-            String id = "";
-            if (o instanceof Card) {
-                id = ((Card) o).getId();
-            } else if (o instanceof UsableItem) {
-                id = ((UsableItem) o).getId();
-            }
-            try {
-                currentDeck.getObjectById(id);
-                return true;
-            } catch (Exception e) {
-                return false;
-            }
-        });
-        makeTableView(cards, collectionTable);
+        JsonObject resp = getCollectionFromServer();
+        if (resp.get("resp") != null) {
+            ObservableList cards = FXCollections.observableArrayList();
+            Collection collection =
+                    Utils.getGson().fromJson(resp.get("resp").getAsString(),
+                            Collection.class);
+            cards.addAll(collection.getUsableItems());
+            cards.addAll(collection.getCards());
+            cards.removeIf(o -> {
+                String id = "";
+                if (o instanceof Card) {
+                    id = ((Card) o).getId();
+                } else if (o instanceof UsableItem) {
+                    id = ((UsableItem) o).getId();
+                }
+                try {
+                    currentDeck.getObjectById(id);
+                    return true;
+                } catch (Exception e) {
+                    return false;
+                }
+            });
+            makeTableView(cards, collectionTable);
+        } else {
+            dialogController.showDialog(resp.get("error").getAsString());
+        }
 
+
+    }
+
+    static JsonObject getCollectionFromServer() {
+        Command command = new Command("getCollection");
+        Main.writer.println(new Gson().toJson(command));
+        return new JsonParser().parse(Main.scanner.nextLine())
+                .getAsJsonObject();
     }
 
     private void makeTableView(ObservableList cards, TableView tableView) {
@@ -358,14 +417,10 @@ public class CollectionController implements Initializable {
     }
 
     private void showNoDeck() {
-        errorLabel.setText("There is no deck, please create a new deck");
-//        errorBox.setVisible(true);
         dialogController.showDialog("There is no deck, please create a new deck");
     }
 
     private void showError(String message) {
-        errorLabel.setText(message);
-//        errorBox.setVisible(true);
         dialogController.showDialog(message);
     }
 }

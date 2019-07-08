@@ -161,10 +161,7 @@ public class ShopController implements Initializable {
 
     public void updateCollectionTable() {
         ObservableList cards = FXCollections.observableArrayList();
-        Command command = new Command("getCollection");
-        Main.writer.println(new Gson().toJson(command));
-        JsonObject resp = new JsonParser().parse(Main.scanner.nextLine())
-                .getAsJsonObject();
+        JsonObject resp = CollectionController.getCollectionFromServer();
         if (resp.get("resp") != null) {
             Collection collection =
                     Utils.getGson().fromJson(resp.get("resp").getAsString(),

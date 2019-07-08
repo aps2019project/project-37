@@ -3,10 +3,8 @@ package com.ap.duelyst.server;
 import com.ap.duelyst.Command;
 import com.ap.duelyst.controller.Controller;
 import com.ap.duelyst.controller.GameException;
-import com.ap.duelyst.model.Account;
+import com.ap.duelyst.model.*;
 import com.ap.duelyst.model.Collection;
-import com.ap.duelyst.model.Shop;
-import com.ap.duelyst.model.Utils;
 import com.ap.duelyst.model.cards.Card;
 import com.ap.duelyst.model.items.Item;
 import com.ap.duelyst.model.items.UsableItem;
@@ -295,7 +293,7 @@ class ClientHandler extends Thread {
     }
 
 
-    public String save() throws IOException {
+    private String save() throws IOException {
         Files.createDirectories(Paths.get("src/com/ap/duelyst/data"));
         FileWriter writer = new FileWriter("src/com/ap/duelyst/data/accounts.txt",
                 false);
@@ -306,7 +304,7 @@ class ClientHandler extends Thread {
 
     }
 
-    public String saveShop() throws IOException {
+    private String saveShop() throws IOException {
         Files.createDirectories(Paths.get("src/com/ap/duelyst/data"));
         FileWriter writer = new FileWriter("src/com/ap/duelyst/data/shop.txt",
                 false);
@@ -315,5 +313,105 @@ class ClientHandler extends Thread {
         return "shop saved successfully";
     }
 
+    private List<Deck> getAllDecks() {
+        List<Deck> decks = account.getDecks();
+        if (decks == null || decks.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return decks;
+    }
+
+    private Deck getMainDeck() {
+        if (account.getMainDeck() == null) {
+            throw new GameException("no main deck");
+        }
+        return account.getMainDeck();
+    }
+
+    private String setMainDeck(String deckString) {
+        account.setMainDeck(gson.fromJson(deckString, Deck.class));
+        return "Deck " + account.getMainDeck().getName() + " selected successfully";
+    }
+
+    public String createDeck(String name) {
+        if (account.hasDeck(name)) {
+            throw new GameException("You have a deck with this name!");
+        } else {
+            account.createDeck(name);
+        }
+        return "Deck created successfully";
+    }
+
+    public String addToDeck(String objectJson, String className, String deckName) throws ClassNotFoundException {
+        Object object = gson.fromJson(objectJson, Class.forName(className));
+        account.getDeck(deckName).add(object);
+        if (account.getDeck(deckName).equals(account.getMainDeck())) {
+            account.getMainDeck().add(object);
+        }
+        return "card/item added successfully";
+    }
+
+    public String removeFromDeck(String id, String deckName) throws ClassNotFoundException {
+        account.getDeck(deckName).removeById(id);
+        if (account.getDeck(deckName).equals(account.getMainDeck())) {
+            account.getMainDeck().removeById(id);
+        }
+        return "card/item removed successfully";
+    }
+
+
+    public String importDeck(String name) {
+        try {
+            Files.createDirectories(Paths.get("src/com/ap/duelyst/data"));
+            FileReader reader =
+                    new FileReader("src/com/ap/duelyst/data/" + name + ".txt");
+            int c = reader.read();
+            StringBuilder deckString = new StringBuilder();
+            while (c != -1) {
+                deckString.append((char) c);
+                c = reader.read();
+            }
+            Deck deck = Utils.getGson().fromJson(deckString.toString(),
+                    new TypeToken<Deck>() {
+                    }.getType());
+            if (account.hasDeck(deck.getName())) {
+                throw new GameException("You already have that deck!");
+            } else {
+                for (Card card : deck.getCards()) {
+                    if (!account.getCollection().hasCardById(card.getId())) {
+                        throw new GameException("you dont have the cards in your " +
+                                "collection");
+                    }
+                }
+                for (Item item : deck.getItems()) {
+                    if (!account.getCollection().hasUsableItemById(item.getId())) {
+                        throw new GameException("you dont have the items in your " +
+                                "collection");
+                    }
+                }
+            }
+            account.getDecks().add(deck);
+            return "deck imported successfully";
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new GameException("deck not found");
+        }
+    }
+
+    public String exportDeck(String deckName) {
+        try {
+            Deck deck = account.getDeck(deckName);
+            Files.createDirectories(Paths.get("src/com/ap/duelyst/data"));
+            FileWriter writer = new FileWriter(
+                    "src/com/ap/duelyst/data/" + deckName + ".txt",
+                    false);
+            writer.write(Utils.getGson().toJson(deck));
+            writer.close();
+            return "deck exported successfully";
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "failed to export deck";
+        }
+    }
 
 }

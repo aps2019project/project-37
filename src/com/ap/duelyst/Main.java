@@ -199,8 +199,7 @@ public class Main extends Application {
         Parent root = collectionLoader.load();
         collectionController = collectionLoader.getController();
         collectionController.setMenuManager(menuManager);
-        collectionController.setController(controller);
-        
+
         Screen screen = Screen.getPrimary();
         Rectangle2D bounds = screen.getVisualBounds();
         
