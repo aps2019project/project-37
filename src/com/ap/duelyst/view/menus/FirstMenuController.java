@@ -34,7 +34,6 @@ public class FirstMenuController implements Initializable {
     public HBox dialog;
     public Label dialogText;
     public VBox leadBoardContainer;
-    private Controller controller;
     private MenuManager menuManager;
     private LoginPage loginPage;
     public StackPane stackPane;
@@ -191,8 +190,6 @@ public class FirstMenuController implements Initializable {
             if (Main.userName != null) {
                 menuManager.setCurrentMenu(loginPage.getMainMenu());
             } else {
-                errorLabel.setText("please log in!");
-//                errorBox.setVisible(true);
                 dialogController.showDialog("please log in");
             }
             userNameText.setText("");
@@ -201,12 +198,17 @@ public class FirstMenuController implements Initializable {
 
         saveButton.setOnAction(o -> {
             try {
-                controller.save();
-                dialogController.showDialog("accounts saved successfully");
+                Command command = new Command("save");
+                Main.writer.println(new Gson().toJson(command));
+                JsonObject resp = new JsonParser().parse(Main.scanner.nextLine())
+                        .getAsJsonObject();
+                if (resp.get("resp") != null) {
+                    dialogController.showDialog(resp.get("resp").getAsString());
+                } else {
+                    dialogController.showDialog(resp.get("error").getAsString());
+                }
 
-            } catch (GameException e) {
-                errorLabel.setText(e.getMessage());
-//                errorBox.setVisible(true);
+            } catch (Exception e) {
                 dialogController.showDialog(e.getMessage());
             }
         });
@@ -227,10 +229,6 @@ public class FirstMenuController implements Initializable {
 
     public void setLoginPage(LoginPage loginPage) {
         this.loginPage = loginPage;
-    }
-
-    public void setController(Controller controller) {
-        this.controller = controller;
     }
 
     public void updateLeaderBoard() {

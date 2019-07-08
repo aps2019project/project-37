@@ -20,6 +20,8 @@ import java.lang.reflect.Method;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -291,5 +293,27 @@ class ClientHandler extends Thread {
             getShop().add(usableItem);
         }
     }
+
+
+    public String save() throws IOException {
+        Files.createDirectories(Paths.get("src/com/ap/duelyst/data"));
+        FileWriter writer = new FileWriter("src/com/ap/duelyst/data/accounts.txt",
+                false);
+        writer.write(Utils.getGson().toJson(Utils.getAccounts()));
+        writer.close();
+        saveShop();
+        return "accounts saved successfully";
+
+    }
+
+    public String saveShop() throws IOException {
+        Files.createDirectories(Paths.get("src/com/ap/duelyst/data"));
+        FileWriter writer = new FileWriter("src/com/ap/duelyst/data/shop.txt",
+                false);
+        writer.write(Utils.getGson().toJson(Utils.getShop()));
+        writer.close();
+        return "shop saved successfully";
+    }
+
 
 }

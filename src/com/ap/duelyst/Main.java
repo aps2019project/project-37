@@ -154,8 +154,7 @@ public class Main extends Application {
         firstMenuController = firstMenuLoader.getController();
         firstMenuController.setMenuManager(menuManager);
         firstMenuController.setLoginPage((LoginPage) currentMenu);
-        firstMenuController.setController(controller);
-        
+
         Screen screen = Screen.getPrimary();
         Rectangle2D bounds = screen.getVisualBounds();
         
