@@ -75,7 +75,6 @@ public class Game {
                 addFlags(flagNumber);
                 break;
         }
-
     }
 
     private void initGameBoard() {
@@ -98,8 +97,11 @@ public class Game {
     }
 
     public void startGame() {
+        events.startGame();
         board.get(2).get(0).addCard(player1.getHero());
         board.get(2).get(8).addCard(player2.getHero());
+        player1.getDeck().getCards().stream().filter(card -> card instanceof Minion)
+                .findFirst().ifPresent(card -> board.get(2).get(2).addCard(card));
         Item item = player1.startGame();
         Item item1 = player2.startGame();
         currentPlayer = player1;
@@ -459,7 +461,7 @@ public class Game {
                 }
                 hero.getInGame().setMoved(true);
                 if (currentPlayer.isAI()) {
-                    Platform.runLater(() -> events.AIMove(hero, oldX, oldY, x, y));
+//                    Platform.runLater(() -> events.AIMove(hero, oldX, oldY, x, y));
                 }
                 return true;
             } else {
@@ -1227,7 +1229,7 @@ public class Game {
         return x >= 0 && y >= 0 && x <= 4 && y <= 8;
     }
 
-    private Card getCard(String id) {
+    public Card getCard(String id) {
         if (getInBoardCard(id) != null) {
             return getInBoardCard(id);
         }

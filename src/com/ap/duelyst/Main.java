@@ -98,11 +98,11 @@ public class Main extends Application {
             stage.setScene(mainMenuScene);
             stage.setTitle("Game Of Cards: Main Menu");
         });
-        
+
         Screen screen = Screen.getPrimary();
         Rectangle2D bounds = screen.getVisualBounds();
-        
-        Scene scene = new Scene(root, bounds.getWidth(), bounds.getHeight()-30);
+
+        Scene scene = new Scene(root, bounds.getWidth(), bounds.getHeight() - 30);
         scene.setCursor(new ImageCursor(new Image(Utils.getPath(
                 "mouse_auto.png"))));
         scene.getStylesheets().add("com/ap/duelyst/Bugatti.css");
@@ -143,7 +143,6 @@ public class Main extends Application {
             } catch (IOException ignored) {
             }
             battleController.setMenu((InGameBattleMenu) currentMenu);
-            battleController.setGame(controller);
             stage.setScene(inGameBattleScene);
             stage.setTitle("Game Of Cards : Battle");
         }
@@ -157,8 +156,8 @@ public class Main extends Application {
 
         Screen screen = Screen.getPrimary();
         Rectangle2D bounds = screen.getVisualBounds();
-        
-        Scene scene = new Scene(root, bounds.getWidth(), bounds.getHeight()-30);
+
+        Scene scene = new Scene(root, bounds.getWidth(), bounds.getHeight() - 30);
         scene.getStylesheets().add("com/ap/duelyst/FirstMenu.css");
         scene.setCursor(new ImageCursor(new Image(Utils.getPath("mouse_auto.png"))));
         return scene;
@@ -175,7 +174,7 @@ public class Main extends Application {
         });
         Screen screen = Screen.getPrimary();
         Rectangle2D bounds = screen.getVisualBounds();
-        Scene scene = new Scene(root, bounds.getWidth(), bounds.getHeight()-30);
+        Scene scene = new Scene(root, bounds.getWidth(), bounds.getHeight() - 30);
         scene.getStylesheets().add("com/ap/duelyst/SecondMenu.css");
         scene.setCursor(new ImageCursor(new Image(Utils.getPath("mouse_auto.png"))));
         return scene;
@@ -188,8 +187,8 @@ public class Main extends Application {
 
         Screen screen = Screen.getPrimary();
         Rectangle2D bounds = screen.getVisualBounds();
-        
-        Scene scene = new Scene(root, bounds.getWidth(), bounds.getHeight()-30);
+
+        Scene scene = new Scene(root, bounds.getWidth(), bounds.getHeight() - 30);
         scene.getStylesheets().add("com/ap/duelyst/shop.css");
         scene.setCursor(new ImageCursor(new Image(Utils.getPath("mouse_auto.png"))));
         return scene;
@@ -202,8 +201,8 @@ public class Main extends Application {
 
         Screen screen = Screen.getPrimary();
         Rectangle2D bounds = screen.getVisualBounds();
-        
-        Scene scene = new Scene(root, bounds.getWidth(), bounds.getHeight()-30);
+
+        Scene scene = new Scene(root, bounds.getWidth(), bounds.getHeight() - 30);
         scene.getStylesheets().add("com/ap/duelyst/collection.css");
         scene.setCursor(new ImageCursor(new Image(Utils.getPath("mouse_auto.png"))));
         return scene;
@@ -216,8 +215,8 @@ public class Main extends Application {
 
         Screen screen = Screen.getPrimary();
         Rectangle2D bounds = screen.getVisualBounds();
-        
-        Scene scene = new Scene(root, bounds.getWidth(), bounds.getHeight()-30);
+
+        Scene scene = new Scene(root, bounds.getWidth(), bounds.getHeight() - 30);
         scene.getStylesheets().add("com/ap/duelyst/BattleMenu.css");
         scene.setCursor(new ImageCursor(new Image(Utils.getPath("mouse_auto.png"))));
         return scene;
@@ -228,11 +227,11 @@ public class Main extends Application {
                 new FXMLLoader(getClass().getResource("view/battle/battle.fxml"));
         Parent root = battleLoader.load();
         battleController = battleLoader.getController();
-        
+        battleController.setManager(menuManager);
         Screen screen = Screen.getPrimary();
         Rectangle2D bounds = screen.getVisualBounds();
-        
-        Scene scene = new Scene(root, bounds.getWidth(), bounds.getHeight()-30);
+
+        Scene scene = new Scene(root, bounds.getWidth(), bounds.getHeight() - 30);
         scene.getStylesheets().add("com/ap/duelyst/Bugatti.css");
         scene.setCursor(new ImageCursor(new Image(Utils.getPath("mouse_auto.png"))));
         return scene;

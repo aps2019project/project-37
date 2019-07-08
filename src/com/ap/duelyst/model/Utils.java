@@ -971,6 +971,10 @@ public class Utils {
                         .registerSubtype(Spell.class)
                         .registerSubtype(Hero.class)
                         .registerSubtype(Minion.class);
+        RuntimeTypeAdapterFactory<Hero> cardRuntimeTypeAdapterFactory1 =
+                RuntimeTypeAdapterFactory.of(Hero.class)
+                        .registerSubtype(Hero.class)
+                        .registerSubtype(Minion.class);
         RuntimeTypeAdapterFactory<Item> itemRuntimeTypeAdapterFactory =
                 RuntimeTypeAdapterFactory.of(Item.class)
                         .registerSubtype(CollectableItem.class)
@@ -992,6 +996,7 @@ public class Utils {
                         .registerSubtype(WeaknessBuff.class);
         return new GsonBuilder()
                 .registerTypeAdapterFactory(cardRuntimeTypeAdapterFactory)
+                .registerTypeAdapterFactory(cardRuntimeTypeAdapterFactory1)
                 .registerTypeAdapterFactory(itemRuntimeTypeAdapterFactory)
                 .registerTypeAdapterFactory(buffRuntimeTypeAdapterFactory).create();
     }

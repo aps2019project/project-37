@@ -1,5 +1,7 @@
 package com.ap.duelyst.view.battle;
 
+import com.ap.duelyst.Command;
+import com.ap.duelyst.Main;
 import com.ap.duelyst.controller.Controller;
 import com.ap.duelyst.controller.GameException;
 import com.ap.duelyst.controller.menu.BattleMenu;
@@ -20,6 +22,10 @@ import com.ap.duelyst.model.items.UsableItem;
 import com.ap.duelyst.view.DialogController;
 import com.ap.duelyst.view.GameEvents;
 import com.ap.duelyst.view.card.CardSprite;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import javafx.animation.*;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
@@ -143,6 +149,12 @@ public class BattleController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                callServer("getInBoardCards");
+            }
+        },1000);
         String back = Utils.getPath("chapter1_background@2x.jpg");
         root.setStyle("-fx-background-image: url(' " + back + "')");
         root.setOnMouseDragged(event -> {
@@ -177,7 +189,6 @@ public class BattleController implements Initializable {
                 for (Node child : board.getChildren()) {
                     if (child.getStyle().equals("-fx-background-color: rgba(0,255,11,0" +
                             ".38)")) {
-
                         try {
                             game.insert(insertableCard, GridPane.getRowIndex(child)
                                     , GridPane.getColumnIndex(child));
@@ -203,7 +214,7 @@ public class BattleController implements Initializable {
                         } catch (GameException e) {
                             dialogController.showDialog(e.getMessage());
                         }
-                        updateBoard(game.getInBoardCards(), true);
+                        updateBoard(callServer("getInBoardCards"), true);
                         updateHand();
                         break;
                     }
@@ -270,7 +281,7 @@ public class BattleController implements Initializable {
                         .contains(event.getSceneX(), event.getSceneY())) {
                     List<Card> hand = new ArrayList<>();
                     for (Player player : game.getPlayers()) {
-                        if (player.getAccountName().equals(account.getUserName())) {
+                        if (player.getAccountName().equals(Main.userName)) {
                             hand = player.getHand();
                             break;
                         }
@@ -390,7 +401,7 @@ public class BattleController implements Initializable {
     private void showHeroDialog(boolean showTop) {
         if (showTop) {
             VBox box = p2Box;
-            if (hoveredCard.getAccountName().equals(account.getUserName())) {
+            if (hoveredCard.getAccountName().equals(Main.userName)) {
                 box = p1Box;
             }
             heroDialogCard
@@ -573,7 +584,7 @@ public class BattleController implements Initializable {
                             for (int[] p : pos) {
                                 Hero card = game.getCardAt(p[0], p[1]);
                                 if (card != null && !card.getAccountName()
-                                        .equals(account.getUserName())) {
+                                        .equals(Main.userName)) {
                                     getNodeByRowColumnIndex(p[0], p[1]).setDisable(false);
                                     getNodeByRowColumnIndex(p[0], p[1])
                                             .setStyle("-fx-background-color: rgba(" +
@@ -669,7 +680,7 @@ public class BattleController implements Initializable {
                             return;
                         }
                         if (card != null
-                                && !card.getAccountName().equals(account.getUserName())) {
+                                && !card.getAccountName().equals(Main.userName)) {
                             StackPane pane1 = getNodeByRowColumnIndex(selectedCard.getX(),
                                     selectedCard.getY());
                             StackPane pane2 = getNodeByRowColumnIndex(card.getX(),
@@ -828,7 +839,7 @@ public class BattleController implements Initializable {
         return (StackPane) result;
     }
 
-    public void setGame(Controller controller) {
+    /*public void setGame(Controller controller) {
         if (this.game == null) {
             manager = controller.getMenuManager();
             this.game = controller.getGame();
@@ -842,7 +853,7 @@ public class BattleController implements Initializable {
                     if (!game.getCurrentPlayer().getAccountName().equals("AI")) {
                         updateBoard(inGameCards, true);
                     }
-                    if (game.getCurrentPlayer().getAccountName().equals(account.getUserName())) {
+                    if (game.getCurrentPlayer().getAccountName().equals(Main.userName)) {
                         showNotification(true);
                         turnButton.setDisable(false);
                         turnButton.setText("     End Turn     ");
@@ -885,7 +896,7 @@ public class BattleController implements Initializable {
             addUsableItem(0, p1Box);
             addUsableItem(1, p2Box);
         }
-    }
+    }*/
 
     private void addUsableItem(int i, VBox vBox) {
         List<Item> items = game.getPlayers().get(i).getDeck().getItems();
@@ -936,7 +947,7 @@ public class BattleController implements Initializable {
         List<Card> hand = new ArrayList<>();
         Player p = null;
         for (Player player : game.getPlayers()) {
-            if (player.getAccountName().equals(account.getUserName())) {
+            if (player.getAccountName().equals(Main.userName)) {
                 hand = player.getHand();
                 p = player;
                 break;
@@ -961,7 +972,7 @@ public class BattleController implements Initializable {
             StackPane pane = handContainers.get(i);
             Label label = (Label) ((VBox) pane.getChildren()
                     .filtered(node -> node instanceof VBox).get(0)).getChildren().get(0);
-            if (game.getCurrentPlayer().getAccountName().equals(account.getUserName())) {
+            if (game.getCurrentPlayer().getAccountName().equals(Main.userName)) {
                 pane.setStyle("-fx-background-image: url('" + circle + "')");
                 pane.setDisable(false);
                 label.setStyle("-fx-background-image: url('" + manaActivePath + "')");
@@ -1031,13 +1042,13 @@ public class BattleController implements Initializable {
                     hero.getY());
             if (pane != null) {
                 ImageView imageView = hero.getCardSprite().getImageView();
-                if (!hero.getAccountName().equals(account.getUserName())) {
+                if (!hero.getAccountName().equals(Main.userName)) {
                     imageView.setRotationAxis(Rotate.Y_AXIS);
                     imageView.setRotate(180);
                     pane.setStyle("-fx-background-color: rgba(255,3,0,0" +
                             ".38)");
                     pane.setDisable(true);
-                } else if (game.getCurrentPlayer().getAccountName().equals(account.getUserName())) {
+                } else if (game.getCurrentPlayer().getAccountName().equals(Main.userName)) {
                     pane.setDisable(false);
                 } else {
                     pane.setDisable(true);
@@ -1135,7 +1146,7 @@ public class BattleController implements Initializable {
         }
         ap.setText(String.valueOf(Math.max(0, hero.getAttackPowerInGame())));
         hp.setText(String.valueOf(Math.max(0, hero.getHealthPointInGame())));
-        if (hero.getAccountName().equals(account.getUserName())) {
+        if (hero.getAccountName().equals(Main.userName)) {
             ap.setStyle(this.ap);
             hp.setStyle(this.hp);
         } else {
@@ -1183,7 +1194,7 @@ public class BattleController implements Initializable {
     }
 
     public void showCollectibles() {
-        if (game.getCurrentPlayer().getAccountName().equals(account.getUserName())) {
+        if (game.getCurrentPlayer().getAccountName().equals(Main.userName)) {
             VBox vBox = new VBox();
             vBox.setFillWidth(false);
             vBox.setStyle("-fx-background-color: rgba(0,0,0,0.71)");
@@ -1323,5 +1334,27 @@ public class BattleController implements Initializable {
         dialogController.setEventHandler(event ->
                 manager.setCurrentMenu(menu.getParentMenu().getParentMenu()));
         dialogController.showDialog("Are you sure ?", true);
+    }
+
+    private  <T> T callServer(String commandName, Object... parameters) {
+        Command command = new Command(commandName, parameters);
+        Main.writer.println(new Gson().toJson(command));
+        JsonObject resp = new JsonParser().parse(Main.scanner.nextLine())
+                .getAsJsonObject();
+        if (resp.get("resp") != null && resp.get("resp").getAsString().equals("null")) {
+            resp = new JsonParser().parse(Main.scanner.nextLine()).getAsJsonObject();
+        }
+        if (resp.get("resp") != null) {
+            T t= Utils.getGson().fromJson(resp.get("resp").getAsString(), new TypeToken<T>() {
+            }.getType());
+            return t;
+        } else {
+            dialogController.showDialog(resp.get("error").getAsString());
+            return callServer(commandName, parameters);
+        }
+    }
+
+    public void setManager(MenuManager manager) {
+        this.manager = manager;
     }
 }

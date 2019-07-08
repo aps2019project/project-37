@@ -12,6 +12,7 @@ import com.ap.duelyst.view.DialogController;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -63,15 +64,11 @@ public class BattleMenuController implements Initializable {
 
     public void update() {
         changeVisibility(playerModeBox);
-        try {
-            prepareStories();
-            prepareCustom();
-        } catch (CloneNotSupportedException e) {
-            e.printStackTrace();
-        }
+        prepareStories();
+        prepareCustom();
     }
 
-    private void prepareStories() throws CloneNotSupportedException {
+    private void prepareStories() {
         ObservableList<StoryObject> storyObjects = FXCollections.observableArrayList();
         Hero first = createDeck(1).getHero();
         Hero second = createDeck(2).getHero();
@@ -102,7 +99,7 @@ public class BattleMenuController implements Initializable {
         storyTable.getColumns().add(rewardColumn);
     }
 
-    private void prepareCustom() throws CloneNotSupportedException {
+    private void prepareCustom() {
         customMode.getItems().setAll(
                 "kill enemy hero",
                 "keep flags 8 rounds",
@@ -197,24 +194,40 @@ public class BattleMenuController implements Initializable {
         changeVisibility(customModeBox);
     }
 
-    public void selectStory() throws CloneNotSupportedException {
+    public void selectStory() {
         StoryObject object = storyTable.getSelectionModel().getSelectedItem();
         if (object == null) {
             dialogController.showDialog("nothing is selected");
         } else {
-//            controller.createGame(object.getLevel(), object.getFlag());
-            menuManager.setCurrentMenu(battleMenu.getInGameBattleMenu());
+            Command command = new Command("createGame", object.getLevel(),
+                    object.getFlag());
+            startSinglePlayerGame(command);
         }
     }
 
-    public void playCustom() throws CloneNotSupportedException {
+    public void playCustom() {
         if (customDeck != -1) {
             BattleMenu.CustomGameMode gameMode = BattleMenu.CustomGameMode.getMode(
                     String.valueOf(customMode.getSelectionModel().getSelectedIndex() + 1));
-//            controller.createGame(customDeck, gameMode, customFlagNumbers.getValue());
-            menuManager.setCurrentMenu(battleMenu.getInGameBattleMenu());
+            Command command = new Command("createGame", customDeck, gameMode,
+                    customFlagNumbers.getValue());
+            startSinglePlayerGame(command);
         } else {
             dialogController.showDialog("enemy is not selected");
+        }
+    }
+
+    private void startSinglePlayerGame(Command command) {
+        Main.writer.println(new Gson().toJson(command));
+        JsonObject resp = new JsonParser().parse(Main.scanner.nextLine())
+                .getAsJsonObject();
+        if (resp.get("resp") != null && resp.get("resp").getAsString().equals("null")) {
+            resp = new JsonParser().parse(Main.scanner.nextLine()).getAsJsonObject();
+        }
+        if (resp.get("resp") != null) {
+            menuManager.setCurrentMenu(battleMenu.getInGameBattleMenu());
+        } else {
+            dialogController.showDialog(resp.get("error").getAsString());
         }
     }
 
