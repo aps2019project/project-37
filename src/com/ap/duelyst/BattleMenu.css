@@ -79,3 +79,40 @@
     -fx-font-weight: normal;
     -fx-padding: 8;
 }
+
+#labelMessage1{
+    -fx-background-color: transparent;
+    -fx-text-fill: deepskyblue;
+    -fx-text-alignment: left;
+    -fx-wrap-text: true;
+    -fx-max-width: 150;
+}
+
+
+#labelMessage2{
+    -fx-background-color: transparent;
+    -fx-text-fill: lawngreen;
+    -fx-text-alignment: right;
+    -fx-wrap-text: true;
+    -fx-max-width: 150;
+}
+
+.list-view .list-cell:odd {
+    -fx-background-color:   rgba(0,0,0,0.65);
+    -fx-font-family: "Times New Roman";
+}
+
+.list-view .list-cell:even {
+    -fx-background-color:   rgba(0,0,0,0.65);
+    -fx-font-family: "Times New Roman";
+}
+.list-view{
+    -fx-opacity: 0.9;
+    -fx-font-size: 14;
+    -fx-border-radius: 10;
+    -fx-font-weight: bold;
+    -fx-background-color: transparent;
+}
+#ChatRoomBox{
+    -fx-background-radius: 10;
+}

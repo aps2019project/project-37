@@ -5,6 +5,7 @@ import com.ap.duelyst.Main;
 import com.ap.duelyst.controller.Controller;
 import com.ap.duelyst.controller.menu.BattleMenu;
 import com.ap.duelyst.controller.menu.MenuManager;
+import com.ap.duelyst.model.Account;
 import com.ap.duelyst.model.Deck;
 import com.ap.duelyst.model.Utils;
 import com.ap.duelyst.model.cards.Hero;
@@ -12,6 +13,7 @@ import com.ap.duelyst.view.DialogController;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -23,17 +25,28 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.Socket;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.List;
 import java.util.ResourceBundle;
+import java.util.Scanner;
 import java.util.stream.Stream;
 
 public class BattleMenuController implements Initializable {
+    public TextField messageField;
+    public ListView<HBox> messageList;
+    static DataOutputStream writer;
     public TableView<StoryObject> storyTable;
     public ChoiceBox<String> customMode;
     public ChoiceBox<Integer> customFlagNumbers;
@@ -55,10 +68,64 @@ public class BattleMenuController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+
+        Socket socket;
+        try {
+            socket = new Socket("localhost",8200);
+            new ReaderHandler(socket, messageList).start();
+            writer = new DataOutputStream(socket.getOutputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        messageField.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                sendMessage();
+            }
+        });
+
+
+        for (int i = 0; i < 7; i++) {
+            HBox hBox = new HBox();
+            hBox.getChildren().add(new Label(""));
+            messageList.getItems().add(hBox);
+        }
+        multiPlayerBox.setId("ChatRoomBox");
         String back = Utils.getPath("chapter10_background@2x.jpg");
         root.setStyle("-fx-background-image: url(' " + back + "')");
         dialogController = new DialogController(root, dialog, dialogText,
                 dialogContainer);
+    }
+
+    private void sendMessage(){
+        String message = messageField.getText();
+        if(!message.isEmpty()){
+            try {
+                writer.writeUTF(getUserName() +" : " + message);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            Label firstLabel = (Label) messageList.getItems().get(0).getChildren().get(0);
+            if(firstLabel.getText().equals("")){
+                messageList.getItems().remove(0);
+            }
+            Label label = new Label(message);
+            label.setId("labelMessage2");
+            HBox hBox = new HBox();
+            hBox.getChildren().add(label);
+            label.setAlignment(Pos.BASELINE_RIGHT);
+            hBox.setAlignment(Pos.BASELINE_RIGHT);
+            messageList.getItems().add(hBox);
+            messageField.setText("");
+        }
+    }
+    private String getUserName(){
+        Command command = new Command("getUserName");
+        Main.writer.println(new Gson().toJson(command));
+        JsonObject resp = new JsonParser().parse(Main.scanner.nextLine())
+                .getAsJsonObject();
+        return Utils.getGson().fromJson(resp.get("resp").getAsString(),
+                new TypeToken<String>() {}.getType());
     }
 
     public void update() {
@@ -234,5 +301,44 @@ public class BattleMenuController implements Initializable {
         } else if (customModeBox.isVisible()) {
             showSinglePlayer();
         }
+    }
+}
+
+
+
+class ReaderHandler extends Thread{
+    Socket socket;
+    ListView<HBox> messageList;
+    ReaderHandler(Socket socket, ListView<HBox> messageList){
+        this.socket = socket;
+        this.messageList = messageList;
+        setDaemon(true);
+    }
+
+    @Override
+    public void run() {
+        try {
+            DataInputStream reader = new DataInputStream(socket.getInputStream());
+            String message;
+            while (true){
+                message = reader.readUTF();
+                Label label = new Label(message);
+                label.setId("labelMessage1");
+                HBox hBox = new HBox();
+                hBox.getChildren().add(label);
+                label.setAlignment(Pos.BASELINE_LEFT);
+                hBox.setAlignment(Pos.BASELINE_LEFT);
+
+                Label firstLabel = (Label) messageList.getItems().get(0).getChildren().get(0);
+                if(firstLabel.getText().equals("")){
+                    messageList.getItems().remove(0);
+                }
+
+                messageList.getItems().add(hBox);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }

@@ -33,14 +33,20 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 import javafx.util.Duration;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.Socket;
 import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -143,6 +149,7 @@ public class BattleController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+
         String back = Utils.getPath("chapter1_background@2x.jpg");
         root.setStyle("-fx-background-image: url(' " + back + "')");
         root.setOnMouseDragged(event -> {
@@ -342,6 +349,7 @@ public class BattleController implements Initializable {
                         "')")
         );
     }
+
 
     private void showNotification(boolean mine) {
         if (mine) {

@@ -218,7 +218,6 @@ public class ShopController implements Initializable {
             countColumn.setCellValueFactory(new PropertyValueFactory<>("count"));
             tableView.getColumns().add(countColumn);
         }
-
     }
 
     public void buyButtonClicked() {
@@ -250,7 +249,7 @@ public class ShopController implements Initializable {
         }
     }
 
-    static void playSprite(Object o) {
+    public static void playSprite(Object o) {
         if (o instanceof Card) {
             Card card = (Card) o;
             if ((card.getCardSprite() == null)) {

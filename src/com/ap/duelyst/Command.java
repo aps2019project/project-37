@@ -23,6 +23,9 @@ public class Command {
     }
 
     public Class[] getParameterTypes() {
+        if(parameters == null){
+            return null;
+        }
         Class[] arr = new Class[parameters.length];
         return Stream.of(parameters).map(Object::getClass)
                 .collect(Collectors.toList()).toArray(arr);
