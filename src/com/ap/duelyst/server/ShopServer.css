@@ -1,0 +1,84 @@
+.table-view {
+    -fx-opacity: 0.8;
+    -fx-min-height: 400;
+}
+
+.table-row-cell:odd {
+    -fx-background-color: #000526;
+    -fx-min-height: 150;
+
+}
+
+.table-row-cell:even {
+    -fx-background-color: darkblue;
+    -fx-min-height: 150;
+}
+
+.table-column {
+    -fx-text-fill: white;
+    -fx-alignment: center;
+    -fx-text-alignment: center;
+    -fx-font-size: 12pt;
+    -fx-font-family: "Times New Roman";
+}
+
+.table-row-cell:selected {
+    -fx-background-color: maroon;
+}
+
+#mainBox {
+    -fx-background-size: stretch;
+    -fx-background-position: center center;
+    -fx-background-repeat: stretch;
+}
+
+.button {
+    -fx-background-size: stretch;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: center;
+    -fx-text-fill: white;
+    -fx-text-alignment: center;
+    -fx-font-size: 14pt;
+    -fx-font-weight: bold;
+    -fx-font-family: "Times New Roman";
+    -fx-background-color: transparent;
+    -fx-cursor: hand;
+}
+
+.label {
+    -fx-background-color: midnightblue;
+    -fx-background-radius: 10;
+    -fx-padding: 8;
+    -fx-text-alignment: center center;
+    -fx-text-fill: white;
+    -fx-font-size: 16pt;
+    -fx-font-family: "Times New Roman";
+}
+
+#username {
+    -fx-background-color: transparent;
+    -fx-text-fill: darkblue;
+}
+
+.back {
+    -fx-background-size: cover;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: center;
+}
+
+.list-view .list-cell:odd {
+    -fx-background-color:   rgba(0,0,0,0.65);
+    -fx-font-family: "Times New Roman";
+}
+
+.list-view .list-cell:even {
+    -fx-background-color:   rgba(0,0,0,0.65);
+    -fx-font-family: "Times New Roman";
+}
+.list-view{
+    -fx-opacity: 0.9;
+    -fx-font-size: 14;
+    -fx-border-radius: 10;
+    -fx-font-weight: bold;
+    -fx-background-color: transparent;
+}

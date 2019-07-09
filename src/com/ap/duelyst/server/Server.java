@@ -1,7 +1,6 @@
 package com.ap.duelyst.server;
 
 import com.ap.duelyst.Command;
-import com.ap.duelyst.controller.Controller;
 import com.ap.duelyst.controller.GameException;
 import com.ap.duelyst.model.*;
 import com.ap.duelyst.model.Collection;
@@ -11,31 +10,130 @@ import com.ap.duelyst.model.items.UsableItem;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.collections.ObservableList;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.ImageCursor;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.image.Image;
+import javafx.stage.Stage;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-public class Server {
+public class Server extends Application{
+    private FXMLLoader shopServerLoader;
+    private Scene shopServerScene;
+    public static ShopServerController shopServerController;
+    private static ArrayList<Account> onlineAccounts = new ArrayList<>();
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+        shopServerLoader =
+                new FXMLLoader(getClass().getResource("shopServer.fxml"));
+        shopServerScene = makeShopServerScene();
+        primaryStage.setScene(shopServerScene);
+        primaryStage.show();
+    }
+
     public static void main(String[] args) throws IOException {
-        ServerSocket serverSocket = new ServerSocket(8080);
-        while (true) {
-            Socket socket = serverSocket.accept();
-            new ClientHandler(socket).start();
+        new GameServer().start();
+        new ChatRoomServer().start();
+        launch(args);
+    }
+
+    public static ArrayList<Account> getOnlineAccounts() {
+        return onlineAccounts;
+    }
+
+    private Scene makeShopServerScene() throws IOException {
+        Parent root = shopServerLoader.load();
+        shopServerController = shopServerLoader.getController();
+        Scene scene = new Scene(root);
+        scene.getStylesheets().add("com/ap/duelyst/server/ShopServer.css");
+        scene.setCursor(new ImageCursor(new Image(Utils.getPath("mouse_auto.png"))));
+        return scene;
+    }
+
+}
+
+
+class GameServer extends Thread{
+    @Override
+    public void run() {
+        ServerSocket serverSocket;
+        try {
+            serverSocket = new ServerSocket(8080);
+            while (true) {
+                Socket socket = serverSocket.accept();
+                new ClientHandler(socket).start();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
 
+class ChatRoomServer extends Thread{
+    ServerSocket serverSocket;
+    static ArrayList<DataOutputStream> clientWriters;
+    ChatRoomServer() throws IOException {
+        serverSocket = new ServerSocket(8200);
+        clientWriters = new ArrayList<>();
+    }
+    @Override
+    public void run() {
+        try {
+            while (true) {
+                Socket socket = serverSocket.accept();
+                DataOutputStream writer = new DataOutputStream(socket.getOutputStream());
+                clientWriters.add(writer);
+                new ChatRoomHandler(socket, writer).start();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+class ChatRoomHandler extends Thread{
+    Socket socket;
+    DataOutputStream clientWriter;
+    ChatRoomHandler(Socket socket, DataOutputStream clientWriter){
+        this.clientWriter = clientWriter;
+        this.socket = socket;
+        System.out.println("new chatroom added");
+    }
+
+    @Override
+    public void run() {
+        DataInputStream reader;
+        try {
+
+            reader = new DataInputStream(socket.getInputStream());
+            String message;
+            while (true) {
+                message = reader.readUTF();
+                System.out.println(message);
+                for (DataOutputStream clientWriter : ChatRoomServer.clientWriters) {
+                    if (!clientWriter.equals(this.clientWriter)) {
+                        clientWriter.writeUTF(message);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            ChatRoomServer.clientWriters.remove(clientWriter);
+            e.printStackTrace();
+        }
+    }
+}
 
 @SuppressWarnings("Duplicates")
 class ClientHandler extends Thread {
@@ -92,7 +190,12 @@ class ClientHandler extends Thread {
                 } else {
                     throw new GameException("authentication failed");
                 }
-            } catch (NoSuchMethodException | IllegalAccessException
+            }
+            catch (NoSuchElementException ex){
+                Server.getOnlineAccounts().remove(account);
+                Server.shopServerController.updateUsersList();
+            }
+            catch (NoSuchMethodException | IllegalAccessException
                     | InvocationTargetException | GameException e) {
                 e.printStackTrace();
                 JsonObject jsonObject = new JsonObject();
@@ -112,17 +215,26 @@ class ClientHandler extends Thread {
         return Base64.getEncoder()
                 .encodeToString((account.getUserName() + new Date().getTime()).getBytes());
     }
-
+    private String getUserName(){
+        return account.getUserName();
+    }
     private void loginGUI(String userName, String password) {
         if (!Utils.hasAccount(userName)) {
             throw new GameException("No account with this username");
         }
-        if (account != null && account.getUserName().equals(userName)) {
+        if (account != null) {
             throw new GameException("You are already logged in");
+        }
+        for (Account onlineAccount : Server.getOnlineAccounts()) {
+            if(onlineAccount.getUserName().equals(userName)){
+                throw new GameException("Other client with this user name is logged in");
+            }
         }
         Account account = Utils.getAccountByUsername(userName);
         if (account.getPassword().equals(password)) {
             this.account = account;
+            Server.getOnlineAccounts().add(account);
+            Platform.runLater(() -> Server.shopServerController.updateUsersList());
         } else {
             throw new GameException("Password is wrong!");
         }
@@ -143,6 +255,8 @@ class ClientHandler extends Thread {
         if (account == null) {
             throw new GameException("You are not logged in!");
         } else {
+            Server.getOnlineAccounts().remove(account);
+            Platform.runLater(() -> Server.shopServerController.updateUsersList());
             account = null;
             token = null;
             return "logout successful";
@@ -240,6 +354,7 @@ class ClientHandler extends Thread {
         if (c.getCount() == 0) {
             Utils.getShop().remove(c);
         }
+        Platform.runLater(() -> Server.shopServerController.updateShopTable());
         return newCard;
     }
 
@@ -252,6 +367,7 @@ class ClientHandler extends Thread {
         if (item.getCount() == 0) {
             Utils.getShop().remove(item);
         }
+        Platform.runLater(() -> Server.shopServerController.updateShopTable());
         return newUsableItem;
     }
 
@@ -262,6 +378,7 @@ class ClientHandler extends Thread {
         } else if (object instanceof UsableItem) {
             sell((UsableItem) object);
         }
+        Platform.runLater(() -> Server.shopServerController.updateShopTable());
         return "sell successful";
     }
 
