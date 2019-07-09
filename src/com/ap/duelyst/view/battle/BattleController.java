@@ -19,10 +19,12 @@ import com.ap.duelyst.model.game.Player;
 import com.ap.duelyst.model.items.CollectableItem;
 import com.ap.duelyst.model.items.Item;
 import com.ap.duelyst.view.DialogController;
+import com.ap.duelyst.view.GameEvents;
 import com.ap.duelyst.view.card.CardSprite;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import javafx.animation.*;
 import javafx.application.Platform;
@@ -71,7 +73,6 @@ public class BattleController implements Initializable {
     public VBox rightButtonContainer;
     public Button collectibleButton;
     public Button graveYardButton;
-    private Game game;
     public StackPane root;
     public HBox handContainer;
     public GridPane board;
@@ -113,6 +114,8 @@ public class BattleController implements Initializable {
     private InGameBattleMenu menu;
     private MenuManager manager;
     private Map<String, CardSprite> spriteMap = new HashMap<>();
+    private ReaderThread readerThread;
+    private List<List<Cell>> cachedBoard;
 
     {
         new Thread(() -> {
@@ -145,12 +148,8 @@ public class BattleController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                Platform.runLater(() -> nextRound());
-            }
-        }, 1000);
+        readerThread = new ReaderThread(events);
+        readerThread.start();
         String back = Utils.getPath("chapter1_background@2x.jpg");
         root.setStyle("-fx-background-image: url(' " + back + "')");
         root.setOnMouseDragged(event -> {
@@ -185,33 +184,18 @@ public class BattleController implements Initializable {
                 for (Node child : board.getChildren()) {
                     if (child.getStyle().equals("-fx-background-color: rgba(0,255,11,0" +
                             ".38)")) {
-                        try {
-                            game.insert(insertableCard, GridPane.getRowIndex(child)
-                                    , GridPane.getColumnIndex(child));
-                            if (insertableCard instanceof Spell) {
-                                insertableCard.getCardSprite().getImageView()
-                                        .setTranslateX(0);
-                                insertableCard.getCardSprite().getImageView()
-                                        .setTranslateY(1000);
-                                CardSprite sprite =
-                                        insertableCard.getCardSprite().clone();
-                                sprite.showEffect();
-                                VBox vBox = new VBox(sprite.getImageView());
-                                vBox.setStyle("-fx-background-color: rgba(0,0,0,0.51)");
-                                root.getChildren().add(vBox);
-                                Bounds bounds =
-                                        child.localToScene(child.getBoundsInLocal());
-                                sprite.getImageView().setTranslateX(bounds.getMinX());
-                                sprite.getImageView().setTranslateY(bounds.getMinY());
-                                sprite.setOnFinished(e ->
-                                        root.getChildren().remove(vBox));
-                            }
-                            insertableCard = null;
-                        } catch (GameException e) {
-                            dialogController.showDialog(e.getMessage());
+                        Command command = new Command("insert",
+                                insertableCard.getId(),
+                                GridPane.getRowIndex(child),
+                                GridPane.getColumnIndex(child));
+                        Main.writer.println(new Gson().toJson(command));
+                        int offset = 0;
+                        if (insertableCard instanceof Minion) {
+                            offset = 30;
                         }
-                        updateBoard(getInBoardCards(), true);
-                        updateHand();
+                        insertableCard.getCardSprite().getImageView().setTranslateX(0);
+                        insertableCard.getCardSprite().getImageView().setTranslateY(-offset);
+                        insertableCard = null;
                         break;
                     }
                 }
@@ -314,6 +298,168 @@ public class BattleController implements Initializable {
                 .bind(notification.prefWidthProperty().divide(4.571));
         notification.setText("your turn");
     }
+
+    private GameEvents events = new GameEvents() {
+        @Override
+        public void nextRound() {
+            updateHand();
+            updateBoard(getInBoardCards(), true);
+            if (getCurrentPlayer().getAccountName().equals(Main.userName)) {
+                showNotification(true);
+                turnButton.setDisable(false);
+                turnButton.setText("     End Turn     ");
+                turnButton.setStyle("-fx-background-image: url('" + turn + "')");
+                turnButton.setOnMousePressed(event -> turnButton
+                        .setStyle("-fx-background-image: url('" + turnGlow +
+                                "')"));
+                turnButton.setOnMouseReleased(event -> turnButton
+                        .setStyle("-fx-background-image: url('" + turn + "')"));
+            } else {
+                showNotification(false);
+                turnButton.setText("    Enemy Turn    ");
+                turnButton.setStyle("-fx-background-image: url('" + turnEnemy + "')");
+                turnButton.setOnMouseReleased(event -> turnButton
+                        .setStyle("-fx-background-image: url('" + turnEnemy +
+                                "')"));
+                turnButton.setDisable(true);
+            }
+        }
+
+        @Override
+        public void gameEnded(String result) {
+
+        }
+
+        @Override
+        public void insert(String cardId, int x, int y) {
+            CardSprite cardSprite = spriteMap.get(cardId);
+            if (cardSprite.hasEffect()) {
+                cardSprite.getImageView()
+                        .setTranslateX(0);
+                cardSprite.getImageView()
+                        .setTranslateY(1000);
+                cardSprite = cardSprite.clone();
+                cardSprite.showEffect();
+                VBox vBox = new VBox(cardSprite.getImageView());
+                vBox.setStyle("-fx-background-color: rgba(0,0,0,0.51)");
+                root.getChildren().add(vBox);
+                StackPane child = getNodeByRowColumnIndex(x, y);
+                Bounds bounds =
+                        child.localToScene(child.getBoundsInLocal());
+                cardSprite.getImageView().setTranslateX(bounds.getMinX());
+                cardSprite.getImageView().setTranslateY(bounds.getMinY());
+                cardSprite.setOnFinished(e -> {
+                    root.getChildren().remove(vBox);
+                });
+            }
+            updateBoard(getInBoardCards(), true);
+            updateHand();
+        }
+
+        @Override
+        public void move(String id, int oldX, int oldY, int finalI, int finalJ) {
+            updateBoard(getInBoardCards(), false);
+            CardSprite sprite = spriteMap.get(id);
+            sprite.showRun();
+            ParallelTransition transition = new ParallelTransition();
+            StackPane pane = getNodeByRowColumnIndex(oldX, oldY);
+            pane.setStyle("");
+            for (Node child : pane.getChildren()) {
+                if (child instanceof ImageView) {
+                    transition.getChildren().add(moveAnimation(oldX, oldY,
+                            finalI, finalJ, child));
+                }
+            }
+            transition.play();
+            transition.setOnFinished(e -> {
+                sprite.showBreathing();
+                updateBoard(getInBoardCards(), true);
+            });
+
+        }
+
+        @Override
+        public void attack(String attackerId, String attackedId) {
+            CardSprite attackerSprite = spriteMap.get(attackerId);
+            CardSprite attackedSprite = spriteMap.get(attackedId);
+            attackerSprite.showAttack();
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    Platform.runLater(() -> {
+                        attackerSprite.showBreathing();
+                        attackedSprite.showAttack();
+                    });
+                }
+            }, 500);
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    Platform.runLater(() -> {
+                        attackedSprite.showBreathing();
+                        showDeath(attackerId, attackerSprite, attackedId, attackedSprite);
+                    });
+                }
+            }, 1000);
+        }
+
+        @Override
+        public void specialPower(String cardId, int finalI, int finalJ) {
+            Hero card = null;
+            for (List<Cell> row : cachedBoard) {
+                for (Cell cell : row) {
+                    if (cell.getCard() != null) {
+                        if (cell.getCard().idEquals(cardId)) {
+                            card = cell.getCard();
+                        }
+                    }
+                }
+            }
+            assert card != null;
+            CardSprite sprite = card.getSpecialPower()
+                    .getCardSprite();
+            if (sprite == null) {
+                card.getSpecialPower().makeCardSprite();
+                sprite = card.getSpecialPower()
+                        .getCardSprite();
+            }
+            sprite.showEffect();
+            ImageView imageView = sprite.getImageView();
+            imageView.setScaleX(2);
+            imageView.setScaleY(2);
+            VBox vBox = new VBox(sprite.getImageView());
+            vBox.setStyle("-fx-background-color: rgba(0,0,0,0.51)");
+            sprite.setOnFinished(e -> root.getChildren().remove(vBox));
+            root.getChildren().add(vBox);
+            vBox.setAlignment(Pos.CENTER);
+            updateHand();
+            updateBoard(getInBoardCards(), true);
+        }
+
+        @Override
+        public void useCollectable(String itemId) {
+            CardSprite sprite = poison.get(0).clone();
+            sprite.showEffect();
+            root.getChildren().add(sprite.getImageView());
+            StackPane.setAlignment(sprite.getImageView(), Pos.CENTER);
+            sprite.setOnFinished(event1 ->
+                    root.getChildren().remove(sprite.getImageView()));
+            updateBoard(getInBoardCards(), true);
+        }
+
+
+        @Override
+        public void startGame() {
+
+        }
+
+        @Override
+        public void error(String message) {
+            dialogController.showDialog(message);
+            updateBoard(getInBoardCards(), true);
+            updateHand();
+        }
+    };
 
     private void prepareRightButtons() {
         turnButton.setText("     End Turn     ");
@@ -500,6 +646,10 @@ public class BattleController implements Initializable {
             p2ManaBox.setOpacity(.7);
             p2ManaBox.getChildren().add(imageView);
         }
+        p1Name.setText(getPlayers().get(0).getAccountName());
+        p2Name.setText(getPlayers().get(1).getAccountName());
+        addUsableItem(0, p1Box);
+        addUsableItem(1, p2Box);
     }
 
     private void prepareBoard() {
@@ -635,80 +785,36 @@ public class BattleController implements Initializable {
                         if (firstClickType == MouseButton.SECONDARY) {
                             firstClickType = MouseButton.PRIMARY;
                             try {
-                                game.useSpecialPower(selectedCard, finalI, finalJ);
-                                CardSprite sprite = selectedCard.getSpecialPower()
-                                        .getCardSprite();
-                                if (sprite == null) {
-                                    selectedCard.getSpecialPower().makeCardSprite();
-                                    sprite = selectedCard.getSpecialPower()
-                                            .getCardSprite();
-                                }
-                                sprite.showEffect();
-                                ImageView imageView = sprite.getImageView();
-                                imageView.setScaleX(2);
-                                imageView.setScaleY(2);
-                                VBox vBox = new VBox(sprite.getImageView());
-                                vBox.setStyle("-fx-background-color: rgba(0,0,0,0.51)");
-                                sprite.setOnFinished(e -> root.getChildren().remove(vBox));
-                                root.getChildren().add(vBox);
-                                vBox.setAlignment(Pos.CENTER);
-                                updateHand();
+                                Command command = new Command("useSpecialPower",
+                                        selectedCard.getId(),finalI, finalJ);
+                                Main.writer.println(new Gson().toJson(command));
                             } catch (GameException e) {
                                 dialogController.showDialog(e.getMessage());
                             }
-                            updateBoard(getInBoardCards(), true);
                             return;
                         }
                         if (selectedItem != null) {
                             try {
-                                game.useCollectable(selectedItem);
-                                CardSprite sprite = poison.get(0).clone();
-                                sprite.showEffect();
-                                root.getChildren().add(sprite.getImageView());
-                                StackPane.setAlignment(sprite.getImageView(), Pos.CENTER);
-                                sprite.setOnFinished(event1 ->
-                                        root.getChildren().remove(sprite.getImageView()));
+                                Command command=new Command("useCollectable",
+                                        selectedItem.getId());
+                                Main.writer.println(new Gson().toJson(command));
+
                             } catch (GameException e) {
                                 dialogController.showDialog(e.getMessage());
                             }
-                            updateBoard(getInBoardCards(), true);
                             selectedItem = null;
                             return;
                         }
                         if (card != null
                                 && !card.getAccountName().equals(Main.userName)) {
-                            StackPane pane1 = getNodeByRowColumnIndex(selectedCard.getX(),
-                                    selectedCard.getY());
-                            StackPane pane2 = getNodeByRowColumnIndex(card.getX(),
-                                    card.getY());
-                            List<CardSprite> result = game.attack(selectedCard,
-                                    card.getId(), true);
-                            selectedCard.getCardSprite().showAttack();
-                            new Timer().schedule(new TimerTask() {
-                                @Override
-                                public void run() {
-                                    Platform.runLater(() -> {
-                                        selectedCard.getCardSprite().showBreathing();
-                                        updateAPHP(pane2, card, true);
-                                        card.getCardSprite().showAttack();
-                                    });
-                                }
-                            }, 500);
-                            new Timer().schedule(new TimerTask() {
-                                @Override
-                                public void run() {
-                                    Platform.runLater(() -> {
-                                        card.getCardSprite().showBreathing();
-                                        updateAPHP(pane1, selectedCard, true);
-                                        showDeath(result);
-                                    });
-                                }
-                            }, 1000);
-                        } else if (selectedCard != card) {
-                            int oldX = selectedCard.getX();
-                            int oldY = selectedCard.getY();
-                            game.move(selectedCard, finalI, finalJ);
-                            move(selectedCard, oldX, oldY, finalI, finalJ);
+                            Command command = new Command("attack",
+                                    selectedCard.getId(), card.getId());
+                            Main.writer.println(new Gson().toJson(command));
+                        } else if (card == null) {
+                            Command command = new Command("move",
+                                    selectedCard.getId(),
+                                    finalI, finalJ);
+                            Main.writer.println(new Gson().toJson(command));
                         } else {
                             updateBoard(getInBoardCards(), true);
                         }
@@ -727,25 +833,6 @@ public class BattleController implements Initializable {
         }
     }
 
-    private void move(Card card, int oldX, int oldY, int finalI, int finalJ) {
-        updateBoard(getInBoardCards(), false);
-        card.getCardSprite().showRun();
-        ParallelTransition transition = new ParallelTransition();
-        StackPane pane = getNodeByRowColumnIndex(oldX, oldY);
-        pane.setStyle("");
-        for (Node child : pane.getChildren()) {
-            if (child instanceof ImageView) {
-                transition.getChildren().add(moveAnimation(oldX, oldY,
-                        finalI, finalJ, child));
-            }
-        }
-        transition.play();
-        transition.setOnFinished(e -> {
-            card.getCardSprite().showBreathing();
-            updateBoard(getInBoardCards(), true);
-        });
-    }
-
     private TranslateTransition moveAnimation(int oldX, int oldY, int finalI, int finalJ,
                                               Node node) {
         TranslateTransition transition =
@@ -758,26 +845,22 @@ public class BattleController implements Initializable {
         return transition;
     }
 
-    private void showDeath(List<CardSprite> result) {
-        updateBoard(
-                getInBoardCards(),
-                true);
-        for (CardSprite cardSprite : result) {
-            if (cardSprite != null) {
-                cardSprite.showDeath();
-                new Timer().schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        Platform.runLater(() -> {
-                            for (Node child : board.getChildren()) {
-                                ((StackPane) child).getChildren()
-                                        .removeIf(node -> node == cardSprite.getImageView());
-                            }
-                        });
-                    }
-                }, 1000);
+    private void showDeath(String attackerId, CardSprite attacker, String attackedId,
+                           CardSprite attacked) {
+        for (Card card : getGraveYard().getCards()) {
+            if (card.idEquals(attackerId)) {
+                attacker.showDeath();
+            }
+            if (card.idEquals(attackedId)) {
+                attacked.showDeath();
             }
         }
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                Platform.runLater(() -> updateBoard(getInBoardCards(), true));
+            }
+        }, 1000);
     }
 
     private Label createLabel() {
@@ -1177,7 +1260,8 @@ public class BattleController implements Initializable {
     }
 
     public void endTurn() {
-        game.endTurn();
+        Command command = new Command("endTurn");
+        Main.writer.println(new Gson().toJson(command));
     }
 
     public void showCollectibles() {
@@ -1327,18 +1411,20 @@ public class BattleController implements Initializable {
                              Object... parameters) {
         Command command = new Command(commandName, parameters);
         Main.writer.println(new Gson().toJson(command));
-        JsonObject resp = new JsonParser().parse(Main.scanner.nextLine())
-                .getAsJsonObject();
-        if (resp.get("resp") != null && resp.get("resp").getAsString().equals("null")) {
-            resp = new JsonParser().parse(Main.scanner.nextLine()).getAsJsonObject();
+        String json = readerThread.getResp();
+        while (json == null) {
+            System.out.println("wating");
+            json = readerThread.getResp();
         }
-        if (resp.get("resp") != null) {
-            return Utils.getGson().fromJson(resp.get("resp").getAsString(),
-                    typeToken.getType());
-        } else {
-            dialogController.showDialog(resp.get("error").getAsString());
-            return callServer(commandName, typeToken, parameters);
+        T resp = null;
+        while (resp == null) {
+            try {
+                resp = Utils.getGson().fromJson(json, typeToken.getType());
+            } catch (JsonSyntaxException e) {
+                json = readerThread.getResp();
+            }
         }
+        return resp;
     }
 
 
@@ -1386,6 +1472,7 @@ public class BattleController implements Initializable {
                 }
             }
         }
+        cachedBoard = board;
         return board;
     }
 
@@ -1447,41 +1534,77 @@ public class BattleController implements Initializable {
         }, x1, y1, x2, y2);
     }
 
-    private void nextRound() {
-        updateHand();
-        updateBoard(getInBoardCards(), true);
-        if (getCurrentPlayer().getAccountName().equals(Main.userName)) {
-            showNotification(true);
-            turnButton.setDisable(false);
-            turnButton.setText("     End Turn     ");
-            turnButton.setStyle("-fx-background-image: url('" + turn + "')");
-            turnButton.setOnMousePressed(event -> turnButton
-                    .setStyle("-fx-background-image: url('" + turnGlow +
-                            "')"));
-            turnButton.setOnMouseReleased(event -> turnButton
-                    .setStyle("-fx-background-image: url('" + turn + "')"));
-        } else {
-            showNotification(false);
-            turnButton.setText("    Enemy Turn    ");
-            turnButton.setOnMouseReleased(event -> turnButton
-                    .setStyle("-fx-background-image: url('" + turnEnemy +
-                            "')"));
-            turnButton.setDisable(true);
-        }
-    }
-
-
     public void setManager(MenuManager manager) {
         this.manager = manager;
     }
 }
 
-class ReaderThread extends Thread{
+class ReaderThread extends Thread {
+    private GameEvents events;
+    private String resp;
+
+    public ReaderThread(GameEvents events) {
+        this.events = events;
+        this.setDaemon(true);
+    }
+
     @Override
     public void run() {
         super.run();
-        while (true){
+        while (true) {
+            try {
+                JsonObject jsonObject =
+                        new JsonParser().parse(Main.scanner.nextLine()).getAsJsonObject();
+                if (jsonObject.get("name") != null) {
+                    String name = jsonObject.get("name").getAsString();
+                    switch (name) {
+                        case "nextRound":
+                            Platform.runLater(() -> events.nextRound());
+                            break;
+                        case "insert":
+                            Platform.runLater(() ->
+                                    events.insert(jsonObject.get("cardId").getAsString(),
+                                            jsonObject.get("x").getAsInt(),
+                                            jsonObject.get("y").getAsInt()));
+                            break;
+                        case "move":
+                            Platform.runLater(() ->
+                                    events.move(jsonObject.get("id").getAsString(),
+                                            jsonObject.get("oldX").getAsInt(),
+                                            jsonObject.get("oldY").getAsInt(),
+                                            jsonObject.get("finalI").getAsInt(),
+                                            jsonObject.get("finalJ").getAsInt()));
+                            break;
+                        case "attack":
+                            Platform.runLater(() ->
+                                    events.attack(jsonObject.get("attackerId").getAsString(),
+                                            jsonObject.get("attackedId").getAsString()));
+                            break;
+                        case "specialPower":
+                            Platform.runLater(() ->
+                                    events.specialPower(jsonObject.get("cardId").getAsString(),
+                                            jsonObject.get("finalI").getAsInt(),
+                                            jsonObject.get("finalJ").getAsInt()));
+                            break;
+                        case "useCollectable":
+                            Platform.runLater(() -> events.useCollectable(""));
+                            break;
+                    }
+                }
+                if (jsonObject.get("resp") != null && !jsonObject.get("resp").getAsString().equals("null")) {
+                    resp = jsonObject.get("resp").getAsString();
+                }
+                if (jsonObject.get("error") != null) {
+                    Platform.runLater(() -> events.error(jsonObject.get("error").getAsString()));
+                }
+            } catch (JsonSyntaxException e) {
+                e.printStackTrace();
+            }
 
         }
+    }
+
+    public String getResp() {
+        return resp;
     }
 }

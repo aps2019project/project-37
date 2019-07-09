@@ -120,4 +120,7 @@ public class CardSprite extends Transition implements Cloneable {
         return imageView;
     }
 
+    public boolean hasEffect(){
+        return spellEffect != null;
+    }
 }

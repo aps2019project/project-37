@@ -515,8 +515,10 @@ class ClientHandler extends Thread {
     private void setGameListener() {
         game.setEvents(new GameEvents() {
             @Override
-            public void nextRound(List<Hero> inGameCards) {
-
+            public void nextRound() {
+                JsonObject jsonObject = new JsonObject();
+                jsonObject.addProperty("name", "nextRound");
+                writer.println(gson.toJson(jsonObject));
             }
 
             @Override
@@ -525,35 +527,65 @@ class ClientHandler extends Thread {
             }
 
             @Override
-            public void insert(Card card, int x, int y) {
+            public void insert(String cardId, int x, int y) {
+                JsonObject jsonObject = new JsonObject();
+                jsonObject.addProperty("name", "insert");
+                jsonObject.addProperty("cardId", cardId);
+                jsonObject.addProperty("x", x);
+                jsonObject.addProperty("y", y);
+                writer.println(gson.toJson(jsonObject));
+            }
+
+            @Override
+            public void move(String id, int oldX, int oldY, int finalI, int finalJ) {
+                JsonObject jsonObject = new JsonObject();
+                jsonObject.addProperty("name", "move");
+                jsonObject.addProperty("id", id);
+                jsonObject.addProperty("oldX", oldX);
+                jsonObject.addProperty("oldY", oldY);
+                jsonObject.addProperty("finalI", finalI);
+                jsonObject.addProperty("finalJ", finalJ);
+                writer.println(gson.toJson(jsonObject));
+            }
+
+            @Override
+            public void attack(String attackerId, String attackedId) {
+                JsonObject jsonObject = new JsonObject();
+                jsonObject.addProperty("name", "attack");
+                jsonObject.addProperty("attackerId", attackerId);
+                jsonObject.addProperty("attackedId", attackedId);
+                writer.println(gson.toJson(jsonObject));
+            }
+
+            @Override
+            public void specialPower(String cardId, int finalI, int finalJ) {
+                JsonObject jsonObject = new JsonObject();
+                jsonObject.addProperty("name", "specialPower");
+                jsonObject.addProperty("cardId", cardId);
+                jsonObject.addProperty("finalI", finalI);
+                jsonObject.addProperty("finalJ", finalJ);
+                writer.println(gson.toJson(jsonObject));
 
             }
 
             @Override
-            public void move(Card card, int oldX, int oldY, int finalI, int finalJ) {
-
+            public void useCollectable(String itemId) {
+                JsonObject jsonObject = new JsonObject();
+                jsonObject.addProperty("name", "useCollectable");
+                writer.println(gson.toJson(jsonObject));
             }
 
-            @Override
-            public void attack(Card attacker, Card attacked) {
-
-            }
-
-            @Override
-            public void specialPower(Card card, int finalI, int finalJ) {
-
-            }
-
-            @Override
-            public void useCollectable(Item item) {
-
-            }
 
             @Override
             public void startGame() {
                 JsonObject jsonObject = new JsonObject();
                 jsonObject.addProperty("resp", "game started");
-                writer.println(jsonObject);
+                writer.println(gson.toJson(jsonObject));
+            }
+
+            @Override
+            public void error(String message) {
+
             }
 
         });

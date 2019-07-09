@@ -7,19 +7,21 @@ import com.ap.duelyst.model.items.Item;
 import java.util.List;
 
 public interface GameEvents {
-    void nextRound(List<Hero> inGameCards);
+    void nextRound();
 
     void gameEnded(String result);
 
-    void insert(Card card, int x, int y);
+    void insert(String cardId, int x, int y);
 
-    void move(Card card, int oldX, int oldY, int finalI, int finalJ);
+    void move(String id, int oldX, int oldY, int finalI, int finalJ);
 
-    void attack(Card attacker, Card attacked);
+    void attack(String attackerId, String attacked);
 
-    void specialPower(Card card, int finalI, int finalJ);
+    void specialPower(String cardId, int finalI, int finalJ);
 
-    void useCollectable(Item item);
+    void useCollectable(String itemId);
 
     void startGame();
+
+    void error(String message);
 }

@@ -141,7 +141,7 @@ public class Game {
         if (currentPlayer.isAI()) {
             playAI();
         }
-        events.nextRound(getInBoardCards());
+        events.nextRound();
     }
 
     public String endTurn() {
@@ -462,9 +462,7 @@ public class Game {
                     currentPlayer.addCollectableItem(item);
                 }
                 hero.getInGame().setMoved(true);
-                if (currentPlayer.isAI()) {
-//                    Platform.runLater(() -> events.AIMove(hero, oldX, oldY, x, y));
-                }
+                events.move(card.getId(), oldX, oldY, x, y);
                 return true;
             } else {
                 throw new GameException("invalid target");
@@ -530,6 +528,7 @@ public class Game {
                 }
             }
         }
+        events.attack(allyHero.getId(), opponentHero.getId());
         return Arrays.asList(checkDead(allyHero), checkDead(opponentHero));
 
 
@@ -603,6 +602,7 @@ public class Game {
                 hero.getInGame().setCoolDown(hero.getCoolDown());
                 addHeroSpecialPower(hero.getSpecialPower().getEffects(), hero, x, y);
             }
+            events.specialPower(card.getId(), x, y);
         } else {
             throw new GameException("card's not a hero");
         }
@@ -660,6 +660,7 @@ public class Game {
             currentPlayer.decreaseMana(spell.getMana());
         }
         currentPlayer.getHand().remove(card);
+        events.insert(card.getId(), x, y);
         return card.getName() + " with card id: " + card.getId()
                 + " inserted to (" + (x + 1) + "," + (y + 1) + ")";
 
@@ -688,6 +689,7 @@ public class Game {
     public void useCollectable(CollectableItem collectableItem) {
         addItemBuff(collectableItem);
         currentPlayer.removeCollectableItem(collectableItem);
+        events.useCollectable(collectableItem.getId());
     }
 
     private CardSprite checkDead(Hero card) {
@@ -1326,9 +1328,9 @@ public class Game {
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                Platform.runLater(() -> endTurn());
+                endTurn();
             }
-        }, 1800);
+        }, 2000);
     }
 
     public void setEvents(GameEvents events) {
