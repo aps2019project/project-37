@@ -14,6 +14,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -83,13 +84,6 @@ public class BattleMenuController implements Initializable {
                 sendMessage();
             }
         });
-
-
-        for (int i = 0; i < 7; i++) {
-            HBox hBox = new HBox();
-            hBox.getChildren().add(new Label(""));
-            messageList.getItems().add(hBox);
-        }
         multiPlayerBox.setId("ChatRoomBox");
         String back = Utils.getPath("chapter10_background@2x.jpg");
         root.setStyle("-fx-background-image: url(' " + back + "')");
@@ -102,12 +96,9 @@ public class BattleMenuController implements Initializable {
         if(!message.isEmpty()){
             try {
                 writer.writeUTF(getUserName() +" : " + message);
+                writer.flush();
             } catch (IOException e) {
                 e.printStackTrace();
-            }
-            Label firstLabel = (Label) messageList.getItems().get(0).getChildren().get(0);
-            if(firstLabel.getText().equals("")){
-                messageList.getItems().remove(0);
             }
             Label label = new Label(message);
             label.setId("labelMessage2");
@@ -319,8 +310,8 @@ public class BattleMenuController implements Initializable {
 
 
 class ReaderHandler extends Thread{
-    Socket socket;
-    ListView<HBox> messageList;
+    private Socket socket;
+    private ListView<HBox> messageList;
     ReaderHandler(Socket socket, ListView<HBox> messageList){
         this.socket = socket;
         this.messageList = messageList;
@@ -334,19 +325,16 @@ class ReaderHandler extends Thread{
             String message;
             while (true){
                 message = reader.readUTF();
-                Label label = new Label(message);
-                label.setId("labelMessage1");
-                HBox hBox = new HBox();
-                hBox.getChildren().add(label);
-                label.setAlignment(Pos.BASELINE_LEFT);
-                hBox.setAlignment(Pos.BASELINE_LEFT);
-
-                Label firstLabel = (Label) messageList.getItems().get(0).getChildren().get(0);
-                if(firstLabel.getText().equals("")){
-                    messageList.getItems().remove(0);
-                }
-
-                messageList.getItems().add(hBox);
+                String finalMessage = message;
+                Platform.runLater(() -> {
+                    Label label = new Label(finalMessage);
+                    label.setId("labelMessage1");
+                    HBox hBox = new HBox();
+                    hBox.getChildren().add(label);
+                    label.setAlignment(Pos.BASELINE_LEFT);
+                    hBox.setAlignment(Pos.BASELINE_LEFT);
+                    messageList.getItems().add(hBox);
+                });
             }
         } catch (IOException e) {
             e.printStackTrace();

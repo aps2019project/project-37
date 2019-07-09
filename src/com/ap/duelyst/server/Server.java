@@ -36,17 +36,28 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
-public class Server extends Application{
+public class Server extends Application {
     private FXMLLoader shopServerLoader;
-    private Scene shopServerScene;
-    public static ShopServerController shopServerController;
-    private static ArrayList<Account> onlineAccounts = new ArrayList<>();
+    static ShopServerController shopServerController;
+
     @Override
     public void start(Stage primaryStage) throws Exception {
         shopServerLoader =
                 new FXMLLoader(getClass().getResource("shopServer.fxml"));
-        shopServerScene = makeShopServerScene();
+        Scene shopServerScene = makeShopServerScene();
+        new Timer().scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                List<String> names=Thread.getAllStackTraces().keySet().stream()
+                        .filter(thread -> thread instanceof ClientHandler)
+                        .filter(thread -> ((ClientHandler) thread).getAccount()!=null)
+                        .map(thread -> ((ClientHandler) thread).getAccount().getUserName())
+                        .collect(Collectors.toList());
+                Platform.runLater(() -> shopServerController.updateUsersList(names));
+            }
+        },1000,1000);
         primaryStage.setScene(shopServerScene);
         primaryStage.show();
     }
@@ -55,10 +66,6 @@ public class Server extends Application{
         new GameServer().start();
         new ChatRoomServer().start();
         launch(args);
-    }
-
-    public static ArrayList<Account> getOnlineAccounts() {
-        return onlineAccounts;
     }
 
     private Scene makeShopServerScene() throws IOException {
@@ -73,7 +80,7 @@ public class Server extends Application{
 }
 
 
-class GameServer extends Thread{
+class GameServer extends Thread {
     @Override
     public void run() {
         ServerSocket serverSocket;
@@ -89,21 +96,19 @@ class GameServer extends Thread{
     }
 }
 
-class ChatRoomServer extends Thread{
-    ServerSocket serverSocket;
-    static ArrayList<DataOutputStream> clientWriters;
+class ChatRoomServer extends Thread {
+    private ServerSocket serverSocket;
+
     ChatRoomServer() throws IOException {
         serverSocket = new ServerSocket(8200);
-        clientWriters = new ArrayList<>();
     }
+
     @Override
     public void run() {
         try {
             while (true) {
                 Socket socket = serverSocket.accept();
-                DataOutputStream writer = new DataOutputStream(socket.getOutputStream());
-                clientWriters.add(writer);
-                new ChatRoomHandler(socket, writer).start();
+                new ChatRoomHandler(socket).start();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -111,33 +116,37 @@ class ChatRoomServer extends Thread{
     }
 }
 
-class ChatRoomHandler extends Thread{
-    Socket socket;
-    DataOutputStream clientWriter;
-    ChatRoomHandler(Socket socket, DataOutputStream clientWriter){
-        this.clientWriter = clientWriter;
+class ChatRoomHandler extends Thread {
+    private Socket socket;
+    private DataOutputStream clientWriter;
+
+    ChatRoomHandler(Socket socket) throws IOException {
         this.socket = socket;
-        System.out.println("new chatroom added");
+        this.clientWriter = new DataOutputStream(socket.getOutputStream());
+        System.out.println("new chat room added");
     }
 
     @Override
     public void run() {
         DataInputStream reader;
         try {
-
             reader = new DataInputStream(socket.getInputStream());
             String message;
             while (true) {
                 message = reader.readUTF();
-                System.out.println(message);
-                for (DataOutputStream clientWriter : ChatRoomServer.clientWriters) {
-                    if (!clientWriter.equals(this.clientWriter)) {
-                        clientWriter.writeUTF(message);
-                    }
-                }
+                String finalMessage = message;
+                Thread.getAllStackTraces().keySet().stream()
+                        .filter(thread -> thread instanceof ChatRoomHandler)
+                        .filter(thread -> thread!=this)
+                        .forEach(thread -> {
+                            try {
+                                ((ChatRoomHandler) thread).clientWriter.writeUTF(finalMessage);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        });
             }
         } catch (IOException e) {
-            ChatRoomServer.clientWriters.remove(clientWriter);
             e.printStackTrace();
         }
     }
@@ -148,13 +157,11 @@ class ClientHandler extends Thread {
     private String token = null;
     private Account account;
     private Gson gson;
-    private Socket socket;
     private Scanner reader;
     private PrintWriter writer;
     private Game game;
 
     ClientHandler(Socket socket) {
-        this.socket = socket;
         this.gson = Utils.getGson();
         try {
             writer = new PrintWriter(socket.getOutputStream(), true);
@@ -163,6 +170,10 @@ class ClientHandler extends Thread {
             e.printStackTrace();
         }
         System.out.println("new client added");
+    }
+
+    public Account getAccount() {
+        return account;
     }
 
     @Override
@@ -199,12 +210,7 @@ class ClientHandler extends Thread {
                 } else {
                     throw new GameException("authentication failed");
                 }
-            }
-            catch (NoSuchElementException ex){
-                Server.getOnlineAccounts().remove(account);
-                Server.shopServerController.updateUsersList();
-            }
-            catch (NoSuchMethodException | IllegalAccessException
+            } catch (NoSuchMethodException | IllegalAccessException
                     | InvocationTargetException | GameException e) {
                 e.printStackTrace();
                 JsonObject jsonObject = new JsonObject();
@@ -224,9 +230,11 @@ class ClientHandler extends Thread {
         return Base64.getEncoder()
                 .encodeToString((account.getUserName() + new Date().getTime()).getBytes());
     }
-    private String getUserName(){
+
+    private String getUserName() {
         return account.getUserName();
     }
+
     private void loginGUI(String userName, String password) {
         if (!Utils.hasAccount(userName)) {
             throw new GameException("No account with this username");
@@ -234,16 +242,17 @@ class ClientHandler extends Thread {
         if (account != null) {
             throw new GameException("You are already logged in");
         }
-        for (Account onlineAccount : Server.getOnlineAccounts()) {
-            if(onlineAccount.getUserName().equals(userName)){
-                throw new GameException("Other client with this user name is logged in");
-            }
-        }
+        Thread.getAllStackTraces().keySet().stream()
+                .filter(thread -> thread instanceof ClientHandler)
+                .filter(thread -> {
+                    Account account = ((ClientHandler) thread).account;
+                    return account != null && account.userNameEquals(userName);
+                }).findFirst().ifPresent(thread -> {
+            throw new GameException("Other client with this user name is logged in");
+        });
         Account account = Utils.getAccountByUsername(userName);
         if (account.getPassword().equals(password)) {
             this.account = account;
-            Server.getOnlineAccounts().add(account);
-            Platform.runLater(() -> Server.shopServerController.updateUsersList());
         } else {
             throw new GameException("Password is wrong!");
         }
@@ -264,8 +273,6 @@ class ClientHandler extends Thread {
         if (account == null) {
             throw new GameException("You are not logged in!");
         } else {
-            Server.getOnlineAccounts().remove(account);
-            Platform.runLater(() -> Server.shopServerController.updateUsersList());
             account = null;
             token = null;
             return "logout successful";

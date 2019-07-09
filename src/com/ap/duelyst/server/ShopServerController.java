@@ -17,6 +17,8 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
 @SuppressWarnings({"Duplicates", "unchecked"})
@@ -24,27 +26,41 @@ public class ShopServerController implements Initializable {
     public TableView shopTable;
     private Shop shop;
     public ListView<HBox> usersList;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         updateShopTable();
-        updateUsersList();
+        updateUsersList(new ArrayList<>());
     }
-    public void updateUsersList(){
+
+    public void updateUsersList(List<String> names) {
         usersList.getItems().clear();
-        for (Account onlineAccount : Server.getOnlineAccounts()) {
+        List<Account> accounts = new ArrayList<>(Utils.getAccounts());
+        for (String name : names) {
+            accounts.removeIf(account -> account.userNameEquals(name));
             HBox hBox = new HBox();
-            Label label = new Label(onlineAccount.getUserName());
-            label.setStyle("-fx-text-alignment: center");
-            label.setStyle("-fx-font-size: 16");
-            label.setStyle("-fx-alignment: center");
-            label.setStyle("-fx-fill: rgba(0,0,0,0.65)");
-            label.setStyle("-fx-text-fill: white");
-            label.setStyle("-fx-background-color: transparent");
+            Label label = new Label(name);
+            label.setStyle("-fx-text-alignment: center;-fx-font-size: 18;" +
+                    "-fx-alignment: center;" +
+                    "-fx-text-fill: #15ff0a;" +
+                    "-fx-background-color: transparent;");
+            hBox.setStyle("-fx-alignment: center");
+            hBox.getChildren().add(label);
+            usersList.getItems().add(hBox);
+        }
+        for (Account account : accounts) {
+            HBox hBox = new HBox();
+            Label label = new Label(account.getUserName());
+            label.setStyle("-fx-text-alignment: center;-fx-font-size: 18;" +
+                    "-fx-alignment: center;" +
+                    "-fx-text-fill: #ff0900;" +
+                    "-fx-background-color: transparent;");
             hBox.setStyle("-fx-alignment: center");
             hBox.getChildren().add(label);
             usersList.getItems().add(hBox);
         }
     }
+
     public void updateShopTable() {
         Shop shop = Utils.getShop();
 
@@ -70,6 +86,7 @@ public class ShopServerController implements Initializable {
         makeTableView(shopCards, shopTable);
         this.shop = shop;
     }
+
     private void makeTableView(ObservableList cards, TableView tableView) {
         for (Object o : cards) {
             ShopController.playSprite(o);
