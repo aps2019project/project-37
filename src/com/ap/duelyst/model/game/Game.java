@@ -58,6 +58,10 @@ public class Game {
         this.reward = reward;
         initGameBoard();
         List<CollectableItem> collectableItems = Utils.getShop().getCollectableItems();
+        for (int i = 0, collectableItemsSize = collectableItems.size(); i < collectableItemsSize; i++) {
+            CollectableItem collectableItem = collectableItems.get(i);
+            collectableItem.setId("co_item_" + i);
+        }
         Collections.shuffle(collectableItems);
         try {
             board.get(0).get(4)
@@ -75,7 +79,6 @@ public class Game {
                 addFlags(flagNumber);
                 break;
         }
-
     }
 
     private void initGameBoard() {
@@ -111,6 +114,7 @@ public class Game {
             addItemBuff(item1);
         }
         currentPlayer = player1;
+        events.startGame();
         nextRound();
     }
 
@@ -137,7 +141,7 @@ public class Game {
         if (currentPlayer.isAI()) {
             playAI();
         }
-        events.nextRound(getInBoardCards());
+        events.nextRound();
     }
 
     public String endTurn() {
@@ -458,9 +462,7 @@ public class Game {
                     currentPlayer.addCollectableItem(item);
                 }
                 hero.getInGame().setMoved(true);
-                if (currentPlayer.isAI()) {
-                    Platform.runLater(() -> events.AIMove(hero, oldX, oldY, x, y));
-                }
+                events.move(card.getId(), oldX, oldY, x, y);
                 return true;
             } else {
                 throw new GameException("invalid target");
@@ -526,6 +528,7 @@ public class Game {
                 }
             }
         }
+        events.attack(allyHero.getId(), opponentHero.getId());
         return Arrays.asList(checkDead(allyHero), checkDead(opponentHero));
 
 
@@ -599,6 +602,7 @@ public class Game {
                 hero.getInGame().setCoolDown(hero.getCoolDown());
                 addHeroSpecialPower(hero.getSpecialPower().getEffects(), hero, x, y);
             }
+            events.specialPower(card.getId(), x, y);
         } else {
             throw new GameException("card's not a hero");
         }
@@ -656,6 +660,7 @@ public class Game {
             currentPlayer.decreaseMana(spell.getMana());
         }
         currentPlayer.getHand().remove(card);
+        events.insert(card.getId(), x, y);
         return card.getName() + " with card id: " + card.getId()
                 + " inserted to (" + (x + 1) + "," + (y + 1) + ")";
 
@@ -684,6 +689,7 @@ public class Game {
     public void useCollectable(CollectableItem collectableItem) {
         addItemBuff(collectableItem);
         currentPlayer.removeCollectableItem(collectableItem);
+        events.useCollectable(collectableItem.getId());
     }
 
     private CardSprite checkDead(Hero card) {
@@ -1171,19 +1177,7 @@ public class Game {
     }
 
     public List<int[]> getNeighbours(int x, int y) {
-        List<int[]> ints = new ArrayList<int[]>() {
-
-            @Override
-            public int indexOf(Object o) {
-                for (int i = 0; i < this.size(); i++) {
-                    if (Arrays.equals(this.get(i), (int[]) o)) {
-                        return i;
-                    }
-                }
-                return -1;
-            }
-
-        };
+        List<int[]> ints = Utils.getEmptyPosList();
         for (int i = -1; i <= 1; i++) {
             for (int j = -1; j <= 1; j++) {
                 if (i == 0 && j == 0) {
@@ -1198,17 +1192,7 @@ public class Game {
     }
 
     public List<int[]> getCellsInRange(int x, int y, int range) {
-        List<int[]> ints = new ArrayList<int[]>() {
-            @Override
-            public int indexOf(Object o) {
-                for (int i = 0; i < this.size(); i++) {
-                    if (Arrays.equals(this.get(i), (int[]) o)) {
-                        return i;
-                    }
-                }
-                return -1;
-            }
-        };
+        List<int[]> ints = Utils.getEmptyPosList();
         for (int i = -range; i <= range; i++) {
             for (int j = -range; j <= range; j++) {
                 if (i == 0 && j == 0) {
@@ -1227,7 +1211,7 @@ public class Game {
         return x >= 0 && y >= 0 && x <= 4 && y <= 8;
     }
 
-    private Card getCard(String id) {
+    public Card getCard(String id) {
         if (getInBoardCard(id) != null) {
             return getInBoardCard(id);
         }
@@ -1344,9 +1328,9 @@ public class Game {
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                Platform.runLater(() -> endTurn());
+                endTurn();
             }
-        }, 1800);
+        }, 2000);
     }
 
     public void setEvents(GameEvents events) {

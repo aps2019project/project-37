@@ -1,8 +1,8 @@
 package com.ap.duelyst.view.battle;
 
-import com.ap.duelyst.controller.Controller;
+import com.ap.duelyst.Command;
+import com.ap.duelyst.Main;
 import com.ap.duelyst.controller.GameException;
-import com.ap.duelyst.controller.menu.BattleMenu;
 import com.ap.duelyst.controller.menu.MenuManager;
 import com.ap.duelyst.controller.menu.ingame.InGameBattleMenu;
 import com.ap.duelyst.model.Account;
@@ -12,41 +12,39 @@ import com.ap.duelyst.model.cards.Card;
 import com.ap.duelyst.model.cards.Hero;
 import com.ap.duelyst.model.cards.Minion;
 import com.ap.duelyst.model.cards.Spell;
+import com.ap.duelyst.model.game.Cell;
 import com.ap.duelyst.model.game.Game;
+import com.ap.duelyst.model.game.GraveYard;
 import com.ap.duelyst.model.game.Player;
 import com.ap.duelyst.model.items.CollectableItem;
 import com.ap.duelyst.model.items.Item;
-import com.ap.duelyst.model.items.UsableItem;
 import com.ap.duelyst.view.DialogController;
 import com.ap.duelyst.view.GameEvents;
 import com.ap.duelyst.view.card.CardSprite;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
 import javafx.animation.*;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.fxml.Initializable;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
-import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 import javafx.util.Duration;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.net.Socket;
 import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -75,7 +73,6 @@ public class BattleController implements Initializable {
     public VBox rightButtonContainer;
     public Button collectibleButton;
     public Button graveYardButton;
-    private Game game;
     public StackPane root;
     public HBox handContainer;
     public GridPane board;
@@ -105,7 +102,6 @@ public class BattleController implements Initializable {
     private double xStart, yStart;
     private Card insertableCard;
     private StackPane container;
-    private Account account;
     private boolean first = true;
     private MouseButton firstClickType = MouseButton.PRIMARY;
     private Hero selectedCard;
@@ -117,6 +113,9 @@ public class BattleController implements Initializable {
     private List<CardSprite> holy = new ArrayList<>();
     private InGameBattleMenu menu;
     private MenuManager manager;
+    private Map<String, CardSprite> spriteMap = new HashMap<>();
+    private ReaderThread readerThread;
+    private List<List<Cell>> cachedBoard;
 
     {
         new Thread(() -> {
@@ -149,7 +148,8 @@ public class BattleController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-
+        readerThread = new ReaderThread(events);
+        readerThread.start();
         String back = Utils.getPath("chapter1_background@2x.jpg");
         root.setStyle("-fx-background-image: url(' " + back + "')");
         root.setOnMouseDragged(event -> {
@@ -184,39 +184,23 @@ public class BattleController implements Initializable {
                 for (Node child : board.getChildren()) {
                     if (child.getStyle().equals("-fx-background-color: rgba(0,255,11,0" +
                             ".38)")) {
-
-                        try {
-                            game.insert(insertableCard, GridPane.getRowIndex(child)
-                                    , GridPane.getColumnIndex(child));
-                            if (insertableCard instanceof Spell) {
-                                insertableCard.getCardSprite().getImageView()
-                                        .setTranslateX(0);
-                                insertableCard.getCardSprite().getImageView()
-                                        .setTranslateY(1000);
-                                CardSprite sprite =
-                                        insertableCard.getCardSprite().clone();
-                                sprite.showEffect();
-                                VBox vBox = new VBox(sprite.getImageView());
-                                vBox.setStyle("-fx-background-color: rgba(0,0,0,0.51)");
-                                root.getChildren().add(vBox);
-                                Bounds bounds =
-                                        child.localToScene(child.getBoundsInLocal());
-                                sprite.getImageView().setTranslateX(bounds.getMinX());
-                                sprite.getImageView().setTranslateY(bounds.getMinY());
-                                sprite.setOnFinished(e ->
-                                        root.getChildren().remove(vBox));
-                            }
-                            insertableCard = null;
-                        } catch (GameException e) {
-                            dialogController.showDialog(e.getMessage());
+                        Command command = new Command("insert",
+                                insertableCard.getId(),
+                                GridPane.getRowIndex(child),
+                                GridPane.getColumnIndex(child));
+                        Main.writer.println(new Gson().toJson(command));
+                        int offset = 0;
+                        if (insertableCard instanceof Minion) {
+                            offset = 30;
                         }
-                        updateBoard(game.getInBoardCards(), true);
-                        updateHand();
+                        insertableCard.getCardSprite().getImageView().setTranslateX(0);
+                        insertableCard.getCardSprite().getImageView().setTranslateY(-offset);
+                        insertableCard = null;
                         break;
                     }
                 }
                 if (insertableCard != null) {
-                    updateBoard(game.getInBoardCards(), true);
+                    updateBoard(getInBoardCards(), true);
                     TranslateTransition transition =
                             new TranslateTransition(Duration.millis(300),
                                     insertableCard.getCardSprite().getImageView());
@@ -241,21 +225,21 @@ public class BattleController implements Initializable {
             for (Node child : board.getChildren()) {
                 if (child.localToScene(child.getBoundsInLocal())
                         .contains(event.getSceneX(), event.getSceneY())) {
-                    Hero card = game.getCardAt(GridPane.getRowIndex(child),
+                    Hero card = getCardAt(GridPane.getRowIndex(child),
                             GridPane.getColumnIndex(child));
                     if (card != null) {
                         shouldHide = false;
-                        if (card != hoveredCard) {
+                        if (hoveredCard == null || (card != hoveredCard && !card.idEquals(hoveredCard.getId()))) {
                             hoveredCard = card;
                             showHeroDialog(true);
                         }
                         break;
                     }
-                    Item item = game.getBoard().get(GridPane.getRowIndex(child))
+                    Item item = getBoard().get(GridPane.getRowIndex(child))
                             .get(GridPane.getColumnIndex(child)).getCollectableItem();
                     if (item != null) {
                         shouldHide = false;
-                        if (item != hoveredItem) {
+                        if (hoveredItem == null || (item != hoveredItem && !item.idEquals(hoveredItem.getId()))) {
                             hoveredItem = item;
                             Bounds bounds = child.localToScene(child.getBoundsInLocal());
                             heroDialogCard.setTranslateX(bounds.getMinX() +
@@ -276,8 +260,8 @@ public class BattleController implements Initializable {
                 if (child.localToScene(child.getBoundsInLocal())
                         .contains(event.getSceneX(), event.getSceneY())) {
                     List<Card> hand = new ArrayList<>();
-                    for (Player player : game.getPlayers()) {
-                        if (player.getAccountName().equals(account.getUserName())) {
+                    for (Player player : getPlayers()) {
+                        if (player.getAccountName().equals(Main.userName)) {
                             hand = player.getHand();
                             break;
                         }
@@ -285,7 +269,7 @@ public class BattleController implements Initializable {
                     if (hand.size() > i) {
                         Card card = hand.get(i);
                         shouldHide = false;
-                        if (card != hoveredCard) {
+                        if (hoveredCard == null || (card != hoveredCard && !card.idEquals(hoveredCard.getId()))) {
                             hoveredCard = card;
                             Bounds bounds = child.localToScene(child.getBoundsInLocal());
                             heroDialogCard.setTranslateY(bounds.getMinY() - heroDialogCard.getHeight());
@@ -314,6 +298,168 @@ public class BattleController implements Initializable {
                 .bind(notification.prefWidthProperty().divide(4.571));
         notification.setText("your turn");
     }
+
+    private GameEvents events = new GameEvents() {
+        @Override
+        public void nextRound() {
+            updateHand();
+            updateBoard(getInBoardCards(), true);
+            if (getCurrentPlayer().getAccountName().equals(Main.userName)) {
+                showNotification(true);
+                turnButton.setDisable(false);
+                turnButton.setText("     End Turn     ");
+                turnButton.setStyle("-fx-background-image: url('" + turn + "')");
+                turnButton.setOnMousePressed(event -> turnButton
+                        .setStyle("-fx-background-image: url('" + turnGlow +
+                                "')"));
+                turnButton.setOnMouseReleased(event -> turnButton
+                        .setStyle("-fx-background-image: url('" + turn + "')"));
+            } else {
+                showNotification(false);
+                turnButton.setText("    Enemy Turn    ");
+                turnButton.setStyle("-fx-background-image: url('" + turnEnemy + "')");
+                turnButton.setOnMouseReleased(event -> turnButton
+                        .setStyle("-fx-background-image: url('" + turnEnemy +
+                                "')"));
+                turnButton.setDisable(true);
+            }
+        }
+
+        @Override
+        public void gameEnded(String result) {
+
+        }
+
+        @Override
+        public void insert(String cardId, int x, int y) {
+            CardSprite cardSprite = spriteMap.get(cardId);
+            if (cardSprite.hasEffect()) {
+                cardSprite.getImageView()
+                        .setTranslateX(0);
+                cardSprite.getImageView()
+                        .setTranslateY(1000);
+                cardSprite = cardSprite.clone();
+                cardSprite.showEffect();
+                VBox vBox = new VBox(cardSprite.getImageView());
+                vBox.setStyle("-fx-background-color: rgba(0,0,0,0.51)");
+                root.getChildren().add(vBox);
+                StackPane child = getNodeByRowColumnIndex(x, y);
+                Bounds bounds =
+                        child.localToScene(child.getBoundsInLocal());
+                cardSprite.getImageView().setTranslateX(bounds.getMinX());
+                cardSprite.getImageView().setTranslateY(bounds.getMinY());
+                cardSprite.setOnFinished(e -> {
+                    root.getChildren().remove(vBox);
+                });
+            }
+            updateBoard(getInBoardCards(), true);
+            updateHand();
+        }
+
+        @Override
+        public void move(String id, int oldX, int oldY, int finalI, int finalJ) {
+            updateBoard(getInBoardCards(), false);
+            CardSprite sprite = spriteMap.get(id);
+            sprite.showRun();
+            ParallelTransition transition = new ParallelTransition();
+            StackPane pane = getNodeByRowColumnIndex(oldX, oldY);
+            pane.setStyle("");
+            for (Node child : pane.getChildren()) {
+                if (child instanceof ImageView) {
+                    transition.getChildren().add(moveAnimation(oldX, oldY,
+                            finalI, finalJ, child));
+                }
+            }
+            transition.play();
+            transition.setOnFinished(e -> {
+                sprite.showBreathing();
+                updateBoard(getInBoardCards(), true);
+            });
+
+        }
+
+        @Override
+        public void attack(String attackerId, String attackedId) {
+            CardSprite attackerSprite = spriteMap.get(attackerId);
+            CardSprite attackedSprite = spriteMap.get(attackedId);
+            attackerSprite.showAttack();
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    Platform.runLater(() -> {
+                        attackerSprite.showBreathing();
+                        attackedSprite.showAttack();
+                    });
+                }
+            }, 500);
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    Platform.runLater(() -> {
+                        attackedSprite.showBreathing();
+                        showDeath(attackerId, attackerSprite, attackedId, attackedSprite);
+                    });
+                }
+            }, 1000);
+        }
+
+        @Override
+        public void specialPower(String cardId, int finalI, int finalJ) {
+            Hero card = null;
+            for (List<Cell> row : cachedBoard) {
+                for (Cell cell : row) {
+                    if (cell.getCard() != null) {
+                        if (cell.getCard().idEquals(cardId)) {
+                            card = cell.getCard();
+                        }
+                    }
+                }
+            }
+            assert card != null;
+            CardSprite sprite = card.getSpecialPower()
+                    .getCardSprite();
+            if (sprite == null) {
+                card.getSpecialPower().makeCardSprite();
+                sprite = card.getSpecialPower()
+                        .getCardSprite();
+            }
+            sprite.showEffect();
+            ImageView imageView = sprite.getImageView();
+            imageView.setScaleX(2);
+            imageView.setScaleY(2);
+            VBox vBox = new VBox(sprite.getImageView());
+            vBox.setStyle("-fx-background-color: rgba(0,0,0,0.51)");
+            sprite.setOnFinished(e -> root.getChildren().remove(vBox));
+            root.getChildren().add(vBox);
+            vBox.setAlignment(Pos.CENTER);
+            updateHand();
+            updateBoard(getInBoardCards(), true);
+        }
+
+        @Override
+        public void useCollectable(String itemId) {
+            CardSprite sprite = poison.get(0).clone();
+            sprite.showEffect();
+            root.getChildren().add(sprite.getImageView());
+            StackPane.setAlignment(sprite.getImageView(), Pos.CENTER);
+            sprite.setOnFinished(event1 ->
+                    root.getChildren().remove(sprite.getImageView()));
+            updateBoard(getInBoardCards(), true);
+        }
+
+
+        @Override
+        public void startGame() {
+
+        }
+
+        @Override
+        public void error(String message) {
+            dialogController.showDialog(message);
+            updateBoard(getInBoardCards(), true);
+            updateHand();
+        }
+    };
 
     private void prepareRightButtons() {
         turnButton.setText("     End Turn     ");
@@ -349,7 +495,6 @@ public class BattleController implements Initializable {
                         "')")
         );
     }
-
 
     private void showNotification(boolean mine) {
         if (mine) {
@@ -398,7 +543,7 @@ public class BattleController implements Initializable {
     private void showHeroDialog(boolean showTop) {
         if (showTop) {
             VBox box = p2Box;
-            if (hoveredCard.getAccountName().equals(account.getUserName())) {
+            if (hoveredCard.getAccountName().equals(Main.userName)) {
                 box = p1Box;
             }
             heroDialogCard
@@ -501,6 +646,10 @@ public class BattleController implements Initializable {
             p2ManaBox.setOpacity(.7);
             p2ManaBox.getChildren().add(imageView);
         }
+        p1Name.setText(getPlayers().get(0).getAccountName());
+        p2Name.setText(getPlayers().get(1).getAccountName());
+        addUsableItem(0, p1Box);
+        addUsableItem(1, p2Box);
     }
 
     private void prepareBoard() {
@@ -521,7 +670,7 @@ public class BattleController implements Initializable {
                 pane.setOnMouseClicked(event -> {
                     hideHeroDialog();
                     if (first) {
-                        selectedCard = game.getCardAt(finalI, finalJ);
+                        selectedCard = getCardAt(finalI, finalJ);
                         if (event.getButton() == MouseButton.PRIMARY) {
                             if (selectedCard.getInGame().isMoved()
                                     || !selectedCard.getInGame().isMovable()) {
@@ -533,9 +682,9 @@ public class BattleController implements Initializable {
                                 child.setDisable(true);
                             }
                             pane.setDisable(false);
-                            for (int[] ints : game.getCellsInRange(finalI, finalJ, 2)) {
-                                if (game.isEmpty(ints[0], ints[1])
-                                        && game.checkRoad(selectedCard.getX(),
+                            for (int[] ints : getCellsInRange(finalI, finalJ, 2)) {
+                                if (isEmpty(ints[0], ints[1])
+                                        && checkRoad(selectedCard.getX(),
                                         selectedCard.getY(), ints[0], ints[1])) {
                                     StackPane child = getNodeByRowColumnIndex(ints[0],
                                             ints[1]);
@@ -557,15 +706,11 @@ public class BattleController implements Initializable {
                             pane.setDisable(false);
                             List<int[]> pos = new ArrayList<>();
                             switch (selectedCard.getAttackType()) {
-                                case MELEE:
-                                    pos = game.getNeighbours(selectedCard.getX(),
-                                            selectedCard.getY());
-                                    break;
                                 case RANGED:
-                                    pos = game.getCellsInRange(selectedCard.getX(),
+                                    pos = getCellsInRange(selectedCard.getX(),
                                             selectedCard.getY(), selectedCard.getRange());
                                     for (int[] neighbour :
-                                            game.getNeighbours(selectedCard.getX(),
+                                            getNeighbours(selectedCard.getX(),
                                                     selectedCard.getY())) {
                                         int index = pos.indexOf(neighbour);
                                         if (index >= 0) {
@@ -573,15 +718,19 @@ public class BattleController implements Initializable {
                                         }
                                     }
                                     break;
+                                case MELEE:
+                                    pos = getNeighbours(selectedCard.getX(),
+                                            selectedCard.getY());
+                                    break;
                                 case HYBRID:
-                                    pos = game.getCellsInRange(selectedCard.getX(),
+                                    pos = getCellsInRange(selectedCard.getX(),
                                             selectedCard.getY(), selectedCard.getRange());
                                     break;
                             }
                             for (int[] p : pos) {
-                                Hero card = game.getCardAt(p[0], p[1]);
+                                Hero card = getCardAt(p[0], p[1]);
                                 if (card != null && !card.getAccountName()
-                                        .equals(account.getUserName())) {
+                                        .equals(Main.userName)) {
                                     getNodeByRowColumnIndex(p[0], p[1]).setDisable(false);
                                     getNodeByRowColumnIndex(p[0], p[1])
                                             .setStyle("-fx-background-color: rgba(" +
@@ -592,7 +741,7 @@ public class BattleController implements Initializable {
                             if (first) {
                                 dialogController.showDialog("card cant attack or no " +
                                         "target is detected");
-                                updateBoard(game.getInBoardCards(), true);
+                                updateBoard(getInBoardCards(), true);
                             }
                         }
                         if (event.getButton() == MouseButton.MIDDLE) {
@@ -612,7 +761,7 @@ public class BattleController implements Initializable {
                                         " not controllable by player");
                                 return;
                             }
-                            if (game.getCurrentPlayer().getMana()
+                            if (getCurrentPlayer().getMana()
                                     < selectedCard.getSpecialPowerMana()) {
                                 dialogController.showDialog("not enough mana");
                                 return;
@@ -632,86 +781,42 @@ public class BattleController implements Initializable {
                         }
                     } else {
                         first = true;
-                        Hero card = game.getCardAt(finalI, finalJ);
+                        Hero card = getCardAt(finalI, finalJ);
                         if (firstClickType == MouseButton.SECONDARY) {
                             firstClickType = MouseButton.PRIMARY;
                             try {
-                                game.useSpecialPower(selectedCard, finalI, finalJ);
-                                CardSprite sprite = selectedCard.getSpecialPower()
-                                        .getCardSprite();
-                                if (sprite == null) {
-                                    selectedCard.getSpecialPower().makeCardSprite();
-                                    sprite = selectedCard.getSpecialPower()
-                                            .getCardSprite();
-                                }
-                                sprite.showEffect();
-                                ImageView imageView = sprite.getImageView();
-                                imageView.setScaleX(2);
-                                imageView.setScaleY(2);
-                                VBox vBox = new VBox(sprite.getImageView());
-                                vBox.setStyle("-fx-background-color: rgba(0,0,0,0.51)");
-                                sprite.setOnFinished(e -> root.getChildren().remove(vBox));
-                                root.getChildren().add(vBox);
-                                vBox.setAlignment(Pos.CENTER);
-                                updateHand();
+                                Command command = new Command("useSpecialPower",
+                                        selectedCard.getId(),finalI, finalJ);
+                                Main.writer.println(new Gson().toJson(command));
                             } catch (GameException e) {
                                 dialogController.showDialog(e.getMessage());
                             }
-                            updateBoard(game.getInBoardCards(), true);
                             return;
                         }
                         if (selectedItem != null) {
                             try {
-                                game.useCollectable(selectedItem);
-                                CardSprite sprite = poison.get(0).clone();
-                                sprite.showEffect();
-                                root.getChildren().add(sprite.getImageView());
-                                StackPane.setAlignment(sprite.getImageView(), Pos.CENTER);
-                                sprite.setOnFinished(event1 ->
-                                        root.getChildren().remove(sprite.getImageView()));
+                                Command command=new Command("useCollectable",
+                                        selectedItem.getId());
+                                Main.writer.println(new Gson().toJson(command));
+
                             } catch (GameException e) {
                                 dialogController.showDialog(e.getMessage());
                             }
-                            updateBoard(game.getInBoardCards(), true);
                             selectedItem = null;
                             return;
                         }
                         if (card != null
-                                && !card.getAccountName().equals(account.getUserName())) {
-                            StackPane pane1 = getNodeByRowColumnIndex(selectedCard.getX(),
-                                    selectedCard.getY());
-                            StackPane pane2 = getNodeByRowColumnIndex(card.getX(),
-                                    card.getY());
-                            List<CardSprite> result = game.attack(selectedCard,
-                                    card.getId(), true);
-                            selectedCard.getCardSprite().showAttack();
-                            new Timer().schedule(new TimerTask() {
-                                @Override
-                                public void run() {
-                                    Platform.runLater(() -> {
-                                        selectedCard.getCardSprite().showBreathing();
-                                        updateAPHP(pane2, card, true);
-                                        card.getCardSprite().showAttack();
-                                    });
-                                }
-                            }, 500);
-                            new Timer().schedule(new TimerTask() {
-                                @Override
-                                public void run() {
-                                    Platform.runLater(() -> {
-                                        card.getCardSprite().showBreathing();
-                                        updateAPHP(pane1, selectedCard, true);
-                                        showDeath(result);
-                                    });
-                                }
-                            }, 1000);
-                        } else if (selectedCard != card) {
-                            int oldX = selectedCard.getX();
-                            int oldY = selectedCard.getY();
-                            game.move(selectedCard, finalI, finalJ);
-                            move(selectedCard, oldX, oldY, finalI, finalJ);
+                                && !card.getAccountName().equals(Main.userName)) {
+                            Command command = new Command("attack",
+                                    selectedCard.getId(), card.getId());
+                            Main.writer.println(new Gson().toJson(command));
+                        } else if (card == null) {
+                            Command command = new Command("move",
+                                    selectedCard.getId(),
+                                    finalI, finalJ);
+                            Main.writer.println(new Gson().toJson(command));
                         } else {
-                            updateBoard(game.getInBoardCards(), true);
+                            updateBoard(getInBoardCards(), true);
                         }
                     }
 
@@ -728,25 +833,6 @@ public class BattleController implements Initializable {
         }
     }
 
-    private void move(Card card, int oldX, int oldY, int finalI, int finalJ) {
-        updateBoard(game.getInBoardCards(), false);
-        card.getCardSprite().showRun();
-        ParallelTransition transition = new ParallelTransition();
-        StackPane pane = getNodeByRowColumnIndex(oldX, oldY);
-        pane.setStyle("");
-        for (Node child : pane.getChildren()) {
-            if (child instanceof ImageView) {
-                transition.getChildren().add(moveAnimation(oldX, oldY,
-                        finalI, finalJ, child));
-            }
-        }
-        transition.play();
-        transition.setOnFinished(e -> {
-            card.getCardSprite().showBreathing();
-            updateBoard(game.getInBoardCards(), true);
-        });
-    }
-
     private TranslateTransition moveAnimation(int oldX, int oldY, int finalI, int finalJ,
                                               Node node) {
         TranslateTransition transition =
@@ -759,26 +845,22 @@ public class BattleController implements Initializable {
         return transition;
     }
 
-    private void showDeath(List<CardSprite> result) {
-        updateBoard(
-                game.getInBoardCards(),
-                true);
-        for (CardSprite cardSprite : result) {
-            if (cardSprite != null) {
-                cardSprite.showDeath();
-                new Timer().schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        Platform.runLater(() -> {
-                            for (Node child : board.getChildren()) {
-                                ((StackPane) child).getChildren()
-                                        .removeIf(node -> node == cardSprite.getImageView());
-                            }
-                        });
-                    }
-                }, 1000);
+    private void showDeath(String attackerId, CardSprite attacker, String attackedId,
+                           CardSprite attacked) {
+        for (Card card : getGraveYard().getCards()) {
+            if (card.idEquals(attackerId)) {
+                attacker.showDeath();
+            }
+            if (card.idEquals(attackedId)) {
+                attacked.showDeath();
             }
         }
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                Platform.runLater(() -> updateBoard(getInBoardCards(), true));
+            }
+        }, 1000);
     }
 
     private Label createLabel() {
@@ -836,21 +918,21 @@ public class BattleController implements Initializable {
         return (StackPane) result;
     }
 
-    public void setGame(Controller controller) {
+    /*public void setGame(Controller controller) {
         if (this.game == null) {
             manager = controller.getMenuManager();
             this.game = controller.getGame();
-            p1Name.setText(game.getPlayers().get(0).getAccountName());
-            p2Name.setText(game.getPlayers().get(1).getAccountName());
+            p1Name.setText(getPlayers().get(0).getAccountName());
+            p2Name.setText(getPlayers().get(1).getAccountName());
             this.account = controller.getCurrentAccount();
             this.game.setEvents(new GameEvents() {
                 @Override
                 public void nextRound(List<Hero> inGameCards) {
                     updateHand();
-                    if (!game.getCurrentPlayer().getAccountName().equals("AI")) {
+                    if (!getCurrentPlayer().getAccountName().equals("AI")) {
                         updateBoard(inGameCards, true);
                     }
-                    if (game.getCurrentPlayer().getAccountName().equals(account.getUserName())) {
+                    if (getCurrentPlayer().getAccountName().equals(Main.userName)) {
                         showNotification(true);
                         turnButton.setDisable(false);
                         turnButton.setText("     End Turn     ");
@@ -884,7 +966,8 @@ public class BattleController implements Initializable {
                         @Override
                         public void run() {
                             Platform.runLater(() ->
-                                    manager.setCurrentMenu(menu.getParentMenu().getParentMenu()));
+                                    manager.setCurrentMenu(menu.getParentMenu()
+                                    .getParentMenu()));
                         }
                     }, 2000);
                 }
@@ -893,10 +976,10 @@ public class BattleController implements Initializable {
             addUsableItem(0, p1Box);
             addUsableItem(1, p2Box);
         }
-    }
+    }*/
 
     private void addUsableItem(int i, VBox vBox) {
-        List<Item> items = game.getPlayers().get(i).getDeck().getItems();
+        List<Item> items = getPlayers().get(i).getDeck().getItems();
         if (items != null && !items.isEmpty()) {
             Label name = new Label(items.get(0).getName());
             name.setTextFill(Color.WHITE);
@@ -922,8 +1005,8 @@ public class BattleController implements Initializable {
     }
 
     private void updateMana() {
-        fillMana(p1ManaBox, game.getPlayers().get(0).getMana());
-        fillMana(p2ManaBox, game.getPlayers().get(1).getMana());
+        fillMana(p1ManaBox, getPlayers().get(0).getMana());
+        fillMana(p2ManaBox, getPlayers().get(1).getMana());
     }
 
     private void fillMana(HBox box, int amount) {
@@ -943,8 +1026,8 @@ public class BattleController implements Initializable {
         updateMana();
         List<Card> hand = new ArrayList<>();
         Player p = null;
-        for (Player player : game.getPlayers()) {
-            if (player.getAccountName().equals(account.getUserName())) {
+        for (Player player : getPlayers()) {
+            if (player.getAccountName().equals(Main.userName)) {
                 hand = player.getHand();
                 p = player;
                 break;
@@ -961,15 +1044,11 @@ public class BattleController implements Initializable {
         }
         for (int i = 0; i < hand.size(); i++) {
             Card card = hand.get(i);
-            if (card.getCardSprite() == null) {
-                card.makeCardSprite();
-                card.getCardSprite().play();
-            }
-
+            card.getCardSprite().play();
             StackPane pane = handContainers.get(i);
             Label label = (Label) ((VBox) pane.getChildren()
                     .filtered(node -> node instanceof VBox).get(0)).getChildren().get(0);
-            if (game.getCurrentPlayer().getAccountName().equals(account.getUserName())) {
+            if (getCurrentPlayer().getAccountName().equals(Main.userName)) {
                 pane.setStyle("-fx-background-image: url('" + circle + "')");
                 pane.setDisable(false);
                 label.setStyle("-fx-background-image: url('" + manaActivePath + "')");
@@ -1013,7 +1092,7 @@ public class BattleController implements Initializable {
         }
     }
 
-    private void updateBoard(List<Hero> inGameCards, boolean updatePosition) {
+    private void updateBoard(List<Hero> inBoardCards, boolean updatePosition) {
         for (Node child : board.getChildren()) {
             if (updatePosition) {
                 ((StackPane) child).getChildren().removeIf(c -> c instanceof ImageView);
@@ -1030,22 +1109,19 @@ public class BattleController implements Initializable {
             ap.setStyle("");
             hp.setStyle("");
         }
-        for (Hero hero : inGameCards) {
-            if (hero.getCardSprite() == null) {
-                hero.makeCardSprite();
-                hero.getCardSprite().play();
-            }
+        for (Hero hero : inBoardCards) {
+            hero.getCardSprite().play();
             StackPane pane = getNodeByRowColumnIndex(hero.getX(),
                     hero.getY());
             if (pane != null) {
                 ImageView imageView = hero.getCardSprite().getImageView();
-                if (!hero.getAccountName().equals(account.getUserName())) {
+                if (!hero.getAccountName().equals(Main.userName)) {
                     imageView.setRotationAxis(Rotate.Y_AXIS);
                     imageView.setRotate(180);
                     pane.setStyle("-fx-background-color: rgba(255,3,0,0" +
                             ".38)");
                     pane.setDisable(true);
-                } else if (game.getCurrentPlayer().getAccountName().equals(account.getUserName())) {
+                } else if (getCurrentPlayer().getAccountName().equals(Main.userName)) {
                     pane.setDisable(false);
                 } else {
                     pane.setDisable(true);
@@ -1055,16 +1131,16 @@ public class BattleController implements Initializable {
                 }
             }
         }
-        for (int i = 0; i < game.getBoard().size(); i++) {
-            for (int j = 0; j < game.getBoard().get(i).size(); j++) {
-                if (game.getBoard().get(i).get(j).isHasFlag()) {
+        for (int i = 0; i < getBoard().size(); i++) {
+            for (int j = 0; j < getBoard().get(i).size(); j++) {
+                if (getBoard().get(i).get(j).isHasFlag()) {
                     addFlag(i, j, false);
                 }
-                Item item = game.getBoard().get(i).get(j).getCollectableItem();
+                Item item = getBoard().get(i).get(j).getCollectableItem();
                 if (item != null) {
                     addCollectableItem(i, j, item);
                 }
-                List<Buff> buffs = game.getBoard().get(i).get(j).getBuffs();
+                List<Buff> buffs = getBoard().get(i).get(j).getBuffs();
                 for (Buff buff : buffs) {
                     Buff buff1 = ((CellBuff) buff).getBuff();
                     if (buff1.getClass() == WeaknessBuff.class) {
@@ -1087,10 +1163,7 @@ public class BattleController implements Initializable {
 
     private void addCollectableItem(int x, int y, Item item) {
         StackPane pane = getNodeByRowColumnIndex(x, y);
-        if (item.getCardSprite() == null) {
-            item.makeSprite();
-            item.getCardSprite().play();
-        }
+        item.getCardSprite().play();
         ImageView imageView = item.getCardSprite().getImageView();
         imageView.setScaleX(1.7);
         imageView.setScaleY(1.7);
@@ -1143,7 +1216,7 @@ public class BattleController implements Initializable {
         }
         ap.setText(String.valueOf(Math.max(0, hero.getAttackPowerInGame())));
         hp.setText(String.valueOf(Math.max(0, hero.getHealthPointInGame())));
-        if (hero.getAccountName().equals(account.getUserName())) {
+        if (hero.getAccountName().equals(Main.userName)) {
             ap.setStyle(this.ap);
             hp.setStyle(this.hp);
         } else {
@@ -1173,11 +1246,11 @@ public class BattleController implements Initializable {
         for (Node child : board.getChildren()) {
             child.setDisable(true);
         }
-        game.getInBoardCards().stream().filter(h -> game.getCurrentPlayer().hasCard(h))
+        getInBoardCards().stream().filter(h -> getCurrentPlayer().hasCard(h))
                 .forEach(hero -> {
-                    for (int[] p : game.getNeighbours(hero.getX(),
+                    for (int[] p : getNeighbours(hero.getX(),
                             hero.getY())) {
-                        if (game.isEmpty(p[0], p[1])) {
+                        if (isEmpty(p[0], p[1])) {
                             StackPane pane = getNodeByRowColumnIndex(p[0], p[1]);
                             pane.setStyle("-fx-background-color: rgba(255,240,0,0.38)");
                             pane.setDisable(false);
@@ -1187,11 +1260,12 @@ public class BattleController implements Initializable {
     }
 
     public void endTurn() {
-        game.endTurn();
+        Command command = new Command("endTurn");
+        Main.writer.println(new Gson().toJson(command));
     }
 
     public void showCollectibles() {
-        if (game.getCurrentPlayer().getAccountName().equals(account.getUserName())) {
+        if (getCurrentPlayer().getAccountName().equals(Main.userName)) {
             VBox vBox = new VBox();
             vBox.setFillWidth(false);
             vBox.setStyle("-fx-background-color: rgba(0,0,0,0.71)");
@@ -1200,7 +1274,7 @@ public class BattleController implements Initializable {
             vBox.setOnMouseClicked(event -> root.getChildren().remove(vBox));
             ListView<VBox> p1 = new ListView<>();
             String back = Utils.getPath("neutral_artifact.png");
-            List<VBox> p1List = game.getCurrentPlayer().getCollectableItems().stream()
+            List<VBox> p1List = getCurrentPlayer().getCollectableItems().stream()
                     .map(item -> {
                         VBox box = new VBox(16);
                         box.getStyleClass().add("back");
@@ -1254,7 +1328,7 @@ public class BattleController implements Initializable {
     }
 
     public void showGraveYard() {
-        List<Card> cards = game.getGraveYard().getCards();
+        List<Card> cards = getGraveYard().getCards();
         VBox vBox1 = new VBox();
         vBox1.setAlignment(Pos.TOP_CENTER);
         vBox1.setFillWidth(false);
@@ -1272,10 +1346,10 @@ public class BattleController implements Initializable {
 
         vBox1.getChildren().add(label1);
         vBox1.getChildren().add(getListView(cards,
-                game.getPlayers().get(0).getAccountName()));
+                getPlayers().get(0).getAccountName()));
         vBox2.getChildren().add(label2);
         vBox2.getChildren().add(getListView(cards,
-                game.getPlayers().get(1).getAccountName()));
+                getPlayers().get(1).getAccountName()));
         VBox.setVgrow(vBox1.getChildren().get(1), Priority.ALWAYS);
         VBox.setVgrow(vBox2.getChildren().get(1), Priority.ALWAYS);
         HBox hBox = new HBox(vBox1, vBox2);
@@ -1331,5 +1405,206 @@ public class BattleController implements Initializable {
         dialogController.setEventHandler(event ->
                 manager.setCurrentMenu(menu.getParentMenu().getParentMenu()));
         dialogController.showDialog("Are you sure ?", true);
+    }
+
+    private <T> T callServer(String commandName, TypeToken<T> typeToken,
+                             Object... parameters) {
+        Command command = new Command(commandName, parameters);
+        Main.writer.println(new Gson().toJson(command));
+        String json = readerThread.getResp();
+        while (json == null) {
+            System.out.println("wating");
+            json = readerThread.getResp();
+        }
+        T resp = null;
+        while (resp == null) {
+            try {
+                resp = Utils.getGson().fromJson(json, typeToken.getType());
+            } catch (JsonSyntaxException e) {
+                json = readerThread.getResp();
+            }
+        }
+        return resp;
+    }
+
+
+    private List<Hero> getInBoardCards() {
+        List<Hero> cards = new ArrayList<>();
+        for (List<Cell> row : getBoard()) {
+            for (Cell cell : row) {
+                if (cell.getHeroMinion() != null) {
+                    cards.add(cell.getHeroMinion());
+                }
+            }
+        }
+        return cards;
+    }
+
+    private Hero getCardAt(int x, int y) {
+        return getBoard().get(x).get(y).getCard();
+    }
+
+    private boolean isEmpty(int x, int y) {
+        return getCardAt(x, y) == null;
+    }
+
+    private List<List<Cell>> getBoard() {
+        List<List<Cell>> board = callServer("getBoard",
+                new TypeToken<List<List<Cell>>>() {
+                });
+        for (List<Cell> row : board) {
+            for (Cell cell : row) {
+                if (cell.getCard() != null) {
+                    Hero hero = cell.getCard();
+                    spriteMap.computeIfAbsent(hero.getId(), k -> {
+                        hero.makeCardSprite();
+                        return hero.getCardSprite();
+                    });
+                    hero.setCardSprite(spriteMap.get(hero.getId()));
+                }
+                if (cell.getCollectableItem() != null) {
+                    CollectableItem item = cell.getCollectableItem();
+                    spriteMap.computeIfAbsent(item.getId(), k -> {
+                        item.makeSprite();
+                        return item.getCardSprite();
+                    });
+                    item.setCardSprite(spriteMap.get(item.getId()));
+                }
+            }
+        }
+        cachedBoard = board;
+        return board;
+    }
+
+    private List<Player> getPlayers() {
+        List<Player> players = callServer("getPlayers", new TypeToken<List<Player>>() {
+        });
+        for (Player player : players) {
+            addSprite(player);
+        }
+        return players;
+    }
+
+    private Player getCurrentPlayer() {
+        Player player = callServer("getCurrentPlayer", new TypeToken<Player>() {
+        });
+        addSprite(player);
+        return player;
+    }
+
+    private void addSprite(Player player) {
+        for (Card card : player.getHand()) {
+            spriteMap.computeIfAbsent(card.getId(), k -> {
+                card.makeCardSprite();
+                return card.getCardSprite();
+            });
+            card.setCardSprite(spriteMap.get(card.getId()));
+        }
+
+        for (CollectableItem item : player.getCollectableItems()) {
+            spriteMap.computeIfAbsent(item.getId(), k -> {
+                item.makeSprite();
+                return item.getCardSprite();
+            });
+            item.setCardSprite(spriteMap.get(item.getId()));
+        }
+    }
+
+    private List<int[]> getCellsInRange(int x, int y, int range) {
+        List<int[]> list = Utils.getEmptyPosList();
+        list.addAll(callServer("getCellsInRange", new TypeToken<List<int[]>>() {
+        }, x, y, range));
+        return list;
+    }
+
+    private List<int[]> getNeighbours(int x, int y) {
+        List<int[]> list = Utils.getEmptyPosList();
+        list.addAll(callServer("getNeighbours", new TypeToken<List<int[]>>() {
+        }, x, y));
+        return list;
+    }
+
+    private GraveYard getGraveYard() {
+        return callServer("getGraveYard", new TypeToken<GraveYard>() {
+        });
+    }
+
+    private boolean checkRoad(int x1, int y1, int x2, int y2) {
+        return callServer("checkRoad", new TypeToken<Boolean>() {
+        }, x1, y1, x2, y2);
+    }
+
+    public void setManager(MenuManager manager) {
+        this.manager = manager;
+    }
+}
+
+class ReaderThread extends Thread {
+    private GameEvents events;
+    private String resp;
+
+    public ReaderThread(GameEvents events) {
+        this.events = events;
+        this.setDaemon(true);
+    }
+
+    @Override
+    public void run() {
+        super.run();
+        while (true) {
+            try {
+                JsonObject jsonObject =
+                        new JsonParser().parse(Main.scanner.nextLine()).getAsJsonObject();
+                if (jsonObject.get("name") != null) {
+                    String name = jsonObject.get("name").getAsString();
+                    switch (name) {
+                        case "nextRound":
+                            Platform.runLater(() -> events.nextRound());
+                            break;
+                        case "insert":
+                            Platform.runLater(() ->
+                                    events.insert(jsonObject.get("cardId").getAsString(),
+                                            jsonObject.get("x").getAsInt(),
+                                            jsonObject.get("y").getAsInt()));
+                            break;
+                        case "move":
+                            Platform.runLater(() ->
+                                    events.move(jsonObject.get("id").getAsString(),
+                                            jsonObject.get("oldX").getAsInt(),
+                                            jsonObject.get("oldY").getAsInt(),
+                                            jsonObject.get("finalI").getAsInt(),
+                                            jsonObject.get("finalJ").getAsInt()));
+                            break;
+                        case "attack":
+                            Platform.runLater(() ->
+                                    events.attack(jsonObject.get("attackerId").getAsString(),
+                                            jsonObject.get("attackedId").getAsString()));
+                            break;
+                        case "specialPower":
+                            Platform.runLater(() ->
+                                    events.specialPower(jsonObject.get("cardId").getAsString(),
+                                            jsonObject.get("finalI").getAsInt(),
+                                            jsonObject.get("finalJ").getAsInt()));
+                            break;
+                        case "useCollectable":
+                            Platform.runLater(() -> events.useCollectable(""));
+                            break;
+                    }
+                }
+                if (jsonObject.get("resp") != null && !jsonObject.get("resp").getAsString().equals("null")) {
+                    resp = jsonObject.get("resp").getAsString();
+                }
+                if (jsonObject.get("error") != null) {
+                    Platform.runLater(() -> events.error(jsonObject.get("error").getAsString()));
+                }
+            } catch (JsonSyntaxException e) {
+                e.printStackTrace();
+            }
+
+        }
+    }
+
+    public String getResp() {
+        return resp;
     }
 }

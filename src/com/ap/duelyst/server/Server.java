@@ -2,11 +2,19 @@ package com.ap.duelyst.server;
 
 import com.ap.duelyst.Command;
 import com.ap.duelyst.controller.GameException;
+import com.ap.duelyst.controller.menu.BattleMenu;
 import com.ap.duelyst.model.*;
 import com.ap.duelyst.model.Collection;
 import com.ap.duelyst.model.cards.Card;
+import com.ap.duelyst.model.cards.Hero;
+import com.ap.duelyst.model.game.Cell;
+import com.ap.duelyst.model.game.Game;
+import com.ap.duelyst.model.game.GraveYard;
+import com.ap.duelyst.model.game.Player;
+import com.ap.duelyst.model.items.CollectableItem;
 import com.ap.duelyst.model.items.Item;
 import com.ap.duelyst.model.items.UsableItem;
+import com.ap.duelyst.view.GameEvents;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
@@ -143,6 +151,7 @@ class ClientHandler extends Thread {
     private Socket socket;
     private Scanner reader;
     private PrintWriter writer;
+    private Game game;
 
     ClientHandler(Socket socket) {
         this.socket = socket;
@@ -186,7 +195,7 @@ class ClientHandler extends Thread {
                     jsonObject.addProperty("resp",
                             gson.toJson(method.invoke(this,
                                     command.getParameters())));
-                    writer.println(jsonObject);
+                    writer.println(gson.toJson(jsonObject));
                 } else {
                     throw new GameException("authentication failed");
                 }
@@ -603,5 +612,166 @@ class ClientHandler extends Thread {
         return "AI_Player_" + card.getName() + "_" + index;
     }
 
+    private void createGame(String storyLevelString, Double flagNumber)
+            throws CloneNotSupportedException {
+        BattleMenu.StoryLevel storyLevel =
+                BattleMenu.StoryLevel.valueOf(storyLevelString);
+        BattleMenu.CustomGameMode mode =
+                BattleMenu.CustomGameMode.getMode(storyLevel.value);
+        Deck deck = createDeck(Double.valueOf(storyLevel.value));
+        game = Game.createGame(account, null, mode, deck, flagNumber.intValue(),
+                Integer.valueOf(storyLevel.value) * 500);
+        setGameListener();
+        game.startGame();
+    }
 
+    private void createGame(Double deckNumber, String modeString,
+                            Double flagNumber) throws CloneNotSupportedException {
+        Deck deck = createDeck(deckNumber);
+        game = Game.createGame(account, null,
+                BattleMenu.CustomGameMode.valueOf(modeString), deck,
+                flagNumber.intValue(), 1000);
+        setGameListener();
+        game.startGame();
+    }
+
+    private void setGameListener() {
+        game.setEvents(new GameEvents() {
+            @Override
+            public void nextRound() {
+                JsonObject jsonObject = new JsonObject();
+                jsonObject.addProperty("name", "nextRound");
+                writer.println(gson.toJson(jsonObject));
+            }
+
+            @Override
+            public void gameEnded(String result) {
+
+            }
+
+            @Override
+            public void insert(String cardId, int x, int y) {
+                JsonObject jsonObject = new JsonObject();
+                jsonObject.addProperty("name", "insert");
+                jsonObject.addProperty("cardId", cardId);
+                jsonObject.addProperty("x", x);
+                jsonObject.addProperty("y", y);
+                writer.println(gson.toJson(jsonObject));
+            }
+
+            @Override
+            public void move(String id, int oldX, int oldY, int finalI, int finalJ) {
+                JsonObject jsonObject = new JsonObject();
+                jsonObject.addProperty("name", "move");
+                jsonObject.addProperty("id", id);
+                jsonObject.addProperty("oldX", oldX);
+                jsonObject.addProperty("oldY", oldY);
+                jsonObject.addProperty("finalI", finalI);
+                jsonObject.addProperty("finalJ", finalJ);
+                writer.println(gson.toJson(jsonObject));
+            }
+
+            @Override
+            public void attack(String attackerId, String attackedId) {
+                JsonObject jsonObject = new JsonObject();
+                jsonObject.addProperty("name", "attack");
+                jsonObject.addProperty("attackerId", attackerId);
+                jsonObject.addProperty("attackedId", attackedId);
+                writer.println(gson.toJson(jsonObject));
+            }
+
+            @Override
+            public void specialPower(String cardId, int finalI, int finalJ) {
+                JsonObject jsonObject = new JsonObject();
+                jsonObject.addProperty("name", "specialPower");
+                jsonObject.addProperty("cardId", cardId);
+                jsonObject.addProperty("finalI", finalI);
+                jsonObject.addProperty("finalJ", finalJ);
+                writer.println(gson.toJson(jsonObject));
+
+            }
+
+            @Override
+            public void useCollectable(String itemId) {
+                JsonObject jsonObject = new JsonObject();
+                jsonObject.addProperty("name", "useCollectable");
+                writer.println(gson.toJson(jsonObject));
+            }
+
+
+            @Override
+            public void startGame() {
+                JsonObject jsonObject = new JsonObject();
+                jsonObject.addProperty("resp", "game started");
+                writer.println(gson.toJson(jsonObject));
+            }
+
+            @Override
+            public void error(String message) {
+
+            }
+
+        });
+    }
+
+    private List<List<Cell>> getBoard() {
+        return game.getBoard();
+    }
+
+    private List<Player> getPlayers() {
+        return game.getPlayers();
+    }
+
+    private Object[] getCellsInRange(Double x, Double y, Double range) {
+        return game.getCellsInRange(x.intValue(), y.intValue(), range.intValue()).toArray();
+    }
+
+    private Object[] getNeighbours(Double x, Double y) {
+        return game.getNeighbours(x.intValue(), y.intValue()).toArray();
+    }
+
+    private Player getCurrentPlayer() {
+        return game.getCurrentPlayer();
+    }
+
+    private GraveYard getGraveYard() {
+        return game.getGraveYard();
+    }
+
+    private boolean checkRoad(Double x1, Double y1, Double x2, Double y2) {
+        return game.checkRoad(x1.intValue(), y1.intValue(), x2.intValue(), y2.intValue());
+    }
+
+
+    private void insert(String cardId, Double x, Double y) {
+        Card card = game.getCard(cardId);
+        game.insert(card, x.intValue(), y.intValue());
+    }
+
+
+    private void useSpecialPower(String cardId, Double x, Double y) {
+        Card card = game.getCard(cardId);
+        game.useSpecialPower(card, x.intValue(), y.intValue());
+    }
+
+    private void useCollectable(String id) {
+        CollectableItem collectableItem = game.getCurrentPlayer().getCollectableItems()
+                .stream().filter(item -> item.idEquals(id))
+                .findFirst().orElseThrow(() -> new GameException("no such collectable"));
+        game.useCollectable(collectableItem);
+    }
+
+    private void attack(String attackerId, String attackedId) {
+        Card card = game.getCard(attackerId);
+        game.attack(card, attackedId, true);
+    }
+
+    private void move(String cardId, Double x, Double y) {
+        Card card = game.getCard(cardId);
+        game.move(card, x.intValue(), y.intValue());
+    }
+
+    private void endTurn() {
+        game.endTurn();
+    }
 }
