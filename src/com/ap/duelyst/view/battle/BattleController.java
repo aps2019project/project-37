@@ -543,7 +543,7 @@ public class BattleController implements Initializable {
     private void showHeroDialog(boolean showTop) {
         if (showTop) {
             VBox box = p2Box;
-            if (hoveredCard.getAccountName().equals(Main.userName)) {
+            if (hoveredCard.getAccountName().equals(p1Name.getText())) {
                 box = p1Box;
             }
             heroDialogCard
@@ -642,9 +642,24 @@ public class BattleController implements Initializable {
             imageView = new ImageView(manaInactive);
             imageView.setFitHeight(40);
             imageView.setFitWidth(40);
-
-            p2ManaBox.setOpacity(.7);
             p2ManaBox.getChildren().add(imageView);
+        }
+        if (getPlayers().get(0).getAccountName().equals(Main.userName)) {
+            p1ManaBox.setDisable(false);
+            p1Box.setDisable(false);
+            p1Name.setDisable(false);
+            p2ManaBox.setDisable(true);
+            p2Box.setDisable(true);
+            p2Name.setDisable(true);
+            p2ManaBox.setOpacity(.5);
+        }else {
+            p1ManaBox.setDisable(true);
+            p1Box.setDisable(true);
+            p1Name.setDisable(true);
+            p2ManaBox.setDisable(false);
+            p2Box.setDisable(false);
+            p2Name.setDisable(false);
+            p1ManaBox.setOpacity(.5);
         }
         p1Name.setText(getPlayers().get(0).getAccountName());
         p2Name.setText(getPlayers().get(1).getAccountName());
