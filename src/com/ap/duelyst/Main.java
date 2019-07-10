@@ -20,6 +20,8 @@ import javafx.scene.ImageCursor;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
@@ -57,6 +59,11 @@ public class Main extends Application {
     private Scene customScene;
     private boolean custom = false;
     private Scene battleScene;
+    private Media benny = new Media(Utils.getPath("benny blanco, Halsey & Khalid – " +
+            "Eastside (official video).mp3"));
+    private Media uptown = new Media(Utils.getPath("Bruno Mars - Uptown Funk128 " +
+            "(UpMusic).mp3"));
+    private MediaPlayer mediaPlayer;
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -78,6 +85,11 @@ public class Main extends Application {
         collectionScene = makeCollectionScene();
         battleScene = makeBattleMenuScene();
         customScene = makeCustomScene(primaryStage);
+
+        mediaPlayer = new MediaPlayer(benny);
+        mediaPlayer.setVolume(.5);
+        mediaPlayer.play();
+
         updateMenu(primaryStage);
         new AnimationTimer() {
             @Override
@@ -148,6 +160,20 @@ public class Main extends Application {
             battleController.setMenu((InGameBattleMenu) currentMenu);
             stage.setScene(inGameBattleScene);
             stage.setTitle("Game Of Cards : Battle");
+        }
+
+        if (currentMenu instanceof InGameBattleMenu) {
+            mediaPlayer.stop();
+            mediaPlayer = new MediaPlayer(uptown);
+            mediaPlayer.setVolume(.5);
+            mediaPlayer.play();
+        } else {
+            if (mediaPlayer.getMedia() != benny) {
+                mediaPlayer.stop();
+                mediaPlayer = new MediaPlayer(benny);
+                mediaPlayer.setVolume(.5);
+                mediaPlayer.play();
+            }
         }
     }
 

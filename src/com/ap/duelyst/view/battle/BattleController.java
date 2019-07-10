@@ -42,6 +42,8 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 import javafx.util.Duration;
@@ -329,6 +331,7 @@ public class BattleController implements Initializable {
     private GameEvents events = new GameEvents() {
         @Override
         public void nextRound() {
+            playMusic("sfx_ui_yourturn.m4a");
             updateHand();
             updateBoard(getInBoardCards(), true);
             if (getCurrentPlayer().getAccountName().equals(Main.userName)) {
@@ -375,15 +378,18 @@ public class BattleController implements Initializable {
         public void gameEnded(String result) {
             timeline.stop();
             thread.interrupt();
-            timer.cancel();
+            if (timer != null) {
+                timer.cancel();
+            }
             if (!result.isEmpty()) {
                 dialogController.showDialog(result);
+                playMusic("sfx_victory_crest.m4a");
                 new Timer().schedule(new TimerTask() {
                     @Override
                     public void run() {
                         manager.setCurrentMenu(menu.getParentMenu().getParentMenu());
                     }
-                }, 2000);
+                }, 5000);
             } else {
                 manager.setCurrentMenu(menu.getParentMenu().getParentMenu());
             }
@@ -391,6 +397,7 @@ public class BattleController implements Initializable {
 
         @Override
         public void insert(String cardId, int x, int y) {
+            playMusic("sfx_unit_deploy_3.m4a");
             CardSprite cardSprite = spriteMap.get(cardId);
             if (cardSprite.hasEffect()) {
                 cardSprite.getImageView()
@@ -417,6 +424,7 @@ public class BattleController implements Initializable {
 
         @Override
         public void move(String id, int oldX, int oldY, int finalI, int finalJ) {
+            playMusic("sfx_spell_sunbloom.m4a");
             updateBoard(getInBoardCards(), false);
             CardSprite sprite = spriteMap.get(id);
             sprite.showRun();
@@ -439,6 +447,7 @@ public class BattleController implements Initializable {
 
         @Override
         public void attack(String attackerId, String attackedId) {
+            playMusic("sfx_f1tank_attack_swing.m4a");
             CardSprite attackerSprite = spriteMap.get(attackerId);
             CardSprite attackedSprite = spriteMap.get(attackedId);
             attackerSprite.showAttack();
@@ -464,6 +473,7 @@ public class BattleController implements Initializable {
 
         @Override
         public void specialPower(String cardId, int finalI, int finalJ) {
+            playMusic("sfx_f5_kolossus_attack_impact.m4a");
             Hero card = null;
             for (List<Cell> row : cachedBoard) {
                 for (Cell cell : row) {
@@ -497,6 +507,7 @@ public class BattleController implements Initializable {
 
         @Override
         public void useCollectable(String itemId) {
+            playMusic("sfx_neutral_spelljammer_attack_impact.m4a");
             CardSprite sprite = poison.get(0).clone();
             sprite.showEffect();
             root.getChildren().add(sprite.getImageView());
@@ -514,11 +525,17 @@ public class BattleController implements Initializable {
 
         @Override
         public void error(String message) {
+            playMusic("sfx_ui_error.m4a");
             dialogController.showDialog(message);
             updateBoard(getInBoardCards(), true);
             updateHand();
         }
     };
+
+    private void playMusic(String name){
+        Media media=new Media(Utils.getPath(name));
+        new MediaPlayer(media).play();
+    }
 
     private void prepareRightButtons() {
         turnButton.setText("     End Turn     ");
@@ -924,9 +941,11 @@ public class BattleController implements Initializable {
         for (Card card : getGraveYard().getCards()) {
             if (card.idEquals(attackerId)) {
                 attacker.showDeath();
+                playMusic("sfx_f2_kaidoassassin_death.m4a");
             }
             if (card.idEquals(attackedId)) {
                 attacked.showDeath();
+                playMusic("sfx_f2_kaidoassassin_death.m4a");
             }
         }
         new Timer().schedule(new TimerTask() {
