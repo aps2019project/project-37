@@ -2,6 +2,7 @@ package com.ap.duelyst.view.menus;
 
 import com.ap.duelyst.Command;
 import com.ap.duelyst.Main;
+import com.ap.duelyst.controller.Constants;
 import com.ap.duelyst.controller.menu.BattleMenu;
 import com.ap.duelyst.controller.menu.MenuManager;
 import com.ap.duelyst.model.Deck;
@@ -72,7 +73,7 @@ public class BattleMenuController implements Initializable {
 
         Socket socket;
         try {
-            socket = new Socket("localhost", 8200);
+            socket = new Socket(Constants.ip, 8200);
             new ReaderHandler(socket, messageList).start();
             writer = new DataOutputStream(socket.getOutputStream());
         } catch (IOException e) {

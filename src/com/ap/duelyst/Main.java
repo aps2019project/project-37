@@ -1,5 +1,6 @@
 package com.ap.duelyst;
 
+import com.ap.duelyst.controller.Constants;
 import com.ap.duelyst.controller.Controller;
 import com.ap.duelyst.controller.menu.*;
 import com.ap.duelyst.controller.menu.ingame.InGameBattleMenu;
@@ -242,7 +243,7 @@ public class Main extends Application {
         controller = thread.getController();
         thread.setDaemon(true);
         thread.start();
-        Socket socket = new Socket("localhost", 8080);
+        Socket socket = new Socket(Constants.ip, 8080);
         writer = new PrintWriter(socket.getOutputStream(), true);
         scanner = new Scanner(socket.getInputStream());
         menuManager = new MenuManager(null);
