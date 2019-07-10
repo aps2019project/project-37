@@ -163,6 +163,7 @@ class ClientHandler extends Thread {
     private static final Object object = new Object();
     private static final Object object1 = new Object();
     private static final Object object2 = new Object();
+    private static final Object object3 = new Object();
     private String s;
 
     ClientHandler(Socket socket) {
@@ -182,6 +183,41 @@ class ClientHandler extends Thread {
 
     @Override
     public void run() {
+        new Timer().scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                List<Game> games = Thread.getAllStackTraces().keySet().stream()
+                        .filter(thread -> thread instanceof ClientHandler)
+                        .map(thread -> (ClientHandler) thread)
+                        .filter(thread -> thread.game != null)
+                        .map(clientHandler -> clientHandler.game)
+                        .collect(Collectors.toList());
+                for (Game game : games) {
+                    List<String> names =
+                            game.getPlayers().stream().map(Player::getAccountName)
+                                    .collect(Collectors.toList());
+                    if (names.contains("AI")) {
+                        continue;
+                    }
+                    List<ClientHandler> clientHandlers =
+                            Thread.getAllStackTraces().keySet().stream()
+                                    .filter(thread -> thread instanceof ClientHandler)
+                                    .map(thread -> (ClientHandler) thread)
+                                    .filter(thread -> thread.account != null)
+                                    .filter(clientHandler -> names.contains(clientHandler.account.getUserName()))
+                                    .collect(Collectors.toList());
+                    if (clientHandlers.size() < 2) {
+                        ClientHandler handler = clientHandlers.get(0);
+                        handler.game = null;
+                        handler.mode = null;
+                        JsonObject jsonObject = new JsonObject();
+                        jsonObject.addProperty("name", "gameEnded");
+                        jsonObject.addProperty("result", "opponent disconnected");
+                        handler.writer.println(gson.toJson(jsonObject));
+                    }
+                }
+            }
+        }, 0, 1000);
         Command command;
         Method method;
         String input;
@@ -190,12 +226,13 @@ class ClientHandler extends Thread {
                 try {
                     input = reader.nextLine();
                 } catch (IndexOutOfBoundsException e) {
-                    try {
-                        Thread.sleep(500);
-                    } catch (InterruptedException e1) {
-                        e1.printStackTrace();
+                    if (s == null) {
+                        synchronized (object3) {
+                            object3.wait();
+                        }
                     }
                     input = s;
+                    s = null;
                 }
                 System.out.println(input);
                 command = gson.fromJson(input, new TypeToken<Command>() {
@@ -224,8 +261,7 @@ class ClientHandler extends Thread {
                 } else {
                     throw new GameException("authentication failed");
                 }
-            } catch (NoSuchMethodException | IllegalAccessException
-                    | InvocationTargetException | GameException e) {
+            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | GameException | InterruptedException e) {
                 e.printStackTrace();
                 JsonObject jsonObject = new JsonObject();
                 if (e instanceof InvocationTargetException) {
@@ -690,6 +726,9 @@ class ClientHandler extends Thread {
                         }
                     } else {
                         this.s = s;
+                        synchronized (object3) {
+                            object3.notify();
+                        }
                     }
                 }).start();
                 object.wait();
@@ -735,6 +774,10 @@ class ClientHandler extends Thread {
         game.endGame(account);
     }
 
+    private void endGame(Account account) {
+        game.endGame(account);
+    }
+
     private void setGameListener(ClientHandler handler) {
         game.setEvents(new GameEvents() {
             @Override
@@ -758,7 +801,7 @@ class ClientHandler extends Thread {
                 }
                 game = null;
                 mode = null;
-                if (handler!=null){
+                if (handler != null) {
                     handler.game = null;
                     handler.mode = null;
                 }

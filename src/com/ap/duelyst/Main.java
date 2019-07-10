@@ -90,6 +90,7 @@ public class Main extends Application {
             }
         }.start();
         primaryStage.show();
+        primaryStage.setOnCloseRequest(event -> System.exit(0));
     }
 
     private Scene makeCustomScene(Stage stage) throws IOException {
@@ -117,7 +118,7 @@ public class Main extends Application {
             stage.setScene(loginPageScene);
             stage.setTitle("Game Of Cards: Log in");
         } else if (currentMenu instanceof MainMenu) {
-            battleController=null;
+            battleController = null;
             secondMenuController.setMainMenu((MainMenu) currentMenu);
             secondMenuController.update();
             stage.setScene(mainMenuScene);
