@@ -37,6 +37,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
@@ -67,6 +68,7 @@ public class BattleController implements Initializable {
     public HBox dialog;
     public Label dialogText;
     public VBox dialogContainer;
+    public ProgressBar timerBar;
     private DialogController dialogController;
     public VBox notificationContainer;
     public Label notification;
@@ -116,13 +118,18 @@ public class BattleController implements Initializable {
     private Map<String, CardSprite> spriteMap = new HashMap<>();
     private ReaderThread readerThread;
     private List<List<Cell>> cachedBoard;
+    private Timeline timeline;
+    private Thread thread;
+
 
     {
-        new Thread(() -> {
+        thread = new Thread(() -> {
             addToList("hellfire", fire);
             addToList("poison-lake", poison);
             addToList("health-with-benefit", holy);
-        }).start();
+        });
+        thread.setDaemon(true);
+        thread.start();
     }
 
     private void addToList(String name, List<CardSprite> list) {
@@ -323,11 +330,42 @@ public class BattleController implements Initializable {
                                 "')"));
                 turnButton.setDisable(true);
             }
+            if (getCurrentPlayer().getAccountName().equals(Main.userName)) {
+                timerBar.setDisable(false);
+            } else {
+                timerBar.setDisable(true);
+            }
+            if (timeline != null) {
+                timeline.stop();
+            }
+            timeline = new Timeline(
+                    new KeyFrame(Duration.ZERO,
+                            new KeyValue(timerBar.progressProperty(), 1)),
+                    new KeyFrame(Duration.seconds(30), e -> {
+                        if (getCurrentPlayer().getAccountName().equals(Main.userName)) {
+                            endTurn();
+                        }
+                    }, new KeyValue(timerBar.progressProperty(), 0))
+            );
+            timeline.setCycleCount(1);
+            timeline.play();
         }
 
         @Override
         public void gameEnded(String result) {
-
+            timeline.stop();
+            thread.interrupt();
+            if (!result.isEmpty()) {
+                dialogController.showDialog(result);
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        manager.setCurrentMenu(menu.getParentMenu().getParentMenu());
+                    }
+                }, 2000);
+            } else {
+                manager.setCurrentMenu(menu.getParentMenu().getParentMenu());
+            }
         }
 
         @Override
@@ -652,7 +690,7 @@ public class BattleController implements Initializable {
             p2Box.setDisable(true);
             p2Name.setDisable(true);
             p2ManaBox.setOpacity(.5);
-        }else {
+        } else {
             p1ManaBox.setDisable(true);
             p1Box.setDisable(true);
             p1Name.setDisable(true);
@@ -932,66 +970,6 @@ public class BattleController implements Initializable {
 
         return (StackPane) result;
     }
-
-    /*public void setGame(Controller controller) {
-        if (this.game == null) {
-            manager = controller.getMenuManager();
-            this.game = controller.getGame();
-            p1Name.setText(getPlayers().get(0).getAccountName());
-            p2Name.setText(getPlayers().get(1).getAccountName());
-            this.account = controller.getCurrentAccount();
-            this.game.setEvents(new GameEvents() {
-                @Override
-                public void nextRound(List<Hero> inGameCards) {
-                    updateHand();
-                    if (!getCurrentPlayer().getAccountName().equals("AI")) {
-                        updateBoard(inGameCards, true);
-                    }
-                    if (getCurrentPlayer().getAccountName().equals(Main.userName)) {
-                        showNotification(true);
-                        turnButton.setDisable(false);
-                        turnButton.setText("     End Turn     ");
-                        turnButton.setStyle("-fx-background-image: url('" + turn + "')");
-                        turnButton.setOnMousePressed(event -> turnButton
-                                .setStyle("-fx-background-image: url('" + turnGlow +
-                                        "')"));
-                        turnButton.setOnMouseReleased(event -> turnButton
-                                .setStyle("-fx-background-image: url('" + turn + "')"));
-                    } else {
-                        showNotification(false);
-                        turnButton.setText("    Enemy Turn    ");
-                        turnButton.setOnMouseReleased(event -> turnButton
-                                .setStyle("-fx-background-image: url('" + turnEnemy +
-                                        "')"));
-                        turnButton.setDisable(true);
-                    }
-
-                }
-
-                @Override
-                public void AIMove(Card card, int oldX, int oldY, int finalI,
-                                   int finalJ) {
-                    move(card, oldX, oldY, finalI, finalJ);
-                }
-
-                @Override
-                public void gameEnded(String result) {
-                    dialogController.showDialog(result);
-                    new Timer().schedule(new TimerTask() {
-                        @Override
-                        public void run() {
-                            Platform.runLater(() ->
-                                    manager.setCurrentMenu(menu.getParentMenu()
-                                    .getParentMenu()));
-                        }
-                    }, 2000);
-                }
-            });
-            this.game.startGame();
-            addUsableItem(0, p1Box);
-            addUsableItem(1, p2Box);
-        }
-    }*/
 
     private void addUsableItem(int i, VBox vBox) {
         List<Item> items = getPlayers().get(i).getDeck().getItems();
@@ -1420,8 +1398,9 @@ public class BattleController implements Initializable {
 
     public void close() {
         dialogController.setEventHandler(event ->
-                manager.setCurrentMenu(menu.getParentMenu().getParentMenu()));
-        dialogController.showDialog("Are you sure ?", true);
+                Main.writer.println(new Gson().toJson(new Command("endGame"))));
+        dialogController.showDialog("Are you sure ? you will lose the game and lose " +
+                "Money", true);
     }
 
     private <T> T callServer(String commandName, TypeToken<T> typeToken,
@@ -1568,6 +1547,7 @@ class ReaderThread extends Thread {
     @Override
     public void run() {
         super.run();
+        main:
         while (true) {
             try {
                 JsonObject jsonObject =
@@ -1606,6 +1586,10 @@ class ReaderThread extends Thread {
                         case "useCollectable":
                             Platform.runLater(() -> events.useCollectable(""));
                             break;
+                        case "gameEnded":
+                            Platform.runLater(() -> events.gameEnded(jsonObject.get(
+                                    "result").getAsString()));
+                            break main;
                     }
                 }
                 if (jsonObject.get("resp") != null && !jsonObject.get("resp").getAsString().equals("null")) {

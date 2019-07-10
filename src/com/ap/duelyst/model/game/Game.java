@@ -1330,7 +1330,7 @@ public class Game {
             public void run() {
                 endTurn();
             }
-        }, 2000);
+        }, 5000);
     }
 
     public void setEvents(GameEvents events) {
@@ -1351,5 +1351,10 @@ public class Game {
 
     public List<List<Cell>> getBoard() {
         return board;
+    }
+
+    public void endGame(Account account) {
+        account.decreaseBudget(reward);
+        events.gameEnded("");
     }
 }

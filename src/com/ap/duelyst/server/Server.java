@@ -205,11 +205,12 @@ class ClientHandler extends Thread {
                     method.invoke(this, command.getParameters());
                     writer.println(gson.toJson(jsonObject));
                 } else if (token != null && token.equals(command.getToken())) {
-                    JsonObject jsonObject = new JsonObject();
-                    jsonObject.addProperty("resp",
-                            gson.toJson(method.invoke(this,
-                                    command.getParameters())));
-                    writer.println(gson.toJson(jsonObject));
+                    Object o = method.invoke(this, command.getParameters());
+                    if (o != null) {
+                        JsonObject jsonObject = new JsonObject();
+                        jsonObject.addProperty("resp", gson.toJson(o));
+                        writer.println(gson.toJson(jsonObject));
+                    }
                 } else {
                     throw new GameException("authentication failed");
                 }
@@ -671,6 +672,14 @@ class ClientHandler extends Thread {
             System.out.println(clientHandlers.size());
             if (clientHandlers.size() < 2) {
                 System.out.println("waiting: " + account.getUserName());
+                new Thread(() -> {
+                    String s = reader.nextLine();
+                    if (s.equals("cancel")) {
+                        synchronized (object) {
+                            object.notify();
+                        }
+                    }
+                }).start();
                 object.wait();
             }
             object.notify();
@@ -694,14 +703,24 @@ class ClientHandler extends Thread {
         }
     }
 
-    private void createGame(Double deckNumber, String modeString,
-                            Double flagNumber) throws CloneNotSupportedException {
+    private String createGame(Double deckNumber, String modeString,
+                              Double flagNumber) throws CloneNotSupportedException {
         Deck deck = createDeck(deckNumber);
         game = Game.createGame(account, null,
                 BattleMenu.CustomGameMode.valueOf(modeString), deck,
                 flagNumber.intValue(), 1000);
         setGameListener(null);
-        game.startGame();
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                game.startGame();
+            }
+        }, 200);
+        return "game created";
+    }
+
+    private void endGame() {
+        game.endGame(account);
     }
 
     private void setGameListener(ClientHandler handler) {
@@ -718,7 +737,23 @@ class ClientHandler extends Thread {
 
             @Override
             public void gameEnded(String result) {
-
+                JsonObject jsonObject = new JsonObject();
+                jsonObject.addProperty("name", "gameEnded");
+                jsonObject.addProperty("result", result);
+                writer.println(gson.toJson(jsonObject));
+                if (handler != null) {
+                    handler.writer.println(gson.toJson(jsonObject));
+                }
+                Thread.getAllStackTraces().keySet().stream()
+                        .filter(thread -> thread instanceof ClientHandler)
+                        .map(thread -> (ClientHandler) thread)
+                        .filter(thread -> thread.game == game)
+                        .forEach(thread -> {
+                            System.out.println(thread.account.getUserName() + "'s game " +
+                                    "ended");
+                            thread.game = null;
+                            thread.mode = null;
+                        });
             }
 
             @Override

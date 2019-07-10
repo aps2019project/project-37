@@ -117,6 +117,7 @@ public class Main extends Application {
             stage.setScene(loginPageScene);
             stage.setTitle("Game Of Cards: Log in");
         } else if (currentMenu instanceof MainMenu) {
+            battleController=null;
             secondMenuController.setMainMenu((MainMenu) currentMenu);
             secondMenuController.update();
             stage.setScene(mainMenuScene);

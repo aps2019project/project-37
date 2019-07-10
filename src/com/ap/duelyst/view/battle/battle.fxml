@@ -56,6 +56,7 @@
                 <Region VBox.vgrow="ALWAYS" />
                 <GridPane fx:id="board" />
                 <Region VBox.vgrow="ALWAYS" />
+            <ProgressBar fx:id="timerBar" maxHeight="5.0" prefHeight="5.0" prefWidth="600.0" progress="0.0" />
                 <HBox alignment="CENTER" prefWidth="1920.0">
                     <children>
                         <Region HBox.hgrow="ALWAYS" />

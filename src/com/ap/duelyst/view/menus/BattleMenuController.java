@@ -61,6 +61,7 @@ public class BattleMenuController implements Initializable {
     public VBox customModeBox;
     private int customDeck = -1;
     private DialogController dialogController;
+    private SearchHandler searchHandler;
 
     interface SearchListener {
         void success();
@@ -319,7 +320,7 @@ public class BattleMenuController implements Initializable {
         Command command = new Command("searchForOpponent", mode);
         Main.writer.println(new Gson().toJson(command));
         loadingContainer.setVisible(true);
-        new SearchHandler(new SearchListener() {
+        searchHandler = new SearchHandler(new SearchListener() {
             @Override
             public void success() {
                 menuManager.setCurrentMenu(battleMenu.getInGameBattleMenu());
@@ -329,11 +330,14 @@ public class BattleMenuController implements Initializable {
             public void failure(String message) {
                 dialogController.showDialog(message);
             }
-        }).start();
+        });
+        searchHandler.start();
     }
 
     public void cancelSearch() {
         loadingContainer.setVisible(false);
+        Main.writer.println("cancel");
+        searchHandler.setListener(null);
     }
 }
 
@@ -378,24 +382,27 @@ class SearchHandler extends Thread {
 
     SearchHandler(BattleMenuController.SearchListener listener) {
         this.listener = listener;
+        setDaemon(true);
     }
 
     @Override
     public void run() {
-        while (true) {
-            JsonObject resp = new JsonParser().parse(Main.scanner.nextLine())
-                    .getAsJsonObject();
-            if (resp.get("resp") != null) {
-                if (listener != null) {
-                    Platform.runLater(() -> listener.success());
-                }
-                break;
-            } else if (resp.get("error") != null) {
-                if (listener != null) {
-                    Platform.runLater(() -> listener.failure(resp.get("error").getAsString()));
-                }
+        JsonObject resp = new JsonParser().parse(Main.scanner.nextLine())
+                .getAsJsonObject();
+        if (resp.get("resp") != null) {
+            if (listener != null) {
+                Platform.runLater(() -> listener.success());
+            }
+        } else if (resp.get("error") != null) {
+            if (listener != null) {
+                Platform.runLater(() -> listener.failure(resp.get("error").getAsString()));
             }
         }
+
+    }
+
+    public void setListener(BattleMenuController.SearchListener listener) {
+        this.listener = listener;
     }
 }
 
