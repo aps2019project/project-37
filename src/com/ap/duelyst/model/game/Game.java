@@ -44,7 +44,7 @@ public class Game {
         if (account2 == null) {
             player2 = new Player("AI", deck, true);
         } else {
-            player2 = new Player(account2.getUserName(), account2.getMainDeck(), false);
+            player2 = new Player(account2.getUserName(), account2.getCloneDeck(), false);
         }
         return new Game(player1, player2, flagNumber, mode, reward);
     }

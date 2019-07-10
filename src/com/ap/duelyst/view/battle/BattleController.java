@@ -786,7 +786,7 @@ public class BattleController implements Initializable {
                             firstClickType = MouseButton.PRIMARY;
                             try {
                                 Command command = new Command("useSpecialPower",
-                                        selectedCard.getId(),finalI, finalJ);
+                                        selectedCard.getId(), finalI, finalJ);
                                 Main.writer.println(new Gson().toJson(command));
                             } catch (GameException e) {
                                 dialogController.showDialog(e.getMessage());
@@ -795,7 +795,7 @@ public class BattleController implements Initializable {
                         }
                         if (selectedItem != null) {
                             try {
-                                Command command=new Command("useCollectable",
+                                Command command = new Command("useCollectable",
                                         selectedItem.getId());
                                 Main.writer.println(new Gson().toJson(command));
 
@@ -1115,9 +1115,11 @@ public class BattleController implements Initializable {
                     hero.getY());
             if (pane != null) {
                 ImageView imageView = hero.getCardSprite().getImageView();
-                if (!hero.getAccountName().equals(Main.userName)) {
+                if (hero.getAccountName().equals(getPlayers().get(1).getAccountName())) {
                     imageView.setRotationAxis(Rotate.Y_AXIS);
                     imageView.setRotate(180);
+                }
+                if (!hero.getAccountName().equals(Main.userName)) {
                     pane.setStyle("-fx-background-color: rgba(255,3,0,0" +
                             ".38)");
                     pane.setDisable(true);

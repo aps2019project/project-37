@@ -418,7 +418,7 @@ public abstract class NSObject implements Cloneable {
             } else if (Set.class.isAssignableFrom(clazz)) {
                 result = new HashSet<Object>();
             } else {
-                //we fail
+                //we failure
                 throw new IllegalArgumentException("Could not find a proper implementation for " + clazz.getSimpleName());
             }
         } else {

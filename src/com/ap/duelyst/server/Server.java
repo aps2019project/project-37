@@ -6,7 +6,6 @@ import com.ap.duelyst.controller.menu.BattleMenu;
 import com.ap.duelyst.model.*;
 import com.ap.duelyst.model.Collection;
 import com.ap.duelyst.model.cards.Card;
-import com.ap.duelyst.model.cards.Hero;
 import com.ap.duelyst.model.game.Cell;
 import com.ap.duelyst.model.game.Game;
 import com.ap.duelyst.model.game.GraveYard;
@@ -20,7 +19,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.ImageCursor;
 import javafx.scene.Parent;
@@ -50,14 +48,14 @@ public class Server extends Application {
         new Timer().scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                List<String> names=Thread.getAllStackTraces().keySet().stream()
+                List<String> names = Thread.getAllStackTraces().keySet().stream()
                         .filter(thread -> thread instanceof ClientHandler)
-                        .filter(thread -> ((ClientHandler) thread).getAccount()!=null)
+                        .filter(thread -> ((ClientHandler) thread).getAccount() != null)
                         .map(thread -> ((ClientHandler) thread).getAccount().getUserName())
                         .collect(Collectors.toList());
                 Platform.runLater(() -> shopServerController.updateUsersList(names));
             }
-        },1000,1000);
+        }, 1000, 1000);
         primaryStage.setScene(shopServerScene);
         primaryStage.show();
     }
@@ -65,7 +63,7 @@ public class Server extends Application {
     public static void main(String[] args) throws IOException {
         new GameServer().start();
         new ChatRoomServer().start();
-        launch(args);
+//        launch(args);
     }
 
     private Scene makeShopServerScene() throws IOException {
@@ -137,7 +135,7 @@ class ChatRoomHandler extends Thread {
                 String finalMessage = message;
                 Thread.getAllStackTraces().keySet().stream()
                         .filter(thread -> thread instanceof ChatRoomHandler)
-                        .filter(thread -> thread!=this)
+                        .filter(thread -> thread != this)
                         .forEach(thread -> {
                             try {
                                 ((ChatRoomHandler) thread).clientWriter.writeUTF(finalMessage);
@@ -160,6 +158,11 @@ class ClientHandler extends Thread {
     private Scanner reader;
     private PrintWriter writer;
     private Game game;
+    private boolean readyToPlay;
+    private BattleMenu.CustomGameMode mode = BattleMenu.CustomGameMode.UNKNOWN;
+    private static final Object object = new Object();
+    private static final Object object1 = new Object();
+    private static final Object object2 = new Object();
 
     ClientHandler(Socket socket) {
         this.gson = Utils.getGson();
@@ -599,7 +602,7 @@ class ClientHandler extends Thread {
 
     private void addCard(List<Card> cards, String... names) throws CloneNotSupportedException {
         for (String name : names) {
-            Card card = ((Card) Utils.getShop().getObjectByName(name)).clone();
+            Card card = ((Card) Utils.getUnmodifiedShop().getObjectByName(name)).clone();
             String id = generateId(cards, card);
             card.setId(id);
             card.setAccountName("AI");
@@ -608,7 +611,7 @@ class ClientHandler extends Thread {
     }
 
     private Item getItem(String name) throws CloneNotSupportedException {
-        Item item = ((Item) Utils.getShop().getObjectByName(name)).clone();
+        Item item = ((Item) Utils.getUnmodifiedShop().getObjectByName(name)).clone();
         item.setId("AI_Player_" + name + "_1");
         return item;
     }
@@ -619,7 +622,7 @@ class ClientHandler extends Thread {
         return "AI_Player_" + card.getName() + "_" + index;
     }
 
-    private void createGame(String storyLevelString, Double flagNumber)
+    private String createGame(String storyLevelString, Double flagNumber)
             throws CloneNotSupportedException {
         BattleMenu.StoryLevel storyLevel =
                 BattleMenu.StoryLevel.valueOf(storyLevelString);
@@ -628,8 +631,67 @@ class ClientHandler extends Thread {
         Deck deck = createDeck(Double.valueOf(storyLevel.value));
         game = Game.createGame(account, null, mode, deck, flagNumber.intValue(),
                 Integer.valueOf(storyLevel.value) * 500);
-        setGameListener();
-        game.startGame();
+        setGameListener(null);
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                game.startGame();
+            }
+        }, 200);
+        return "game created";
+    }
+
+    private String searchForOpponent(String modeString) throws InterruptedException {
+        readyToPlay = true;
+        mode = BattleMenu.CustomGameMode.valueOf(modeString);
+        switch (mode) {
+
+            case KILL_ENEMY_HERO:
+                return lock(object);
+            case KEEP_FLAG_8_ROUNDS:
+                return lock(object1);
+            case COLLECT_HALF_FLAGS:
+                return lock(object2);
+            default:
+                throw new GameException("error with mode");
+        }
+    }
+
+    private String lock(Object object) throws InterruptedException {
+        synchronized (object) {
+            List<ClientHandler> clientHandlers =
+                    Thread.getAllStackTraces().keySet().stream()
+                            .filter(thread -> thread instanceof ClientHandler)
+                            .map(thread -> (ClientHandler) thread)
+                            .filter(thread -> thread.account != null)
+                            .filter(thread -> thread.game == null)
+                            .filter(thread -> thread.readyToPlay)
+                            .filter(thread -> thread.mode == mode)
+                            .collect(Collectors.toList());
+            System.out.println(clientHandlers.size());
+            if (clientHandlers.size() < 2) {
+                System.out.println("waiting: " + account.getUserName());
+                object.wait();
+            }
+            object.notify();
+            clientHandlers.stream().filter(clientHandler -> clientHandler != this)
+                    .findFirst().ifPresent(handler -> {
+                Game game = Game.createGame(handler.account, this.account, mode, null,
+                        5, 1000);
+                this.game = game;
+                handler.game = game;
+                setGameListener(handler);
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        game.startGame();
+                    }
+                }, 200);
+            });
+            readyToPlay = false;
+            System.out.println("resumed: " + account.getUserName());
+            return "game created";
+        }
     }
 
     private void createGame(Double deckNumber, String modeString,
@@ -638,17 +700,20 @@ class ClientHandler extends Thread {
         game = Game.createGame(account, null,
                 BattleMenu.CustomGameMode.valueOf(modeString), deck,
                 flagNumber.intValue(), 1000);
-        setGameListener();
+        setGameListener(null);
         game.startGame();
     }
 
-    private void setGameListener() {
+    private void setGameListener(ClientHandler handler) {
         game.setEvents(new GameEvents() {
             @Override
             public void nextRound() {
                 JsonObject jsonObject = new JsonObject();
                 jsonObject.addProperty("name", "nextRound");
                 writer.println(gson.toJson(jsonObject));
+                if (handler != null) {
+                    handler.writer.println(gson.toJson(jsonObject));
+                }
             }
 
             @Override
@@ -664,6 +729,9 @@ class ClientHandler extends Thread {
                 jsonObject.addProperty("x", x);
                 jsonObject.addProperty("y", y);
                 writer.println(gson.toJson(jsonObject));
+                if (handler != null) {
+                    handler.writer.println(gson.toJson(jsonObject));
+                }
             }
 
             @Override
@@ -676,6 +744,9 @@ class ClientHandler extends Thread {
                 jsonObject.addProperty("finalI", finalI);
                 jsonObject.addProperty("finalJ", finalJ);
                 writer.println(gson.toJson(jsonObject));
+                if (handler != null) {
+                    handler.writer.println(gson.toJson(jsonObject));
+                }
             }
 
             @Override
@@ -685,6 +756,9 @@ class ClientHandler extends Thread {
                 jsonObject.addProperty("attackerId", attackerId);
                 jsonObject.addProperty("attackedId", attackedId);
                 writer.println(gson.toJson(jsonObject));
+                if (handler != null) {
+                    handler.writer.println(gson.toJson(jsonObject));
+                }
             }
 
             @Override
@@ -695,6 +769,9 @@ class ClientHandler extends Thread {
                 jsonObject.addProperty("finalI", finalI);
                 jsonObject.addProperty("finalJ", finalJ);
                 writer.println(gson.toJson(jsonObject));
+                if (handler != null) {
+                    handler.writer.println(gson.toJson(jsonObject));
+                }
 
             }
 
@@ -703,14 +780,14 @@ class ClientHandler extends Thread {
                 JsonObject jsonObject = new JsonObject();
                 jsonObject.addProperty("name", "useCollectable");
                 writer.println(gson.toJson(jsonObject));
+                if (handler != null) {
+                    handler.writer.println(gson.toJson(jsonObject));
+                }
             }
 
 
             @Override
             public void startGame() {
-                JsonObject jsonObject = new JsonObject();
-                jsonObject.addProperty("resp", "game started");
-                writer.println(gson.toJson(jsonObject));
             }
 
             @Override

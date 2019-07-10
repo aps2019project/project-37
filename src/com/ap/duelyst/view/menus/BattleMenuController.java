@@ -2,10 +2,8 @@ package com.ap.duelyst.view.menus;
 
 import com.ap.duelyst.Command;
 import com.ap.duelyst.Main;
-import com.ap.duelyst.controller.Controller;
 import com.ap.duelyst.controller.menu.BattleMenu;
 import com.ap.duelyst.controller.menu.MenuManager;
-import com.ap.duelyst.model.Account;
 import com.ap.duelyst.model.Deck;
 import com.ap.duelyst.model.Utils;
 import com.ap.duelyst.model.cards.Hero;
@@ -17,7 +15,6 @@ import com.google.gson.reflect.TypeToken;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -35,19 +32,14 @@ import javafx.scene.layout.VBox;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.List;
 import java.util.ResourceBundle;
-import java.util.Scanner;
-import java.util.stream.Stream;
 
 public class BattleMenuController implements Initializable {
     public TextField messageField;
     public ListView<HBox> messageList;
-    static DataOutputStream writer;
+    private static DataOutputStream writer;
     public TableView<StoryObject> storyTable;
     public ChoiceBox<String> customMode;
     public ChoiceBox<Integer> customFlagNumbers;
@@ -55,6 +47,9 @@ public class BattleMenuController implements Initializable {
     public HBox dialog;
     public Label dialogText;
     public HBox heroes;
+    public ChoiceBox<String> multiMode;
+    public StackPane loadingContainer;
+    public ProgressIndicator loading;
     private MenuManager menuManager;
     private BattleMenu battleMenu;
     public StackPane root;
@@ -64,15 +59,20 @@ public class BattleMenuController implements Initializable {
     public VBox storyBox;
     public VBox customModeBox;
     private int customDeck = -1;
-
     private DialogController dialogController;
+
+    interface SearchListener {
+        void success();
+
+        void failure(String message);
+    }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
         Socket socket;
         try {
-            socket = new Socket("localhost",8200);
+            socket = new Socket("localhost", 8200);
             new ReaderHandler(socket, messageList).start();
             writer = new DataOutputStream(socket.getOutputStream());
         } catch (IOException e) {
@@ -91,11 +91,11 @@ public class BattleMenuController implements Initializable {
                 dialogContainer);
     }
 
-    private void sendMessage(){
+    private void sendMessage() {
         String message = messageField.getText();
-        if(!message.isEmpty()){
+        if (!message.isEmpty()) {
             try {
-                writer.writeUTF(getUserName() +" : " + message);
+                writer.writeUTF(getUserName() + " : " + message);
                 writer.flush();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -110,19 +110,28 @@ public class BattleMenuController implements Initializable {
             messageField.setText("");
         }
     }
-    private String getUserName(){
+
+    private String getUserName() {
         Command command = new Command("getUserName");
         Main.writer.println(new Gson().toJson(command));
         JsonObject resp = new JsonParser().parse(Main.scanner.nextLine())
                 .getAsJsonObject();
         return Utils.getGson().fromJson(resp.get("resp").getAsString(),
-                new TypeToken<String>() {}.getType());
+                new TypeToken<String>() {
+                }.getType());
     }
 
     public void update() {
         changeVisibility(playerModeBox);
         prepareStories();
         prepareCustom();
+        multiMode.getItems().setAll(
+                "kill enemy hero",
+                "keep flags 8 rounds",
+                "collect half flags");
+        multiMode.getSelectionModel().select(0);
+        loadingContainer.setVisible(false);
+        loading.setProgress(-1);
     }
 
     private void prepareStories() {
@@ -278,9 +287,6 @@ public class BattleMenuController implements Initializable {
         Main.writer.println(new Gson().toJson(command));
         JsonObject resp = new JsonParser().parse(Main.scanner.nextLine())
                 .getAsJsonObject();
-        if (resp.get("resp") != null && resp.get("resp").getAsString().equals("null")) {
-            resp = new JsonParser().parse(Main.scanner.nextLine()).getAsJsonObject();
-        }
         if (resp.get("resp") != null) {
             menuManager.setCurrentMenu(battleMenu.getInGameBattleMenu());
         } else {
@@ -305,14 +311,37 @@ public class BattleMenuController implements Initializable {
             showSinglePlayer();
         }
     }
+
+    public void playMulti() {
+        BattleMenu.CustomGameMode mode = BattleMenu.CustomGameMode.getMode(
+                String.valueOf(multiMode.getSelectionModel().getSelectedIndex() + 1));
+        Command command = new Command("searchForOpponent", mode);
+        Main.writer.println(new Gson().toJson(command));
+        loadingContainer.setVisible(true);
+        new SearchHandler(new SearchListener() {
+            @Override
+            public void success() {
+                menuManager.setCurrentMenu(battleMenu.getInGameBattleMenu());
+            }
+
+            @Override
+            public void failure(String message) {
+                dialogController.showDialog(message);
+            }
+        }).start();
+    }
+
+    public void cancelSearch() {
+        loadingContainer.setVisible(false);
+    }
 }
 
 
-
-class ReaderHandler extends Thread{
+class ReaderHandler extends Thread {
     private Socket socket;
     private ListView<HBox> messageList;
-    ReaderHandler(Socket socket, ListView<HBox> messageList){
+
+    ReaderHandler(Socket socket, ListView<HBox> messageList) {
         this.socket = socket;
         this.messageList = messageList;
         setDaemon(true);
@@ -323,7 +352,7 @@ class ReaderHandler extends Thread{
         try {
             DataInputStream reader = new DataInputStream(socket.getInputStream());
             String message;
-            while (true){
+            while (true) {
                 message = reader.readUTF();
                 String finalMessage = message;
                 Platform.runLater(() -> {
@@ -342,3 +371,30 @@ class ReaderHandler extends Thread{
 
     }
 }
+
+class SearchHandler extends Thread {
+    private BattleMenuController.SearchListener listener;
+
+    SearchHandler(BattleMenuController.SearchListener listener) {
+        this.listener = listener;
+    }
+
+    @Override
+    public void run() {
+        while (true) {
+            JsonObject resp = new JsonParser().parse(Main.scanner.nextLine())
+                    .getAsJsonObject();
+            if (resp.get("resp") != null) {
+                if (listener != null) {
+                    Platform.runLater(() -> listener.success());
+                }
+                break;
+            } else if (resp.get("error") != null) {
+                if (listener != null) {
+                    Platform.runLater(() -> listener.failure(resp.get("error").getAsString()));
+                }
+            }
+        }
+    }
+}
+

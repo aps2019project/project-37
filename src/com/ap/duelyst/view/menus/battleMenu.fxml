@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ChoiceBox?>
@@ -13,7 +18,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<StackPane fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.ap.duelyst.view.menus.BattleMenuController">
+<StackPane fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.ap.duelyst.view.menus.BattleMenuController">
     <children>
         <StackPane maxWidth="820.0" style="-fx-background-color: rgba(0,0,0,0.65)">
             <children>
@@ -121,9 +126,71 @@
                   <Button mnemonicParsing="false" onAction="#playCustom" prefHeight="60.0" prefWidth="200.0" styleClass="button-accept" text="Play" />
                     </children>
                 </VBox>
+            <VBox fx:id="multiPlayerBox" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="16.0" StackPane.alignment="CENTER">
+               <StackPane.margin>
+                  <Insets />
+               </StackPane.margin>
+               <children>
+                  <Label text="Multi Player" textFill="WHITE">
+                     <font>
+                        <Font size="24.0" />
+                     </font>
+                  </Label>
+                  <Label style="-fx-font-size: 16;" text="Select Mode" textFill="WHITE">
+                     <font>
+                        <Font size="20.0" />
+                     </font>
+                     <VBox.margin>
+                        <Insets top="16.0" />
+                     </VBox.margin>
+                  </Label>
+                  <ChoiceBox fx:id="multiMode" prefWidth="200.0" />
+                  <Button mnemonicParsing="false" onAction="#playMulti" prefHeight="60.0" prefWidth="200.0" styleClass="button-accept" text="Play">
+                     <VBox.margin>
+                        <Insets top="16.0" />
+                     </VBox.margin>
+                  </Button>
+               </children>
+            </VBox>
             </children>
         </StackPane>
         <Button mnemonicParsing="false" onAction="#back" prefHeight="100.0" prefWidth="100.0" styleClass="button-back" StackPane.alignment="TOP_LEFT" />
+      <VBox alignment="CENTER" maxHeight="400.0" maxWidth="300.0" style="-fx-background-color: rgba(0,0,0,0.65); -fx-background-radius: 10;" StackPane.alignment="BOTTOM_RIGHT">
+         <children>
+            <Label alignment="CENTER" style="-fx-text-fill: white; -fx-font-size: 16;" text="Global ChatRoom" VBox.vgrow="ALWAYS" />
+            <ListView fx:id="messageList" prefHeight="200.0" prefWidth="200.0">
+               <VBox.margin>
+                  <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
+               </VBox.margin>
+            </ListView>
+            <TextField fx:id="messageField" promptText="Type your message">
+               <VBox.margin>
+                  <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
+               </VBox.margin>
+            </TextField>
+         </children>
+         <StackPane.margin>
+            <Insets bottom="16.0" left="16.0" right="16.0" top="16.0" />
+         </StackPane.margin>
+      </VBox>
+      <StackPane fx:id="loadingContainer" prefHeight="200.0" prefWidth="100.0" style="-fx-background-color: rgba(0,0,0,0.8);">
+         <children>
+            <ProgressIndicator fx:id="loading" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="100.0" prefWidth="100.0" progress="0.0" />
+            <Label text="Searching for opponent" textFill="WHITE" StackPane.alignment="TOP_CENTER">
+               <font>
+                  <Font size="24.0" />
+               </font>
+               <StackPane.margin>
+                  <Insets top="32.0" />
+               </StackPane.margin>
+            </Label>
+            <Button mnemonicParsing="false" onAction="#cancelSearch" prefHeight="60.0" prefWidth="200.0" text="Cancel" StackPane.alignment="BOTTOM_LEFT">
+               <StackPane.margin>
+                  <Insets bottom="16.0" left="16.0" />
+               </StackPane.margin>
+            </Button>
+         </children>
+      </StackPane>
         <VBox fx:id="dialogContainer" alignment="CENTER" fillWidth="false" prefHeight="200.0" prefWidth="100.0" style="-fx-background-color: rgba(0,0,0,0.61);">
             <children>
                 <HBox fx:id="dialog" alignment="CENTER_RIGHT">
@@ -143,23 +210,5 @@
                 </HBox>
             </children>
         </VBox>
-      <VBox fx:id="multiPlayerBox" alignment="CENTER" maxHeight="350.0" maxWidth="250.0" prefHeight="200.0" prefWidth="100.0" style="-fx-background-color: rgba(0,0,0,0.65);" StackPane.alignment="BOTTOM_RIGHT">
-         <children>
-            <Label alignment="CENTER" style="-fx-text-fill: white; -fx-font-size: 16;" text="Global ChatRoom" VBox.vgrow="ALWAYS" />
-            <ListView fx:id="messageList" prefHeight="200.0" prefWidth="200.0">
-               <VBox.margin>
-                  <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
-               </VBox.margin>
-            </ListView>
-            <TextField fx:id="messageField" promptText="Type your message">
-               <VBox.margin>
-                  <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
-               </VBox.margin>
-            </TextField>
-         </children>
-         <StackPane.margin>
-            <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
-         </StackPane.margin>
-      </VBox>
     </children>
 </StackPane>
