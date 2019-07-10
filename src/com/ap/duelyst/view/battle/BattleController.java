@@ -120,6 +120,9 @@ public class BattleController implements Initializable {
     private List<List<Cell>> cachedBoard;
     private Timeline timeline;
     private Thread thread;
+    private String cheat = "";
+    private Timer timer;
+    private boolean counting;
 
 
     {
@@ -291,6 +294,23 @@ public class BattleController implements Initializable {
                 hideHeroDialog();
             }
         });
+        root.setOnKeyTyped(event -> {
+            if (!counting) {
+                counting = true;
+                timer = new Timer(true);
+                timer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        counting = false;
+                        cheat = "";
+                    }
+                }, 10000);
+            }
+            cheat += event.getCharacter();
+            if (cheat.equals("barca.ride")) {
+                Main.writer.println(new Gson().toJson(new Command("cheat")));
+            }
+        });
         prepareHeroDialogCard();
         prepareHand();
         prepareBoard();
@@ -355,6 +375,7 @@ public class BattleController implements Initializable {
         public void gameEnded(String result) {
             timeline.stop();
             thread.interrupt();
+            timer.cancel();
             if (!result.isEmpty()) {
                 dialogController.showDialog(result);
                 new Timer().schedule(new TimerTask() {

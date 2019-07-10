@@ -771,11 +771,15 @@ class ClientHandler extends Thread {
     }
 
     private void endGame() {
-        game.endGame(account);
+        game.endGame(account,false);
+    }
+
+    private void cheat() {
+        game.endGame(account,true);
     }
 
     private void endGame(Account account) {
-        game.endGame(account);
+        game.endGame(account,false);
     }
 
     private void setGameListener(ClientHandler handler) {

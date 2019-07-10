@@ -1353,8 +1353,15 @@ public class Game {
         return board;
     }
 
-    public void endGame(Account account) {
-        account.decreaseBudget(reward);
-        events.gameEnded("");
+    public void endGame(Account account, boolean cheat) {
+        if (cheat) {
+            account.increaseBudget(reward);
+            events.gameEnded(account.getUserName()
+                    + " has won the game and got rewarded. reward: " + reward);
+        } else {
+            account.decreaseBudget(reward);
+            events.gameEnded("");
+        }
+
     }
 }
