@@ -163,6 +163,7 @@ class ClientHandler extends Thread {
     private static final Object object = new Object();
     private static final Object object1 = new Object();
     private static final Object object2 = new Object();
+    private String s;
 
     ClientHandler(Socket socket) {
         this.gson = Utils.getGson();
@@ -186,7 +187,16 @@ class ClientHandler extends Thread {
         String input;
         while (true) {
             try {
-                input = reader.nextLine();
+                try {
+                    input = reader.nextLine();
+                } catch (IndexOutOfBoundsException e) {
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e1) {
+                        e1.printStackTrace();
+                    }
+                    input = s;
+                }
                 System.out.println(input);
                 command = gson.fromJson(input, new TypeToken<Command>() {
                 }.getType());
@@ -678,6 +688,8 @@ class ClientHandler extends Thread {
                         synchronized (object) {
                             object.notify();
                         }
+                    } else {
+                        this.s = s;
                     }
                 }).start();
                 object.wait();
@@ -744,16 +756,12 @@ class ClientHandler extends Thread {
                 if (handler != null) {
                     handler.writer.println(gson.toJson(jsonObject));
                 }
-                Thread.getAllStackTraces().keySet().stream()
-                        .filter(thread -> thread instanceof ClientHandler)
-                        .map(thread -> (ClientHandler) thread)
-                        .filter(thread -> thread.game == game)
-                        .forEach(thread -> {
-                            System.out.println(thread.account.getUserName() + "'s game " +
-                                    "ended");
-                            thread.game = null;
-                            thread.mode = null;
-                        });
+                game = null;
+                mode = null;
+                if (handler!=null){
+                    handler.game = null;
+                    handler.mode = null;
+                }
             }
 
             @Override
