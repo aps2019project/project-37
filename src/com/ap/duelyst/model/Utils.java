@@ -13,6 +13,8 @@ import com.ap.duelyst.model.items.UsableItem;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import io.joshworks.restclient.http.HttpResponse;
+import io.joshworks.restclient.http.Unirest;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -52,7 +54,7 @@ public class Utils {
     }
 
     static {
-        try {
+        /*try {
             FileReader reader = new FileReader(
                     "src/com/ap/duelyst/data/accounts.txt");
             int c = reader.read();
@@ -79,6 +81,29 @@ public class Utils {
                     }.getType());
             reader.close();
         } catch (IOException ignored) {
+        }*/
+    }
+
+
+    public static void loadData(){
+        HttpResponse<String> response = Unirest.post("http://localhost:8080/get")
+                .field("name", "accounts")
+                .field("key", "accountsData")
+                .asString();
+        if (response.isSuccessful()) {
+            List<Account> accounts1 = getGson().fromJson(response.getBody(),
+                    new TypeToken<List<Account>>() {
+                    }.getType());
+            accounts.addAll(accounts1);
+        }
+        response = Unirest.post("http://localhost:8080/get")
+                .field("name", "shop")
+                .field("key", "shopData")
+                .asString();
+        if (response.isSuccessful()) {
+            Utils.shop = getGson().fromJson(response.getBody(),
+                    new TypeToken<Shop>() {
+                    }.getType());
         }
     }
 

@@ -6,6 +6,8 @@ import com.ap.duelyst.controller.menu.BattleMenu;
 import com.ap.duelyst.model.*;
 import com.ap.duelyst.model.Collection;
 import com.ap.duelyst.model.cards.Card;
+import com.ap.duelyst.model.cards.Minion;
+import com.ap.duelyst.model.cards.Spell;
 import com.ap.duelyst.model.game.Cell;
 import com.ap.duelyst.model.game.Game;
 import com.ap.duelyst.model.game.GraveYard;
@@ -17,6 +19,8 @@ import com.ap.duelyst.view.GameEvents;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import io.joshworks.restclient.http.HttpResponse;
+import io.joshworks.restclient.http.Unirest;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -63,7 +67,7 @@ public class Server extends Application {
     public static void main(String[] args) throws IOException {
         new GameServer().start();
         new ChatRoomServer().start();
-//        launch(args);
+        launch(args);
     }
 
     private Scene makeShopServerScene() throws IOException {
@@ -81,9 +85,30 @@ public class Server extends Application {
 class GameServer extends Thread {
     @Override
     public void run() {
+        try {
+            ProcessBuilder pb = new ProcessBuilder("java", "-jar",
+                    "/home/amin/Desktop/projects/Duelyst/src/com/ap/duelyst/server" +
+                            "/database/gs-rest-service-0.1.0.jar");
+            pb.directory(new File("/home/amin/Desktop/projects/Duelyst/src/com/ap" +
+                    "/duelyst/server/database"));
+            Process p = pb.start();
+            Scanner scanner = new Scanner(p.getInputStream());
+            new Thread(() -> {
+                while (true) {
+                    String s = scanner.nextLine();
+                    System.out.println(s);
+                    if (s.contains("Started Application")) {
+                        Utils.loadData();
+                        Platform.runLater(() -> Server.shopServerController.updateShopTable());
+                    }
+                }
+            }).start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         ServerSocket serverSocket;
         try {
-            serverSocket = new ServerSocket(8080);
+            serverSocket = new ServerSocket(5555);
             while (true) {
                 Socket socket = serverSocket.accept();
                 new ClientHandler(socket).start();
@@ -482,6 +507,7 @@ class ClientHandler extends Thread {
                 false);
         writer.write(Utils.getGson().toJson(Utils.getAccounts()));
         writer.close();
+        saveToDB("accounts", "accountsData", Utils.getGson().toJson(Utils.getAccounts()));
         saveShop();
         return "accounts saved successfully";
 
@@ -493,7 +519,39 @@ class ClientHandler extends Thread {
                 false);
         writer.write(Utils.getGson().toJson(Utils.getShop()));
         writer.close();
+        saveToDB("shop", "shopData", Utils.getGson().toJson(Utils.getShop()));
         return "shop saved successfully";
+    }
+
+    private void saveToDB(String name, String key, String value) {
+        HttpResponse<String> response = Unirest.post("http://localhost:8080/init_DB")
+                .field("name", name)
+                .asString();
+        if (response.isSuccessful()) {
+            System.out.println(response.getBody());
+        } else {
+            System.out.println("error: " + response.getBody());
+        }
+        response = Unirest.post("http://localhost:8080/del_from_DB")
+                .field("name", name)
+                .field("key", key)
+                .field("value", value)
+                .asString();
+        if (response.isSuccessful()) {
+            System.out.println(response.getBody());
+        } else {
+            System.out.println("error: " + response.getBody());
+        }
+        response = Unirest.post("http://localhost:8080/put")
+                .field("name", name)
+                .field("key", key)
+                .field("value", value)
+                .asString();
+        if (response.isSuccessful()) {
+            System.out.println(response.getBody());
+        } else {
+            System.out.println("error: " + response.getBody());
+        }
     }
 
     private List<Deck> getAllDecks() {
@@ -544,7 +602,7 @@ class ClientHandler extends Thread {
 
 
     public String importDeck(String name) {
-        try {
+        /*try {
             Files.createDirectories(Paths.get("src/com/ap/duelyst/data"));
             FileReader reader =
                     new FileReader("src/com/ap/duelyst/data/" + name + ".txt");
@@ -578,11 +636,40 @@ class ClientHandler extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
             throw new GameException("deck not found");
+        }*/
+        HttpResponse<String> response = Unirest.post("http://localhost:8080/get")
+                .field("name", "decks")
+                .field("key", name)
+                .asString();
+        if (response.isSuccessful()) {
+            Deck deck = Utils.getGson().fromJson(response.getBody(),
+                    new TypeToken<Deck>() {
+                    }.getType());
+            if (account.hasDeck(deck.getName())) {
+                throw new GameException("You already have that deck!");
+            } else {
+                for (Card card : deck.getCards()) {
+                    if (!account.getCollection().hasCardById(card.getId())) {
+                        throw new GameException("you dont have the cards in your " +
+                                "collection");
+                    }
+                }
+                for (Item item : deck.getItems()) {
+                    if (!account.getCollection().hasUsableItemById(item.getId())) {
+                        throw new GameException("you dont have the items in your " +
+                                "collection");
+                    }
+                }
+            }
+            account.getDecks().add(deck);
+            return "deck imported successfully";
+        } else {
+            throw new GameException("deck not found");
         }
     }
 
     public String exportDeck(String deckName) {
-        try {
+        /*try {
             Deck deck = account.getDeck(deckName);
             Files.createDirectories(Paths.get("src/com/ap/duelyst/data"));
             FileWriter writer = new FileWriter(
@@ -594,7 +681,10 @@ class ClientHandler extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
             return "failed to export deck";
-        }
+        }*/
+        Deck deck = account.getDeck(deckName);
+        saveToDB("decks", deckName, Utils.getGson().toJson(deck));
+        return "deck exported successfully";
     }
 
 
@@ -771,15 +861,15 @@ class ClientHandler extends Thread {
     }
 
     private void endGame() {
-        game.endGame(account,false);
+        game.endGame(account, false);
     }
 
     private void cheat() {
-        game.endGame(account,true);
+        game.endGame(account, true);
     }
 
     private void endGame(Account account) {
-        game.endGame(account,false);
+        game.endGame(account, false);
     }
 
     private void setGameListener(ClientHandler handler) {

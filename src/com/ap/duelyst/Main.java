@@ -271,7 +271,7 @@ public class Main extends Application {
         controller = thread.getController();
         thread.setDaemon(true);
         thread.start();
-        Socket socket = new Socket(Constants.ip, 8080);
+        Socket socket = new Socket(Constants.ip, 5555);
         writer = new PrintWriter(socket.getOutputStream(), true);
         scanner = new Scanner(socket.getInputStream());
         menuManager = new MenuManager(null);
