@@ -416,10 +416,12 @@ public class BattleController implements Initializable {
                 cardSprite.getImageView().setTranslateY(bounds.getMinY());
                 cardSprite.setOnFinished(e -> {
                     root.getChildren().remove(vBox);
+                    updateHand();
+                    updateBoard(getInBoardCards(), true);
                 });
             }
-            updateBoard(getInBoardCards(), true);
             updateHand();
+            updateBoard(getInBoardCards(), true);
         }
 
         @Override
